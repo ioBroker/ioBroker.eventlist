@@ -93,7 +93,12 @@
     "native": {
         "maxLength": 100,
         "dateFormat": "MMM Do, H:mm:ss",
-        "relativeTime": "3600"
+        "relativeTime": 3600,
+        "defaultBooleanTextTrue": "",
+        "defaultBooleanTextFalse": "",
+        "defaultBooleanText": "",
+        "defaultNonBooleanText": "",
+        "language": ""
     },
     "objects": [],
     "instanceObjects": [
@@ -110,8 +115,23 @@
             "native": {}
         },
         {
-            "_id": "eventList",
+            "_id": "eventListRaw",
             "common": {
+                "expert": true,
+                "name": "Raw events table",
+                "write": false,
+                "read": true,
+                "def": "[]",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        }
+    ,
+        {
+            "_id": "eventJSONList",
+            "common": {
+                "expert": true,
                 "name": "Event JSON table",
                 "write": false,
                 "read": true,

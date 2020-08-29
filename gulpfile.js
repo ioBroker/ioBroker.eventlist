@@ -4,14 +4,17 @@
  */
 'use strict';
 
-const gulp = require('gulp');
-const fs = require('fs');
-const pkg = require('./package.json');
+const gulp      = require('gulp');
+const fs        = require('fs');
+const pkg       = require('./package.json');
 const iopackage = require('./io-package.json');
-const version = (pkg && pkg.version) ? pkg.version : iopackage.common.version;
-const fileName = 'words.js';
-const EMPTY = '';
-const translate = require('./lib/tools').translateText;
+const version   = (pkg && pkg.version) ? pkg.version : iopackage.common.version;
+const fileName  = 'words.js';
+const EMPTY     = '';
+const translate = require('./lib/tools.js').translateText;
+const del       = require('del');
+const cp        = require('child_process');
+
 const languages = {
     en: {},
     de: {},
@@ -74,7 +77,7 @@ function padRight(text, totalLength) {
 function writeWordJs(data, src) {
     let text = '';
     text += '/*global systemDictionary:true */\n';
-    text += "'use strict';\n\n";
+    text += '\'use strict\';\n\n';
     text += 'systemDictionary = {\n';
     for (const word in data) {
         if (data.hasOwnProperty(word)) {
@@ -218,9 +221,10 @@ function languagesFlat2words(src) {
     });
     const keys = fs.readFileSync(src + 'i18n/flat.txt').toString().split('\n');
 
-    for (const lang of dirs) {
-        if (lang === 'flat.txt')
+    for (let l = 0; l < dirs.length; l++) {
+        if (dirs[l] === 'flat.txt')
             continue;
+        const lang = dirs[l];
         const values = fs.readFileSync(src + 'i18n/' + lang + '/flat.txt').toString().split('\n');
         langs[lang] = {};
         keys.forEach(function (word, i) {
@@ -290,9 +294,10 @@ function languages2words(src) {
             return 0;
         }
     });
-    for (const lang of dirs) {
-        if (lang === 'flat.txt')
+    for (let l = 0; l < dirs.length; l++) {
+        if (dirs[l] === 'flat.txt')
             continue;
+        const lang = dirs[l];
         langs[lang] = fs.readFileSync(src + 'i18n/' + lang + '/translations.json').toString();
         langs[lang] = JSON.parse(langs[lang]);
         const words = langs[lang];
@@ -340,7 +345,7 @@ async function translateNotExisting(obj, baseText, yandex) {
 
     if (t) {
         for (let l in languages) {
-            if (!obj[l]) {
+            if (!obj[l]) {                
                 const time = new Date().getTime();
                 obj[l] = await translate(t, l, yandex);
                 console.log('en -> ' + l + ' ' + (new Date().getTime() - time) + ' ms');
@@ -351,27 +356,27 @@ async function translateNotExisting(obj, baseText, yandex) {
 
 //TASKS
 
-gulp.task('adminWords2languages', function (done) {
+gulp.task('adminWords2languages', done => {
     words2languages('./admin/');
     done();
 });
 
-gulp.task('adminWords2languagesFlat', function (done) {
+gulp.task('adminWords2languagesFlat', done => {
     words2languagesFlat('./admin/');
     done();
 });
 
-gulp.task('adminLanguagesFlat2words', function (done) {
+gulp.task('adminLanguagesFlat2words', done => {
     languagesFlat2words('./admin/');
     done();
 });
 
-gulp.task('adminLanguages2words', function (done) {
+gulp.task('adminLanguages2words', done => {
     languages2words('./admin/');
     done();
 });
 
-gulp.task('updatePackages', function (done) {
+gulp.task('updatePackages', done => {
     iopackage.common.version = pkg.version;
     iopackage.common.news = iopackage.common.news || {};
     if (!iopackage.common.news[pkg.version]) {
@@ -396,7 +401,7 @@ gulp.task('updatePackages', function (done) {
     done();
 });
 
-gulp.task('updateReadme', function (done) {
+gulp.task('updateReadme', done => {
     const readme = fs.readFileSync('README.md').toString();
     const pos = readme.indexOf('## Changelog\n');
     if (pos !== -1) {
@@ -420,14 +425,13 @@ gulp.task('updateReadme', function (done) {
     done();
 });
 
-gulp.task('translate', async function (done) {
-
+gulp.task('translate', async function () {
     let yandex;
     const i = process.argv.indexOf('--yandex');
     if (i > -1) {
         yandex = process.argv[i + 1];
     }
-
+    
     if (iopackage && iopackage.common) {
         if (iopackage.common.news) {
             console.log('Translate News');
@@ -472,4 +476,110 @@ gulp.task('translate', async function (done) {
 
 gulp.task('translateAndUpdateWordsJS', gulp.series('translate', 'adminLanguages2words', 'adminWords2languages'));
 
-gulp.task('default', gulp.series('updatePackages', 'updateReadme'));
+gulp.task('clean', () =>
+    del(['admin/*/**', 'admin/*', '!admin/actions.js', '!admin/alexalogo.png', '!admin/blockly.js', '!admin/iot.png']));
+
+function npmInstall() {
+    return new Promise((resolve, reject) => {
+        // Install node modules
+        const cwd = __dirname.replace(/\\/g, '/') + '/src/';
+
+        const cmd = `npm install`;
+        console.log(`"${cmd} in ${cwd}`);
+
+        // System call used for update of js-controller itself,
+        // because during installation npm packet will be deleted too, but some files must be loaded even during the install process.
+        const exec = require('child_process').exec;
+        const child = exec(cmd, {cwd});
+
+        child.stderr.pipe(process.stderr);
+        child.stdout.pipe(process.stdout);
+
+        child.on('exit', (code /* , signal */) => {
+            // code 1 is strange error that cannot be explained. Everything is installed but error :(
+            if (code && code !== 1) {
+                reject('Cannot install: ' + code);
+            } else {
+                console.log(`"${cmd} in ${cwd} finished.`);
+                // command succeeded
+                resolve();
+            }
+        });
+    });
+}
+
+gulp.task('2-npm', () => {
+    if (fs.existsSync(__dirname + '/src/node_modules')) {
+        return Promise.resolve();
+    } else {
+        return npmInstall();
+    }
+});
+
+gulp.task('2-npm-dep', gulp.series('clean', '2-npm'));
+
+function build() {
+    return new Promise((resolve, reject) => {
+        const options = {
+            stdio: 'pipe',
+            cwd:   __dirname + '/src/'
+        };
+
+        const version = JSON.parse(fs.readFileSync(__dirname + '/package.json').toString('utf8')).version;
+        const data = JSON.parse(fs.readFileSync(__dirname + '/src/package.json').toString('utf8'));
+        data.version = version;
+        fs.writeFileSync(__dirname + '/src/package.json', JSON.stringify(data, null, 2));
+
+        console.log(options.cwd);
+
+        let script = __dirname + '/src/node_modules/react-scripts/scripts/build.js';
+        if (!fs.existsSync(script)) {
+            script = __dirname + '/node_modules/react-scripts/scripts/build.js';
+        }
+        if (!fs.existsSync(script)) {
+            console.error('Cannot find execution file: ' + script);
+            reject('Cannot find execution file: ' + script);
+        } else {
+            const child = cp.fork(script, [], options);
+            child.stdout.on('data', data => console.log(data.toString()));
+            child.stderr.on('data', data => console.log(data.toString()));
+            child.on('close', code => {
+                console.log(`child process exited with code ${code}`);
+                code ? reject('Exit code: ' + code) : resolve();
+            });
+        }
+    });
+}
+
+gulp.task('3-build', () => build());
+
+gulp.task('3-build-dep', gulp.series('2-npm-dep', '3-build'));
+
+gulp.task('5-copy', () =>
+    gulp.src(['src/build/*/**', 'src/build/*'])
+        .pipe(gulp.dest('admin/')));
+
+gulp.task('5-copy-dep', gulp.series('3-build-dep', '5-copy'));
+
+gulp.task('6-patch', () => new Promise(resolve => {
+    if (fs.existsSync(__dirname + '/admin/index.html')) {
+        let code = fs.readFileSync(__dirname + '/admin/index.html').toString('utf8');
+        code = code.replace(/<script>var script=document\.createElement\("script"\)[^<]+<\/script>/,
+            `<script type="text/javascript" src="./../../lib/js/socket.io.js"></script>`);
+
+        fs.unlinkSync(__dirname + '/admin/index.html');
+        fs.writeFileSync(__dirname + '/admin/index_m.html', code);
+    }
+    if (fs.existsSync(__dirname + '/src/build/index.html')) {
+        let code = fs.readFileSync(__dirname + '/src/build/index.html').toString('utf8');
+        code = code.replace(/<script>var script=document\.createElement\("script"\)[^<]+<\/script>/,
+            `<script type="text/javascript" src="./../../lib/js/socket.io.js"></script>`);
+
+        fs.writeFileSync(__dirname + '/src/build/index.html', code);
+    }
+    resolve();
+}));
+
+gulp.task('6-patch-dep',  gulp.series('5-copy-dep', '6-patch'));
+
+gulp.task('default', gulp.series('6-patch-dep'));

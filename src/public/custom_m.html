@@ -43,14 +43,14 @@
             if (obj && obj.common && obj.common.type === 'boolean') {
                 return {
                     enabled:        false,
-                    event:          (obj && obj.common && obj.common.name) || obj._id.split('.').pop(),
+                    event:          'default',
                     trueText:       instanceObj.native.trueText,
                     falseText:      instanceObj.native.falseText,
                 };
             } else {
                 return {
                     enabled:        false,
-                    event:          (obj && obj.common && obj.common.name) || obj._id.split('.').pop()
+                    event:          'default',
                 };
             }
         }
