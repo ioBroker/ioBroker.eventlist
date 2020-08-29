@@ -85,8 +85,8 @@ function startAdapter(options) {
         stateChange: (id, state) => {
             if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
                 eventListRaw = state2json(state);
-                reformatJsonTable(true)
-                    .then(() => adapter.log.debug('JSON table updated'));
+                reformatJsonTable(true).then(table =>
+                    adapter.setState('eventJSONList', JSON.stringify(table), true));
             } else
             if (id === adapter.namespace + '.insert' && !state.ack && state.val) {
                 if (state.val.startsWith('{')) {

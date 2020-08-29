@@ -28,8 +28,10 @@ import Utils from '@iobroker/adapter-react/Components/Utils'
 
 import {MdRefresh as IconReload} from 'react-icons/md';
 import {MdClose as IconClose} from 'react-icons/md';
+import {MdQuestionAnswer as IconQuestion} from 'react-icons/md';
 
 import I18n from '@iobroker/adapter-react/i18n';
+import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
 
 const styles = theme => ({
     tab: {
@@ -79,7 +81,7 @@ const styles = theme => ({
     }
 });
 
-class Options extends Component {
+class List extends Component {
     constructor(props) {
         super(props);
 
@@ -90,6 +92,7 @@ class Options extends Component {
             order: 'desc',
             orderBy: 'ts',
             selected: [],
+            showDeleteConfirm: false,
         };
 
         this.aliveId = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
@@ -101,6 +104,10 @@ class Options extends Component {
             { id: 'val',   label: I18n.t('Value') },
         ];
 
+        this.readStatus();
+    }
+
+    readStatus(cb) {
         this.props.socket.getState(this.aliveId).then(aliveState =>
             this.props.socket.getState(this.eventListId).then(state => {
                 let eventList;
@@ -109,7 +116,7 @@ class Options extends Component {
                 } catch (e) {
                     eventList = [];
                 }
-                this.setState({isInstanceAlive: aliveState && aliveState.val, eventList});
+                this.setState({isInstanceAlive: aliveState && aliveState.val, eventList}, () => cb && cb());
             }));
     }
 
@@ -229,11 +236,15 @@ class Options extends Component {
 
             {this.state.selected.length ?
                 <Tooltip title={I18n.t('Delete')}>
-                    <IconButton aria-label="delete">
+                    <IconButton aria-label="delete" onClick={() => this.setState({showDeleteConfirm: true})}>
                         <DeleteIcon />
                     </IconButton>
                 </Tooltip>
-             :  null}
+             :  <Tooltip title={I18n.t('Refresh list')}>
+                    <IconButton aria-label="refresh" onClick={() => this.readStatus()}>
+                        <IconReload />
+                    </IconButton>
+                </Tooltip>}
         </Toolbar>;
     }
 
@@ -286,6 +297,24 @@ class Options extends Component {
         this.setState({selected: newSelected});
     };
 
+    deleteEntries(cb) {
+        this.props.socket.getState(`${this.props.adapterName}.${this.props.instance}.eventListRaw`)
+            .then(state => {
+                let eventList;
+                try {
+                    eventList = state && state.val ? JSON.parse(state.val) : []
+                } catch (e) {
+                    eventList = [];
+                }
+
+                eventList = eventList.filter(item => !this.state.selected.includes(item.ts));
+
+                this.props.socket.setState(`${this.props.adapterName}.${this.props.instance}.eventListRaw`, JSON.stringify(eventList))
+                    .then(() =>
+                        this.setState({selected: []}, () => cb && cb()));
+            });
+    }
+
     renderList() {
         return <TableContainer>
                 <Table
@@ -326,21 +355,38 @@ class Options extends Component {
             </TableContainer>;
     }
 
+    renderConfirmDialog() {
+        if (!this.state.showDeleteConfirm) {
+            return null;
+        } else {
+            return <ConfirmDialog
+                title={I18n.t('Please confirm')}
+                text={I18n.t('Are you sure to delete events from list?')}
+                ok={I18n.t('Ok')}
+                cancel={I18n.t('Cancel')}
+                icon={<IconQuestion/>}
+                onClose={result => this.setState({showDeleteConfirm: false}, () =>
+                            result && this.deleteEntries())}
+                />
+        }
+    }
+
     render() {
         return (
             <Paper className={ this.props.classes.tab }>
                 {this.renderToolbar()}
                 {this.state.eventList && this.renderList()}
                 {this.renderToast()}
+                {this.renderConfirmDialog()}
             </Paper>
         );
     }
 }
 
-Options.propTypes = {
+List.propTypes = {
     instance: PropTypes.number.isRequired,
     adapterName: PropTypes.string.isRequired,
     socket: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(Options);
+export default withStyles(styles)(List);
