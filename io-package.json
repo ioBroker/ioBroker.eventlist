@@ -1,0 +1,125 @@
+{
+    "common": {
+        "name": "eventlist",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "Event list",
+        "titleLang": {
+            "en": "Event list",
+            "de": "Veranstaltungsliste",
+            "ru": "Список событий",
+            "pt": "Lista de evento",
+            "nl": "Evenementenlijst",
+            "fr": "Liste des événements",
+            "it": "Elenco degli eventi",
+            "es": "Lista de eventos",
+            "pl": "Lista wydarzeń",
+            "zh-cn": "活动列表"
+        },
+        "desc": {
+            "en": "Builds and shows the event list from desired states in admin, web and as widget",
+            "de": "Erstellt und zeigt die Ereignisliste aus den gewünschten Status in Admin, Web und als Widget an",
+            "ru": "Создает и отображает список событий из желаемых состояний в админке, в Интернете и в виде виджета.",
+            "pt": "Constrói e mostra a lista de eventos de estados desejados em admin, web e como widget",
+            "nl": "Bouwt en toont de evenementenlijst van de gewenste staten in admin, web en als widget",
+            "fr": "Construit et affiche la liste d'événements à partir des états souhaités dans admin, Web et en tant que widget",
+            "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
+            "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
+            "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
+            "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
+        },
+        "authors": [
+            "bluefox <dogafox@gmail.com>"
+        ],
+        "keywords": [
+            "event list",
+            "events"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "eventlist.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
+        "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
+        "loglevel": "info",
+        "restartAdapters": [
+            "vis"
+        ],
+        "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
+        "mode": "daemon",
+        "type": "visualization",
+        "compact": true,
+        "materialize": true,
+        "materializeTab": true,
+        "adminTab": {
+            "singleton": true,
+            "name": {
+                "en": "Event list",
+                "de": "Veranstaltungsliste",
+                "ru": "Список событий",
+                "pt": "Lista de evento",
+                "nl": "Evenementenlijst",
+                "fr": "Liste des événements",
+                "it": "Elenco degli eventi",
+                "es": "Lista de eventos",
+                "pl": "Lista wydarzeń",
+                "zh-cn": "活动列表"
+            },
+            "link": "",
+            "fa-icon": "info"
+        },
+        "supportCustoms": true,
+        "dependencies": [
+            {
+                "js-controller": ">=1.4.2"
+            },
+            "vis"
+        ]
+    },
+    "native": {
+        "maxLength": 100,
+        "dateFormat": "MMM Do, H:mm:ss",
+        "relativeTime": "3600"
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "insert",
+            "common": {
+                "name": "Insert event into table",
+                "write": true,
+                "read": false,
+                "type": "json",
+                "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "eventList",
+            "common": {
+                "name": "Event JSON table",
+                "write": false,
+                "read": true,
+                "def": "[]",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        }
+    ]
+}
