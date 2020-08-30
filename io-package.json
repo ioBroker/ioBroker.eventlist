@@ -65,6 +65,7 @@
         "compact": true,
         "materialize": true,
         "materializeTab": true,
+        "messagebox": true,
         "adminTab": {
             "singleton": true,
             "name": {
@@ -92,7 +93,7 @@
     },
     "native": {
         "maxLength": 100,
-        "dateFormat": "MMM Do, H:mm:ss",
+        "dateFormat": "MMM Do, HH:mm:ss",
         "relativeTime": 3600,
         "defaultBooleanTextTrue": "",
         "defaultBooleanTextFalse": "",

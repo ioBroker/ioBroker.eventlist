@@ -9,7 +9,6 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
-import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -18,25 +17,30 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import DeleteIcon from '@material-ui/icons/Delete';
-import FilterListIcon from '@material-ui/icons/FilterList';
-
+import Fab from '@material-ui/core/Fab';
 import Snackbar from '@material-ui/core/Snackbar';
-import Utils from '@iobroker/adapter-react/Components/Utils'
 
 import {MdRefresh as IconReload} from 'react-icons/md';
 import {MdClose as IconClose} from 'react-icons/md';
 import {MdQuestionAnswer as IconQuestion} from 'react-icons/md';
+import {MdAdd as IconAddId} from 'react-icons/md';
+import {MdEdit as IconAddEvent} from 'react-icons/md';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
+import AddEventDialog from '../Dialogs/AddEvent';
+import AddIdDialog from '../Dialogs/AddId';
 
 const styles = theme => ({
     tab: {
         width: '100%',
-        minHeight: '100%'
+        height: '100%',
+        overflow: 'hidden'
+    },
+    instanceNotOnline: {
+        color: '#883333',
+        marginLeft: theme.spacing(1)
     },
     toolbarRoot: {
         paddingLeft: theme.spacing(2),
@@ -54,6 +58,10 @@ const styles = theme => ({
     toolbarTitle: {
         flex: '1 1 100%',
     },
+    toolbarButton: {
+        marginRight: theme.spacing(1),
+        height: 37.25,
+    },
     visuallyHidden: {
         border: 0,
         clip: 'rect(0 0 0 0)',
@@ -64,6 +72,10 @@ const styles = theme => ({
         position: 'absolute',
         top: 20,
         width: 1,
+    },
+    tableContainer: {
+        height: '100%',
+        overflow: 'auto'
     },
     table:{
         width: 'auto',
@@ -89,14 +101,18 @@ class List extends Component {
             toast: '',
             isInstanceAlive: false,
             eventList: false,
+            eventRawList: false,
             order: 'desc',
             orderBy: 'ts',
             selected: [],
             showDeleteConfirm: false,
+            showAddIdDialog: false,
+            showAddEventDialog: false,
         };
 
         this.aliveId = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
         this.eventListId = `${this.props.adapterName}.${this.props.instance}.eventJSONList`;
+        this.eventRawListId = `${this.props.adapterName}.${this.props.instance}.eventListRaw`;
 
         this.headCells = [
             { id: 'ts',    label: I18n.t('Time') },
@@ -108,36 +124,53 @@ class List extends Component {
     }
 
     readStatus(cb) {
-        this.props.socket.getState(this.aliveId).then(aliveState =>
-            this.props.socket.getState(this.eventListId).then(state => {
-                let eventList;
-                try {
-                    eventList = state && state.val ? JSON.parse(state.val) : []
-                } catch (e) {
-                    eventList = [];
-                }
-                this.setState({isInstanceAlive: aliveState && aliveState.val, eventList}, () => cb && cb());
-            }));
+        this.props.socket.getState(this.aliveId)
+            .then(aliveState =>
+                this.props.socket.getState(this.eventListId)
+                    .then(state =>
+                        this.props.socket.getState(this.eventRawListId)
+                            .then(rawState => {
+                                let eventList;
+                                try {
+                                    eventList = state && state.val ? JSON.parse(state.val) : []
+                                } catch (e) {
+                                    eventList = [];
+                                }
+                                let eventRawList;
+                                try {
+                                    eventRawList = rawState && rawState.val ? JSON.parse(rawState.val) : []
+                                } catch (e) {
+                                    eventRawList = [];
+                                }
+
+                                // merge together
+                                eventList.forEach(item => {
+                                    const raw = eventRawList.find(it => it.ts === item.ts);
+                                    if (raw) {
+                                        item.stateId = raw.id;
+                                    }
+                                });
+
+                                this.setState({isInstanceAlive: aliveState && aliveState.val, eventList, eventRawList}, () => cb && cb());
+                            })));
     }
 
     componentDidMount() {
-        this.props.socket.subscribeState(this.aliveId, this.onAliveChanged);
-        this.props.socket.subscribeState(this.eventListId, this.onEventListChanged);
+        this.props.socket.subscribeState(this.aliveId, this.onStateChanged);
+        this.props.socket.subscribeState(this.eventListId, this.onStateChanged);
+        this.props.socket.subscribeState(this.eventRawListId, this.onStateChanged);
     }
 
     componentWillUnmount() {
-        this.props.socket.unsubscribeState(this.aliveId, this.onAliveChanged);
-        this.props.socket.unsubscribeState(this.eventListId, this.onEventListChanged);
+        this.props.socket.unsubscribeState(this.aliveId, this.onStateChanged);
+        this.props.socket.unsubscribeState(this.eventListId, this.onStateChanged);
+        this.props.socket.unsubscribeState(this.eventRawListId, this.onStateChanged);
     }
 
-    onAliveChanged = (id, state) => {
+    onStateChanged = (id, state) => {
         if (id === this.aliveId) {
             this.setState({isInstanceAlive: state && state.val});
-        }
-    };
-
-    onEventListChanged = (id, state) => {
-        if (id === this.eventListId) {
+        } else if (id === this.eventListId) {
             let eventList;
             try {
                 eventList = state && state.val ? JSON.parse(state.val) : []
@@ -230,7 +263,8 @@ class List extends Component {
                 </Typography>
             :
                 <Typography className={this.props.classes.toolbarTitle} variant="h6" id="tableTitle" component="div">
-                    {I18n.t('Event list')}
+                    <span>{I18n.t('Event list')}</span>
+                    <span className={this.props.classes.instanceNotOnline}>{!this.state.isInstanceAlive ? I18n.t('(Instance not running)') : ''}</span>
                 </Typography>
             }
 
@@ -239,12 +273,24 @@ class List extends Component {
                     <IconButton aria-label="delete" onClick={() => this.setState({showDeleteConfirm: true})}>
                         <DeleteIcon />
                     </IconButton>
-                </Tooltip>
-             :  <Tooltip title={I18n.t('Refresh list')}>
-                    <IconButton aria-label="refresh" onClick={() => this.readStatus()}>
-                        <IconReload />
-                    </IconButton>
-                </Tooltip>}
+                </Tooltip> :  <>
+                     <Tooltip title={I18n.t('Add state to event list')} className={this.props.classes.toolbarButton}>
+                        <Fab aria-label="add" size="small" color="secondary" onClick={() => this.setState({showAddIdDialog: true})}>
+                            <IconAddId />
+                        </Fab>
+                    </Tooltip>
+                    <Tooltip title={I18n.t('Insert custom event into list')} className={this.props.classes.toolbarButton}>
+                        <Fab aria-label="add" size="small" color="primary" disabled={!this.state.isInstanceAlive} onClick={() => this.setState({showAddEventDialog: true})}>
+                            <IconAddEvent />
+                        </Fab>
+                    </Tooltip>
+                    <Tooltip title={I18n.t('Refresh list')} className={this.props.classes.toolbarButton}>
+                        <Fab aria-label="refresh" size="small" onClick={() => this.readStatus()}>
+                            <IconReload />
+                        </Fab>
+                    </Tooltip>
+                </>
+            }
         </Toolbar>;
     }
 
@@ -316,7 +362,7 @@ class List extends Component {
     }
 
     renderList() {
-        return <TableContainer>
+        return <TableContainer className={this.props.classes.tableContainer}>
                 <Table
                     className={this.props.classes.table}
                     size="small"
@@ -344,9 +390,9 @@ class List extends Component {
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                             />
                                         </TableCell>
-                                        <TableCell className={this.props.classes.tdTs} component="th" id={labelId} scope="row" padding="none">{row.ts}</TableCell>
+                                        <TableCell className={this.props.classes.tdTs} component="th" id={labelId} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                         <TableCell className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
-                                        <TableCell className={this.props.classes.tdVal} align="right">{row.val === undefined ? '' : row.val.toString()}</TableCell>
+                                        <TableCell className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
                                     </TableRow>
                                 );
                             })}
@@ -365,9 +411,42 @@ class List extends Component {
                 ok={I18n.t('Ok')}
                 cancel={I18n.t('Cancel')}
                 icon={<IconQuestion/>}
-                onClose={result => this.setState({showDeleteConfirm: false}, () =>
-                            result && this.deleteEntries())}
+                onClose={result =>
+                    this.setState({showDeleteConfirm: false}, () =>
+                        result && this.deleteEntries())}
                 />
+        }
+    }
+
+    renderAddEventDialog() {
+        if (!this.state.showAddEventDialog) {
+            return null;
+        } else {
+            return <AddEventDialog
+                onClose={event => {
+                    this.setState({showAddEventDialog: false}, () =>
+                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))
+                }}
+            />;
+        }
+    }
+
+    renderAddIdDialog() {
+        if (!this.state.showAddIdDialog) {
+            return null;
+        } else {
+            return <AddIdDialog
+                instance={this.instance}
+                adapterName={this.adapterName}
+                themeName={this.props.themeName}
+                themeType={this.props.themeType}
+                socket={this.props.socket}
+                native={this.props.native}
+                onClose={event => {
+                    this.setState({showAddIdDialog: false}, () =>
+                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))
+                }}
+            />;
         }
     }
 
@@ -378,6 +457,8 @@ class List extends Component {
                 {this.state.eventList && this.renderList()}
                 {this.renderToast()}
                 {this.renderConfirmDialog()}
+                {this.renderAddEventDialog()}
+                {this.renderAddIdDialog()}
             </Paper>
         );
     }
@@ -387,6 +468,9 @@ List.propTypes = {
     instance: PropTypes.number.isRequired,
     adapterName: PropTypes.string.isRequired,
     socket: PropTypes.object.isRequired,
+    themeName: PropTypes.string,
+    themeType: PropTypes.string,
+    native: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles)(List);

@@ -86,6 +86,8 @@ class App extends GenericApp {
                         />)}
                         {this.state.selectedTab === 'list' && (<TabList
                             key="enums"
+                            themeName={this.state.themeName}
+                            themeType={this.state.themeType}
                             common={this.common}
                             socket={this.socket}
                             native={this.state.native}

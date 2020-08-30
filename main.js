@@ -35,6 +35,9 @@ let adapter;
 let states = {};
 let systemLang;
 let eventListRaw;
+let textSwitchedOn;
+let textSwitchedOff;
+let textDeviceChangedStatus;
 
 function loadWords() {
     let lines = fs.existsSync(__dirname + '/admin/words.js') ?
@@ -74,85 +77,144 @@ function state2json(state) {
  */
 function startAdapter(options) {
     // Create the adapter and define its methods
-    return adapter = utils.adapter(Object.assign({}, options, {
-        name: adapterName,
+    adapter = utils.adapter(Object.assign({}, options, {name: adapterName});
 
-        // The ready callback is called when databases are connected and adapter received configuration.
-        // start here!
-        ready: main, // Main method defined below for readability
+    adapter.on('ready', main);
 
         // is called if a subscribed state changes
-        stateChange: (id, state) => {
-            if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
-                eventListRaw = state2json(state);
-                reformatJsonTable(true).then(table =>
-                    adapter.setState('eventJSONList', JSON.stringify(table), true));
-            } else
-            if (id === adapter.namespace + '.insert' && !state.ack && state.val) {
-                if (state.val.startsWith('{')) {
-                    try {
-                        state.val = JSON.parse(state.val);
-                    } catch (e) {
+    adapter.on('stateChange', (id, state) => {
+        if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
+            eventListRaw = state2json(state);
+            reformatJsonTable(true).then(table =>
+                adapter.setState('eventJSONList', JSON.stringify(table), true));
+        } else
+        if (id === adapter.namespace + '.insert' && !state.ack && state.val) {
+            if (state.val.startsWith('{')) {
+                try {
+                    state.val = JSON.parse(state.val);
+                } catch (e) {
 
-                    }
-                    addEvent(state.val)
-                        .then(event =>
-                            adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
-                } else {
-                    addEvent({event: state.val})
-                        .then(event =>
-                            adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
                 }
-            } else if (states[id]) {
-                state.id = id;
-                addEvent(state)
+                addEvent(state.val)
+                    .then(event =>
+                        adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
+            } else {
+                addEvent({event: state.val})
                     .then(event =>
                         adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
             }
-        },
-
-        // If you need to accept messages in your adapter, uncomment the following block.
-        // /**
-        //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-        //  * Using this method requires "common.message" property to be set to true in io-package.json
-        //  */
-        message: (obj) => {
-            if (typeof obj === 'object' && obj.message) {
-                if (obj.command === 'insert') {
-                    // e.g. send email or pushover or whatever
-                    adapter.log.info('insert event');
-
-                    addEvent(obj.message)
-                        .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'event inserted'}, obj.callback));
+        } else if (states[id]) {
+            // ignore non changed states
+            if (states[id].changesOnly) {
+                if (state && states[id].val === state.val) {
+                    return;
+                } else {
+                    states[id].val = state.val;
                 }
             }
-        },
-        objectChange: (id, obj) => {
-            if (obj && obj.common && obj.common.custom && obj.common.custom[adapter.namespace] && obj.common.custom[adapter.namespace].enabled) {
-                if (!states[id]) {
-                    adapter.log.info('Enabled event list for ' + id);
-                    setImmediate(() => adapter.subscribeForeignStates(id));
+            state.id = id;
+            addEvent(state)
+                .then(event =>
+                    adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
+        }
+    });
+
+    adapter.on('message', obj => {
+        if (typeof obj === 'object' && obj.message) {
+            if (obj.command === 'insert') {
+                // e.g. send email or pushover or whatever
+                adapter.log.debug('insert event: ' + JSON.stringify(obj.message));
+
+                addEvent(obj.message)
+                    .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'event inserted'}, obj.callback));
+            }
+        }
+    });
+
+    adapter.on('objectChange', (id, obj) => {
+        let changed = false;
+        let promises = [];
+        if (obj && obj.common && obj.common.custom && obj.common.custom[adapter.namespace] && obj.common.custom[adapter.namespace].enabled) {
+            let settings = obj.common.custom[adapter.namespace];
+            if (!states[id]) {
+                changed = true;
+                states[id] = settings;
+                adapter.log.info('Enabled event list for ' + id);
+                setImmediate(() => adapter.subscribeForeignStates(id));
+            }
+            // detect relevant changes
+            if (states[id].event !== settings.event) {
+                states[id].event = settings.event;
+                changed = true;
+            }
+            if (states[id].changesOnly !== settings.changesOnly) {
+                if (!settings.changesOnly) {
+                    delete states[id].val;
+                } else {
+                    // read value
+                    promises.push(adapter.getForeignStateAsync(id)
+                        .then(state => states[id].val = state ? state.val : null))
                 }
-                states[id]        = obj.common.custom[adapter.namespace];
+                states[id].changesOnly = settings.changesOnly;
+                changed = true;
+            }
+            if (states[id].falseText !== settings.falseText) {
+                states[id].falseText = settings.falseText;
+                changed = true;
+            }
+            if (states[id].trueText !== settings.trueText) {
+                states[id].trueText = settings.trueText;
+                changed = true;
+            }
+            if (states[id].type !== obj.common.type) {
                 states[id].type   = obj.common.type;
-                states[id].states = parseStates(obj.common.states);
-                states[id].unit   = obj.common && obj.common.unit;
-                states[id].min    = obj.common && obj.common.min;
-                states[id].max    = obj.common && obj.common.max;
-                states[id].name   = getName(obj);
-            } else if (states[id]) {
-                adapter.log.debug('Removed event list: ' + id);
-                delete states[id];
-                setImmediate(() => adapter.unsubscribeForeignStates(id));
+                changed = true;
             }
-        },
-    }));
+
+            const st = parseStates(obj.common.states);
+            if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
+                states[id].states = st;
+                changed = true;
+            }
+            if (states[id].unit !== obj.common.unit) {
+                states[id].unit   = obj.common.unit;
+                changed = true;
+            }
+            if (states[id].min !== obj.common.min) {
+                states[id].min   = obj.common.min;
+                changed = true;
+            }
+            if (states[id].max !== obj.common.max) {
+                states[id].max   = obj.common.max;
+                changed = true;
+            }
+            const name = getName(obj);
+            if (states[id].name !== name) {
+                states[id].name   = name;
+                changed = true;
+            }
+        } else if (states[id]) {
+            changed = true;
+            adapter.log.debug('Removed event list: ' + id);
+            delete states[id];
+            setImmediate(() => adapter.unsubscribeForeignStates(id));
+        }
+
+        if (changed) {
+            Promise.all(promises)
+                .then(() => reformatJsonTable(true))
+                .then(table => adapter.setState('eventJSONList', JSON.stringify(table), true));
+        }
+    });
+
+    return adapter;
 }
 
 function formatEvent(state, allowRelative) {
     const event = {};
     let eventTemplate = '';
     let val;
+    let valWithUnit;
 
     let date = new Date(state.ts);
     const time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
@@ -167,26 +229,35 @@ function formatEvent(state, allowRelative) {
 
         if (states[id].type === 'boolean') {
             if (!states[id].event && state.val && states[id].trueText) {
-                eventTemplate = states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || words['switched on'][systemLang] || words['switched on'].en : states[id].trueText;
+                eventTemplate = states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText;
             } else if (!states[id].event && !state.val && states[id].falseText) {
-                eventTemplate = states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || words['switched off'][systemLang] || words['switched off'].en : states[id].falseText;
+                eventTemplate = states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText;
             } else {
                 if (states[id].event === DEFAULT_TEMPLATE) {
-                    eventTemplate = adapter.config.defaultBooleanText || words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
+                    eventTemplate = adapter.config.defaultBooleanText || textDeviceChangedStatus;
                 } else {
                     eventTemplate = states[id].event;
                 }
                 eventTemplate = eventTemplate.replace(/%u/g, states[id].unit || '');
                 eventTemplate = eventTemplate.replace(/%n/g, states[id].name || id);
                 val = state.val ?
-                    states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || words['switched on'][systemLang] || words['switched on'].en : states[id].trueText
+                    states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText || textSwitchedOn
                     :
-                    states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || words['switched off'][systemLang] || words['switched off'].en : states[id].falseText
+                    states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText || textSwitchedOff;
+                valWithUnit = val;
             }
         } else {
-            eventTemplate = states[id].event === DEFAULT_TEMPLATE ? adapter.config.defaultNonBooleanText || '%n' : states[id].event;
+            eventTemplate = states[id].event === DEFAULT_TEMPLATE ? adapter.config.defaultNonBooleanText || textDeviceChangedStatus : states[id].event || textDeviceChangedStatus;
             eventTemplate = eventTemplate.replace(/%u/g, states[id].unit || '');
             eventTemplate = eventTemplate.replace(/%n/g, states[id].name || id);
+            
+            val = state.val !== undefined && state.val !== null ? state.val.toString() : '';
+
+            valWithUnit = val;
+
+            if (valWithUnit !== '' && states[id].unit) {
+                valWithUnit += states[id].unit;
+            }
         }
     } else {
         eventTemplate = state.event;
@@ -195,13 +266,17 @@ function formatEvent(state, allowRelative) {
         }
     }
 
-    eventTemplate = eventTemplate.replace(/%s/g, val === undefined ? '' : val);
+    if (eventTemplate.includes('%s')) {
+        eventTemplate = eventTemplate.replace(/%s/g, val === undefined ? '' : val);
+        valWithUnit = '';
+    }
+
     eventTemplate = eventTemplate.replace(/%t/g, moment(new Date(state.ts)).format(adapter.config.dateFormat));
 
     event.event = eventTemplate;
     event.ts = time;
-    if (val !== undefined) {
-        event.val = val;
+    if (valWithUnit !== '') {
+        event.val = valWithUnit;
     }
     return event;
 }
@@ -252,15 +327,11 @@ function addEvent(event) {
 }
 
 function getName(obj) {
-    if (obj.common.custom[adapter.namespace].alias) {
-        return obj.common.custom[adapter.namespace].alias;
-    } else {
-        let name = obj.common.name;
-        if (typeof name === 'object') {
-            name = name[systemLang] || name.en;
-        }
-        return name || obj._id;
+    let name = obj.common.name;
+    if (typeof name === 'object') {
+        name = name[systemLang] || name.en;
     }
+    return name || obj._id;
 }
 
 function parseStates(states) {
@@ -282,9 +353,17 @@ function readAllNames(ids, cb) {
                 states[id].unit   = obj.common && obj.common.unit;
                 states[id].min    = obj.common && obj.common.min;
                 states[id].max    = obj.common && obj.common.max;
-                
-                adapter.subscribeForeignStates(id, () =>
-                    setImmediate(readAllNames, ids, cb));
+
+                if (states[id].changesOnly) {
+                    adapter.getForeignState(id, (err, state) => {
+                        states[id].state = state ? state.val : null; // store to detect changes
+                        adapter.subscribeForeignStates(id, () =>
+                            setImmediate(readAllNames, ids, cb));
+                    });
+                } else {
+                    adapter.subscribeForeignStates(id, () =>
+                        setImmediate(readAllNames, ids, cb));
+                }
             } else {
                 setImmediate(readAllNames, ids, cb);
             }
@@ -331,6 +410,10 @@ function reformatJsonTable(allowRelative, table) {
 }
 
 async function main() {
+    textSwitchedOn = words['switched on'][systemLang] || words['switched on'].en;
+    textSwitchedOff = words['switched off'][systemLang] || words['switched off'].en;
+    textDeviceChangedStatus = words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
+    
     adapter.config.maxLength = parseInt(adapter.config.maxLength, 10);
     adapter.config.maxLength = adapter.config.maxLength || 100;
     if (adapter.config.maxLength > 10000) {
