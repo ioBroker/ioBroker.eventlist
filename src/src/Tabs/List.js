@@ -80,6 +80,11 @@ const styles = theme => ({
     table:{
         width: 'auto',
     },
+    tdIcons: {
+        textAlign: 'right',
+        marginRight: theme.spacing(1),
+        marginTop: 2,
+    },
     tdTs: {
         //width: 100
         paddingRight: theme.spacing(1),
@@ -230,6 +235,14 @@ class List extends Component {
                         inputProps={{ 'aria-label': 'select all desserts' }}
                     />
                 </TableCell>
+                {
+                    this.props.native.icons ? <TableCell
+                            className={this.props.classes.tdIcons}
+                            align="left"
+                            padding="none"
+                    /> : null
+                }
+
                 {this.headCells.map(headCell => (
                     <TableCell
                         key={headCell.id}
@@ -374,27 +387,30 @@ class List extends Component {
                                 const isItemSelected = this.state.selected.includes(row._id);
                                 const labelId = `enhanced-table-checkbox-${index}`;
 
-                                return (
-                                    <TableRow
-                                        hover
-                                        onClick={() => this.handleClick(row._id)}
-                                        role="checkbox"
-                                        aria-checked={isItemSelected}
-                                        tabIndex={-1}
-                                        key={row.name}
-                                        selected={isItemSelected}
-                                    >
-                                        <TableCell padding="checkbox">
-                                            <Checkbox
-                                                checked={isItemSelected}
-                                                inputProps={{ 'aria-labelledby': labelId }}
-                                            />
-                                        </TableCell>
-                                        <TableCell className={this.props.classes.tdTs} component="th" id={labelId} scope="row" padding="none" align="right">{row.ts}</TableCell>
-                                        <TableCell className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
-                                        <TableCell className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
-                                    </TableRow>
-                                );
+                                return <TableRow
+                                    hover
+                                    onClick={() => this.handleClick(row._id)}
+                                    style={row._style || undefined }
+                                    role="checkbox"
+                                    aria-checked={isItemSelected}
+                                    tabIndex={-1}
+                                    key={row.name}
+                                    selected={isItemSelected}
+                                >
+                                    <TableCell padding="checkbox">
+                                        <Checkbox
+                                            checked={isItemSelected}
+                                            inputProps={{ 'aria-labelledby': labelId }}
+                                        />
+                                    </TableCell>
+                                    {this.props.native.icons ?
+                                        <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
+                                            {row.icon ? <img src={row.icon} width={28} height={28} alt=""/> : null}</TableCell>
+                                        : null}
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} component="th" scope="row" padding="none" align="right">{row.ts}</TableCell>
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
+                                </TableRow>;
                             })}
                     </TableBody>
                 </Table>
@@ -436,8 +452,8 @@ class List extends Component {
             return null;
         } else {
             return <AddIdDialog
-                instance={this.instance}
-                adapterName={this.adapterName}
+                instance={this.props.instance}
+                adapterName={this.props.adapterName}
                 themeName={this.props.themeName}
                 themeType={this.props.themeType}
                 socket={this.props.socket}

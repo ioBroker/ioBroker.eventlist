@@ -100,6 +100,7 @@ class AddIdDialog extends Component {
         this.namespace = `${this.props.adapterName}.${this.props.instance}`;
 
         this.subscribed = '';
+        this.originalSettings = {};
 
         if (this.state.id) {
             this.readSettings();
@@ -136,6 +137,7 @@ class AddIdDialog extends Component {
                         name: this.getName(obj),
                         unit: (obj && obj.common && obj.common.unit) || ''
                     };
+
                     if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
                         const newSettings = obj.common.custom[this.namespace];
                         newState.exists = true;
@@ -164,11 +166,12 @@ class AddIdDialog extends Component {
 
                         newState.event = newSettings.event === DEFAULT_TEMPLATE ? '' : newSettings.event;
                         newState.eventDefault = newSettings.event === DEFAULT_TEMPLATE;
+
                     } else {
                         newState.exists = false;
                     }
 
-                    this.setState(newState);
+                    this.setState(newState, () => this.originalSettings = this.getSettings());
                 })
                 .catch(e => this.setState({type: '', unknownId: true, name: '', unit: ''}))
                 .then(() => {
@@ -206,6 +209,10 @@ class AddIdDialog extends Component {
         />;
     }
 
+    isChanged() {
+        const original = this.originalSettings || {};
+    }
+
     translate(word, lang) {
         lang = lang || I18n.lang;
         if (I18n.translations[lang]) {
@@ -227,6 +234,7 @@ class AddIdDialog extends Component {
             return color || '';
         }
     }
+
     getExampleColor() {
         let color = '';
         if (this.state.type === 'boolean') {
@@ -299,25 +307,30 @@ class AddIdDialog extends Component {
         return `${time} | ${eventTemplate} | ${valWithUnit}`;
     }
 
+    getSettings() {
+        const settings = {
+            enabled: true,
+            event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
+            changesOnly: !!this.state.changesOnly
+        };
+
+        if (this.state.type === 'boolean') {
+            settings.trueText   = this.state.trueTextDefault   ? DEFAULT_TEMPLATE : this.state.trueText;
+            settings.falseText  = this.state.falseTextDefault  ? DEFAULT_TEMPLATE : this.state.falseText;
+            settings.trueColor  = this.state.trueColorDefault  ? DEFAULT_TEMPLATE : this.state.trueColor;
+            settings.falseColor = this.state.falseColorDefault ? DEFAULT_TEMPLATE : this.state.falseColor;
+        }
+
+        return settings;
+    }
+
     writeSettings(cb) {
         this.props.socket.getObject(this.state.id)
             .then(obj => {
                 if (obj && obj.common) {
                     obj.common.custom = obj.common.custom || {};
-                    const settings = {
-                        enabled: true,
-                        event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
-                        changesOnly: !!this.state.changesOnly
-                    };
 
-                    if (this.state.type === 'boolean') {
-                        settings.trueText   = this.state.trueTextDefault   ? DEFAULT_TEMPLATE : this.state.trueText;
-                        settings.falseText  = this.state.falseTextDefault  ? DEFAULT_TEMPLATE : this.state.falseText;
-                        settings.trueColor  = this.state.trueColorDefault  ? DEFAULT_TEMPLATE : this.state.trueColor;
-                        settings.falseColor = this.state.falseColorDefault ? DEFAULT_TEMPLATE : this.state.falseColor;
-                    }
-
-                    obj.common.custom[this.namespace] = settings;
+                    obj.common.custom[this.namespace] = this.getSettings();
                     this.props.socket.setObject(this.state.id, obj)
                         .then(() => cb && cb());
                 }
@@ -482,7 +495,7 @@ class AddIdDialog extends Component {
             <DialogActions>
                 <Button onClick={() => this.props.onClose()} color="primary">{I18n.t('Cancel')}</Button>
                 <Button
-                    disabled={!this.state.id || !this.state.type}
+                    disabled={!this.state.id || !this.state.type || JSON.stringify(this.originalSettings) === JSON.stringify(this.getSettings())}
                     onClick={() =>
                         this.writeSettings(() =>
                             this.props.onClose())

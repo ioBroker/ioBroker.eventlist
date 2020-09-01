@@ -77,7 +77,7 @@ function state2json(state) {
  */
 function startAdapter(options) {
     // Create the adapter and define its methods
-    adapter = utils.adapter(Object.assign({}, options, {name: adapterName});
+    adapter = utils.adapter(Object.assign({}, options, {name: adapterName}));
 
     adapter.on('ready', main);
 
@@ -170,6 +170,12 @@ function startAdapter(options) {
                 states[id].type   = obj.common.type;
                 changed = true;
             }
+            if (adapter.config.icons) {
+                if (states[id].icon !== obj.common.icon) {
+                    states[id].icon   = obj.common.icon;
+                    changed = true;
+                }
+            }
 
             const st = parseStates(obj.common.states);
             if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
@@ -215,6 +221,8 @@ function formatEvent(state, allowRelative) {
     let eventTemplate = '';
     let val;
     let valWithUnit;
+    let color = state.color || '';
+    let icon = '';
 
     let date = new Date(state.ts);
     const time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
@@ -227,11 +235,15 @@ function formatEvent(state, allowRelative) {
             return null;
         }
 
+        icon = states[id].icon;
+
         if (states[id].type === 'boolean') {
             if (!states[id].event && state.val && states[id].trueText) {
                 eventTemplate = states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText;
+                color = states[id].trueColor || adapter.config.defaultBooleanColorTrue;
             } else if (!states[id].event && !state.val && states[id].falseText) {
                 eventTemplate = states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText;
+                color = states[id].falseColor || adapter.config.defaultBooleanColorFalse;
             } else {
                 if (states[id].event === DEFAULT_TEMPLATE) {
                     eventTemplate = adapter.config.defaultBooleanText || textDeviceChangedStatus;
@@ -244,6 +256,12 @@ function formatEvent(state, allowRelative) {
                     states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText || textSwitchedOn
                     :
                     states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText || textSwitchedOff;
+
+                color = state.val ?
+                    states[id].trueColor  || adapter.config.defaultBooleanColorTrue
+                    :
+                    states[id].falseColor || adapter.config.defaultBooleanColorFalse;
+
                 valWithUnit = val;
             }
         } else {
@@ -259,8 +277,19 @@ function formatEvent(state, allowRelative) {
                 valWithUnit += states[id].unit;
             }
         }
+
+        if (icon) {
+            if (!icon.startsWith('data:')) {
+                if (icon.includes('.')) {
+                    icon = '/adapter/' + id.split('.').shift() + '/' + icon;
+                } else {
+                    icon = '';
+                }
+            }
+        }
     } else {
         eventTemplate = state.event;
+        icon = state.icon || undefined;
         if (state.val !== undefined) {
             val = state.val;
         }
@@ -275,6 +304,14 @@ function formatEvent(state, allowRelative) {
 
     event.event = eventTemplate;
     event.ts = time;
+
+    if (color) {
+        event._style = {color};
+    }
+    if (icon && adapter.config.icons) {
+        event.icon = icon;
+    }
+
     if (valWithUnit !== '') {
         event.val = valWithUnit;
     }
@@ -320,9 +357,10 @@ function addEvent(event) {
         }
 
         adapter.setState('eventListRaw', JSON.stringify(eventListRaw), true, () =>
-            reformatJsonTable(true).then(table =>
-                adapter.setState('eventJSONList', JSON.stringify(table), true, () =>
-                    resolve(_event))));
+            reformatJsonTable(true)
+                .then(table =>
+                    adapter.setState('eventJSONList', JSON.stringify(table), true, () =>
+                        resolve(_event))));
     });
 }
 
@@ -347,22 +385,34 @@ function readAllNames(ids, cb) {
         const id = ids.shift();
         adapter.getForeignObject(id, (err, obj) => {
             if (obj) {
+                let promises = [];
                 states[id].name   = getName(obj);
                 states[id].type   = obj.common && obj.common.type;
                 states[id].states = obj.common && parseStates(obj.common.states || undefined);
                 states[id].unit   = obj.common && obj.common.unit;
                 states[id].min    = obj.common && obj.common.min;
                 states[id].max    = obj.common && obj.common.max;
+                if (adapter.config.icons) {
+                    promises.push(getIcon(id, obj).then(icon => {
+                        if (icon) {
+                            states[id].icon = icon;
+                        }
+                    }));
+                }
 
                 if (states[id].changesOnly) {
                     adapter.getForeignState(id, (err, state) => {
                         states[id].state = state ? state.val : null; // store to detect changes
-                        adapter.subscribeForeignStates(id, () =>
-                            setImmediate(readAllNames, ids, cb));
+                        Promise.all(promises)
+                            .then(() =>
+                                adapter.subscribeForeignStates(id, () =>
+                                    setImmediate(readAllNames, ids, cb)));
                     });
                 } else {
-                    adapter.subscribeForeignStates(id, () =>
-                        setImmediate(readAllNames, ids, cb));
+                    Promise.all(promises)
+                        .then(() =>
+                            adapter.subscribeForeignStates(id, () =>
+                                setImmediate(readAllNames, ids, cb)));
                 }
             } else {
                 setImmediate(readAllNames, ids, cb);
@@ -407,6 +457,51 @@ function reformatJsonTable(allowRelative, table) {
     })
         .then(table =>
             Promise.resolve(table.map(ev => formatEvent(ev, allowRelative)).filter(ev => ev)));
+}
+
+function getIcon(id, obj) {
+    return new Promise(resolve => {
+        if (obj) {
+            resolve(obj);
+        } else {
+            adapter.getForeignObject(id, (err, obj) => resolve(obj));
+        }
+    })
+        .then(obj => {
+            if (obj && obj.common && obj.common.icon) {
+                return obj.common.icon;
+            } else {
+                const parts = id.split('.');
+                parts.pop();
+                return adapter.getForeignObjectAsync(parts.join('.'))
+                    .then(obj => {
+                        if (obj && obj.type === 'channel') {
+                            if (obj.common && obj.common.icon) {
+                                return obj.common && obj.common.icon;
+                            } else {
+                                const parts = obj._id.split('.');
+                                parts.pop();
+                                return adapter.getForeignObjectAsync(parts.join('.'))
+                                    .then(obj => {
+                                        if (obj && (obj.type === 'channel' || obj.type === 'device')) {
+                                            if (obj.common && obj.common.icon) {
+                                                return obj.common && obj.common.icon;
+                                            } else {
+                                                return null;
+                                            }
+                                        } else {
+                                            return null;
+                                        }
+                                    });
+                            }
+                        } else if (obj && obj.type === 'device') {
+                            return obj.common && obj.common.icon;
+                        } else {
+                            return null;
+                        }
+                    });
+            }
+        });
 }
 
 async function main() {

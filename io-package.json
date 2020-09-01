@@ -99,7 +99,10 @@
         "defaultBooleanTextFalse": "",
         "defaultBooleanText": "",
         "defaultNonBooleanText": "",
-        "language": ""
+        "defaultBooleanColorTrue": "",
+        "defaultBooleanColorFalse": "",
+        "language": "",
+        "icons": true
     },
     "objects": [],
     "instanceObjects": [

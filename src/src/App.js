@@ -61,46 +61,44 @@ class App extends GenericApp {
             </MuiThemeProvider>
         }
 
-        return (
-            <MuiThemeProvider theme={this.state.theme}>
-                <div className="App" style={{background: this.state.theme.palette.background.default, color: this.state.theme.palette.text.primary}}>
-                    <AppBar position="static">
-                        <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
-                            <Tab label={I18n.t('Options')} data-name="options" />
-                            <Tab label={I18n.t('Event list')} data-name="list" />
-                        </Tabs>
-                    </AppBar>
+        return <MuiThemeProvider theme={this.state.theme}>
+            <div className="App" style={{background: this.state.theme.palette.background.default, color: this.state.theme.palette.text.primary}}>
+                <AppBar position="static">
+                    <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
+                        <Tab label={I18n.t('Options')} data-name="options" />
+                        <Tab label={I18n.t('Event list')} data-name="list" />
+                    </Tabs>
+                </AppBar>
 
-                    <div className={this.isIFrame ? this.props.classes.tabContentIFrame : this.props.classes.tabContent}>
-                        {(this.state.selectedTab === 'options' || !this.state.selectedTab) && (<TabOptions
-                            key="options"
-                            common={this.common}
-                            socket={this.socket}
-                            native={this.state.native}
-                            onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
-                            onLoad={native => this.onLoadConfig(native)}
-                            instance={this.instance}
-                            adapterName={this.adapterName}
-                            changed={this.state.changed}
-                            onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
-                        />)}
-                        {this.state.selectedTab === 'list' && (<TabList
-                            key="enums"
-                            themeName={this.state.themeName}
-                            themeType={this.state.themeType}
-                            common={this.common}
-                            socket={this.socket}
-                            native={this.state.native}
-                            onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
-                            instance={this.instance}
-                            adapterName={this.adapterName}
-                        />)}
-                    </div>
-                    {this.renderError()}
-                    {this.renderSaveCloseButtons()}
+                <div className={this.isIFrame ? this.props.classes.tabContentIFrame : this.props.classes.tabContent}>
+                    {(this.state.selectedTab === 'options' || !this.state.selectedTab) && (<TabOptions
+                        key="options"
+                        common={this.common}
+                        socket={this.socket}
+                        native={this.state.native}
+                        onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+                        onLoad={native => this.onLoadConfig(native)}
+                        instance={this.instance}
+                        adapterName={this.adapterName}
+                        changed={this.state.changed}
+                        onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
+                    />)}
+                    {this.state.selectedTab === 'list' && (<TabList
+                        key="enums"
+                        themeName={this.state.themeName}
+                        themeType={this.state.themeType}
+                        common={this.common}
+                        socket={this.socket}
+                        native={this.state.native}
+                        onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+                        instance={this.instance}
+                        adapterName={this.adapterName}
+                    />)}
                 </div>
-            </MuiThemeProvider>
-        );
+                {this.renderError()}
+                {this.renderSaveCloseButtons()}
+            </div>
+        </MuiThemeProvider>;
     }
 }
 

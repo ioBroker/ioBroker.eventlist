@@ -10,12 +10,15 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import {MdClose as IconClose} from 'react-icons/md';
 import {MdHelp as IconHelp} from 'react-icons/md';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import Logo from '@iobroker/adapter-react/Components/Logo';
+import ColorPicker from '../Components/ColorPicker';
 
 const styles = theme => ({
     tab: {
@@ -163,6 +166,15 @@ class Options extends Component {
                     />
                     <br/>
                     <TextField
+                        label={ I18n.t('Default event text for boolean') }
+                        className={ this.props.classes.input }
+                        value={ this.props.native.defaultBooleanText }
+                        type="text"
+                        onChange={ e => this.props.onChange('defaultBooleanTextTrue', e.target.value) }
+                        margin="normal"
+                    />
+                    <br/>
+                    <TextField
                         label={ I18n.t('Default text by TRUE') }
                         className={ this.props.classes.input }
                         value={ this.props.native.defaultBooleanTextTrue }
@@ -178,13 +190,18 @@ class Options extends Component {
                         onChange={ e => this.props.onChange('defaultBooleanTextTrue', e.target.value) }
                         margin="normal"
                     />
-                    <TextField
-                        label={ I18n.t('Default event text for boolean') }
-                        className={ this.props.classes.input }
-                        value={ this.props.native.defaultBooleanText }
-                        type="text"
-                        onChange={ e => this.props.onChange('defaultBooleanTextTrue', e.target.value) }
-                        margin="normal"
+                    <br/>
+                    <ColorPicker
+                        color={this.props.native.defaultBooleanColorTrue}
+                        style={{width: 300, display: 'inline-block', marginRight: 16}}
+                        name={I18n.t('Default color by TRUE')}
+                        onChange={color => this.setState({defaultBooleanColorTrue: color})}
+                    />
+                    <ColorPicker
+                        color={this.state.defaultBooleanColorFalse}
+                        style={{width: 300, display: 'inline-block'}}
+                        name={I18n.t('Default color by FALSE')}
+                        onChange={color => this.setState({defaultBooleanColorFalse: color})}
                     />
                     <br/>
                     <TextField
@@ -224,6 +241,10 @@ class Options extends Component {
                             <MenuItem value="zh-cn">简体中文</MenuItem>
                         </Select>
                     </FormControl>
+                    <FormControlLabel
+                        control={<Checkbox checked={this.props.native.icons || false} onChange={e => this.props.onChange('icons', e.target.checked)} />}
+                        label={I18n.t('Show icons in the list')}
+                    />
                 </div>
                 { this.renderToast() }
             </form>
