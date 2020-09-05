@@ -50,6 +50,11 @@ const styles = theme => ({
         fontStyle: 'italic',
         fontSize: 20,
     },
+    exampleIcon: {
+        maxWidth: 32,
+        maxHeight: 32,
+        marginRight: theme.spacing(1)
+    },
     textDense: {
         marginTop: 0,
         marginBottom: 0,
@@ -57,7 +62,8 @@ const styles = theme => ({
     paper: {
         marginBottom: theme.spacing(1),
         padding: theme.spacing(1),
-    }
+    },
+
 });
 
 const DEFAULT_TEMPLATE = 'default';
@@ -75,10 +81,9 @@ class AddIdDialog extends Component {
             falseTextDefault: true,
             trueTextDefault: true,
             eventDefault: true,
+            color: '',
             trueColor: '',
-            trueColorRaw: '',
             falseColor: '',
-            falseColorRaw: '',
             trueColorDefault: true,
             falseColorDefault: true,
             changesOnly: true,
@@ -102,9 +107,13 @@ class AddIdDialog extends Component {
         this.subscribed = '';
         this.originalSettings = {};
 
-        if (this.state.id) {
-            this.readSettings();
-        }
+        this.props.socket.getSystemConfig()
+            .then(systemConfig => {
+                this.isFloatComma = systemConfig.common.isFloatComma;
+                if (this.state.id) {
+                    this.readSettings();
+                }
+            });
     }
 
     subscribe() {
@@ -223,6 +232,7 @@ class AddIdDialog extends Component {
         }
         return word;
     }
+
     static getColor(color) {
         if (color && typeof color === 'object') {
             if (color.rgb) {
@@ -237,6 +247,7 @@ class AddIdDialog extends Component {
 
     getExampleColor() {
         let color = '';
+        const defColor = AddIdDialog.getColor(this.state.color);
         if (this.state.type === 'boolean') {
             const trueColor = AddIdDialog.getColor(this.state.trueColor);
             const falseColor = AddIdDialog.getColor(this.state.falseColor);
@@ -253,7 +264,44 @@ class AddIdDialog extends Component {
             }
         }
 
+        color = color || defColor;
+
         return color;
+    }
+
+    getExampleIcon() {
+        let icon = '';
+        if (this.state.type === 'boolean') {
+            let stateVal = !!(this.state.state && this.state.state.val);
+            if (this.state.toggleState) {
+                stateVal = !stateVal;
+            }
+            if (!this.state.eventDefault && !this.state.event && stateVal && (this.state.trueText || this.state.trueTextDefault)) {
+                icon = this.state.trueIcon || this.state.icon || undefined;
+            } else if (!this.state.eventDefault && !this.state.event && !stateVal && (this.state.falseText || this.state.falseTextDefault)) {
+                icon = this.state.falseIcon || this.state.icon || undefined;
+            } else {
+                icon = stateVal ?
+                    icon = this.state.trueIcon
+                    :
+                    icon = this.state.falseIcon;
+
+                icon = icon || this.state.icon || undefined;
+            }
+        }
+
+        icon = icon || this.state.icon;
+
+        if (icon) {
+            if (!icon.startsWith('data:')) {
+                if (icon.includes('.')) {
+                    icon = '/adapter/' + this.state.id.split('.').shift() + '/' + icon;
+                } else {
+                    icon = '';
+                }
+            }
+        }
+        return icon;
     }
 
     buildExample() {
@@ -284,17 +332,36 @@ class AddIdDialog extends Component {
                     (this.state.trueTextDefault || this.state.trueText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : this.state.trueText || this.textSwitchedOn
                     :
                     (this.state.falseTextDefault || this.state.falseText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : this.state.falseText || this.textSwitchedOff;
+
                 valWithUnit = val;
             }
         } else {
             eventTemplate = this.state.event === DEFAULT_TEMPLATE ? this.props.native.defaultNonBooleanText || this.textDeviceChangedStatus : this.state.event || this.textDeviceChangedStatus;
             eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
             eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
-            val = this.state.state && this.state.state.val !== undefined && this.state.state.val !== null ? this.state.state.val.toString() : '';
+            val = this.state.state && this.state.state.val !== undefined ? this.state.state.val : '';
+
+            if (val === null) {
+                val = 'null';
+            } else if (typeof val === 'number') {
+                val = val.toString();
+                if (this.isFloatComma) {
+                    val = val.replace('.', ',');
+                }
+            } else {
+                val = val.toString();
+            }
+
             valWithUnit = val;
             if (valWithUnit !== '' && this.state.unit) {
                 valWithUnit += this.state.unit;
             }
+        }
+
+        if (eventTemplate.includes('%d')) {
+            let text;
+            text = this.duration2text(5000);
+            eventTemplate = eventTemplate.replace(/%d/g, text);
         }
 
         if (eventTemplate.includes('%s')) {
@@ -322,6 +389,21 @@ class AddIdDialog extends Component {
         }
 
         return settings;
+    }
+
+    duration2text(ms, withSpaces) {
+        if (ms < 1000) {
+            return `${ms}${withSpaces ? ' ' : ''}${I18n.t('ms')}`;
+        } else if (ms < 90000) {
+            return `${this.isFloatComma ? (Math.round((ms / 100)) / 10).toString().replace('.', ',') : (Math.round((ms / 100)) / 10).toString()}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
+        } else if (ms < 3600000) {
+            return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
+        } else {
+            const hours = Math.floor(ms / 3600000);
+            const minutes = Math.floor(ms / 60000) % 60;
+            const seconds = Math.round(Math.floor(ms % 60000) / 1000);
+            return `${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${seconds}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
+        }
     }
 
     writeSettings(cb) {
@@ -368,8 +450,11 @@ class AddIdDialog extends Component {
                 {this.state.id && this.state.type ?
                     <Paper className={this.props.classes.paper}>
 
-                        <span className={this.props.classes.exampleTitle}>{I18n.t('Example text:')}</span>
-                        <span className={this.props.classes.exampleText} style={{color: this.getExampleColor() || undefined}}>{this.buildExample()}</span>
+                        <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
+                        <span className={this.props.classes.exampleText} style={{color: this.getExampleColor() || undefined}}>
+                            {this.props.native.icon ? <img src={this.getExampleIcon()} alt="event" className={this.props.classes.exampleIcon}/>: null}
+                            {this.buildExample()}
+                        </span>
                         {this.state.type === 'boolean' ?
                             <>
                                 <br/>
@@ -414,7 +499,7 @@ class AddIdDialog extends Component {
                             onChange={e => this.setState({event: e.target.value})}
                             type="text"
                             className={this.props.classes.textField}
-                            helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time')}
+                            helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                             fullWidth
                         /> : null}
                     </Paper>

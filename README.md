@@ -23,6 +23,7 @@
 - Material widget
 - PDF generator
 - insert events with message / state
+- Send messages to syslog and telegram (may be splunk)
 
 ### 0.0.1
 * (bluefox) initial release

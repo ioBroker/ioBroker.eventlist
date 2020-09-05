@@ -95,7 +95,10 @@ const styles = theme => ({
     },
     tdVal: {
         //width: 150,
-    }
+    },
+    tdDuration: {
+        //paddingRight: theme.spacing(1),
+    },
 });
 
 class List extends Component {
@@ -237,9 +240,10 @@ class List extends Component {
                 </TableCell>
                 {
                     this.props.native.icons ? <TableCell
-                            className={this.props.classes.tdIcons}
-                            align="left"
-                            padding="none"
+                        component="th"
+                        className={this.props.classes.tdIcons}
+                        align="left"
+                        padding="none"
                     /> : null
                 }
 
@@ -249,6 +253,7 @@ class List extends Component {
                         className={this.props.classes['td' + headCell.id[0].toUpperCase() + headCell.id.substring(1)]}
                         align="left"
                         padding="none"
+                        component="th"
                         sortDirection={this.state.orderBy === headCell.id ? this.state.order : false}
                     >
                         <TableSortLabel
@@ -264,6 +269,10 @@ class List extends Component {
                         </TableSortLabel>
                     </TableCell>
                 ))}
+                {this.props.native.duration ?
+                    <TableCell className={this.props.classes.tdDuration} component="th" padding="none" align="right">
+                        {I18n.t('Duration')}</TableCell>
+                    : null}
             </TableRow>
         </TableHead>;
     }
@@ -390,7 +399,7 @@ class List extends Component {
                                 return <TableRow
                                     hover
                                     onClick={() => this.handleClick(row._id)}
-                                    style={row._style || undefined }
+                                    style={row._style || undefined}
                                     role="checkbox"
                                     aria-checked={isItemSelected}
                                     tabIndex={-1}
@@ -407,9 +416,13 @@ class List extends Component {
                                         <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
                                             {row.icon ? <img src={row.icon} width={28} height={28} alt=""/> : null}</TableCell>
                                         : null}
-                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} component="th" scope="row" padding="none" align="right">{row.ts}</TableCell>
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
+                                    {this.props.native.duration ?
+                                        <TableCell style={row._style || undefined } className={this.props.classes.tdDuration} component="td" padding="none" align="right">
+                                            {row.duration || ''}</TableCell>
+                                        : null}
                                 </TableRow>;
                             })}
                     </TableBody>

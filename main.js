@@ -34,10 +34,16 @@ const DEFAULT_TEMPLATE = 'default';
 let adapter;
 let states = {};
 let systemLang;
+let isFloatComma;
 let eventListRaw;
 let textSwitchedOn;
 let textSwitchedOff;
 let textDeviceChangedStatus;
+let textUndefined;
+let textHours;
+let textMinutes;
+let textSeconds;
+let textMs;
 
 function loadWords() {
     let lines = fs.existsSync(__dirname + '/admin/words.js') ?
@@ -109,9 +115,28 @@ function startAdapter(options) {
                 if (state && states[id].val === state.val) {
                     return;
                 } else {
+                    // calculate duration
+                    if (states[id].durationUsed) {
+                        if (states[id].ts && state.ts >= states[id].ts) {
+                            state.duration = state.ts - states[id].ts;
+                        } else {
+                            state.duration = null;
+                        }
+                        states[id].ts = state.ts;
+                    }
                     states[id].val = state.val;
                 }
+            } else
+            // calculate duration
+            if (states[id].durationUsed) {
+                if (states[id].ts && state.ts >= states[id].ts) {
+                    state.duration = state.ts - states[id].ts;
+                } else {
+                    state.duration = null;
+                }
+                states[id].ts = state.ts;
             }
+
             state.id = id;
             addEvent(state)
                 .then(event =>
@@ -216,6 +241,21 @@ function startAdapter(options) {
     return adapter;
 }
 
+function duration2text(ms, withSpaces) {
+    if (ms < 1000) {
+        return `${ms}${withSpaces ? ' ' : ''}${textMs}`;
+    } else if (ms < 90000) {
+        return `${isFloatComma ? (Math.round((ms / 100)) / 10).toString().replace('.', ',') : (Math.round((ms / 100)) / 10).toString()}${withSpaces ? ' ' : ''}${textSeconds}`;
+    } else if (ms < 3600000) {
+        return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${textMinutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${textSeconds}`;
+    } else {
+        const hours = Math.floor(ms / 3600000);
+        const minutes = Math.floor(ms / 60000) % 60;
+        const seconds = Math.round(Math.floor(ms % 60000) / 1000);
+        return `${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes} ${seconds}${withSpaces ? ' ' : ''}${textSeconds}`;
+    }
+}
+
 function formatEvent(state, allowRelative) {
     const event = {};
     let eventTemplate = '';
@@ -235,15 +275,15 @@ function formatEvent(state, allowRelative) {
             return null;
         }
 
-        icon = states[id].icon;
-
         if (states[id].type === 'boolean') {
             if (!states[id].event && state.val && states[id].trueText) {
                 eventTemplate = states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText;
-                color = states[id].trueColor || adapter.config.defaultBooleanColorTrue;
+                color = states[id].trueColor || adapter.config.defaultBooleanColorTrue || states[id].color;
+                icon  = states[id].trueIcon  || states[id].icon || undefined;
             } else if (!states[id].event && !state.val && states[id].falseText) {
                 eventTemplate = states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText;
-                color = states[id].falseColor || adapter.config.defaultBooleanColorFalse;
+                color = states[id].falseColor || adapter.config.defaultBooleanColorFalse || states[id].color;
+                icon  = states[id].falseIcon  || states[id].icon || undefined;
             } else {
                 if (states[id].event === DEFAULT_TEMPLATE) {
                     eventTemplate = adapter.config.defaultBooleanText || textDeviceChangedStatus;
@@ -257,10 +297,19 @@ function formatEvent(state, allowRelative) {
                     :
                     states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText || textSwitchedOff;
 
+                icon = state.val ?
+                    icon = states[id].trueIcon
+                    :
+                    icon = states[id].falseIcon;
+
+                icon = icon || states[id].icon || undefined;
+
                 color = state.val ?
                     states[id].trueColor  || adapter.config.defaultBooleanColorTrue
                     :
                     states[id].falseColor || adapter.config.defaultBooleanColorFalse;
+
+                color = color || states[id].color;
 
                 valWithUnit = val;
             }
@@ -269,30 +318,67 @@ function formatEvent(state, allowRelative) {
             eventTemplate = eventTemplate.replace(/%u/g, states[id].unit || '');
             eventTemplate = eventTemplate.replace(/%n/g, states[id].name || id);
             
-            val = state.val !== undefined && state.val !== null ? state.val.toString() : '';
+            val = state.val !== undefined ? state.val : '';
+
+            if (val === null) {
+                val = 'null';
+            } else if (typeof val === 'number') {
+                val = val.toString();
+                if (isFloatComma) {
+                    val = val.replace('.', ',');
+                }
+            } else {
+                val = val.toString();
+            }
 
             valWithUnit = val;
 
             if (valWithUnit !== '' && states[id].unit) {
                 valWithUnit += states[id].unit;
             }
-        }
 
-        if (icon) {
-            if (!icon.startsWith('data:')) {
-                if (icon.includes('.')) {
-                    icon = '/adapter/' + id.split('.').shift() + '/' + icon;
-                } else {
-                    icon = '';
-                }
-            }
+            icon  = states[id].icon;
+            color = states[id].color;
+            // todo => change bright of icon depends on value and min/max
         }
     } else {
         eventTemplate = state.event;
-        icon = state.icon || undefined;
+        icon  = state.icon  || undefined;
+        color = state.color || undefined;
+
         if (state.val !== undefined) {
             val = state.val;
+            if (val === null) {
+                val = 'null';
+            } else if (typeof val === 'number') {
+                val = val.toString();
+                if (isFloatComma) {
+                    val = val.replace('.', ',');
+                }
+            } else {
+                val = val.toString();
+            }
         }
+    }
+
+    if (icon) {
+        if (!icon.startsWith('data:')) {
+            if (icon.includes('.')) {
+                icon = '/adapter/' + id.split('.').shift() + '/' + icon;
+            } else {
+                icon = '';
+            }
+        }
+    }
+
+    if (eventTemplate.includes('%d')) {
+        let text;
+        if (!state.duration) {
+            text = textUndefined
+        } else {
+            text = duration2text(state.duration);
+        }
+        eventTemplate = eventTemplate.replace(/%d/g, text);
     }
 
     if (eventTemplate.includes('%s')) {
@@ -310,6 +396,9 @@ function formatEvent(state, allowRelative) {
     }
     if (icon && adapter.config.icons) {
         event.icon = icon;
+    }
+    if (state.duration !== null && state.duration !== undefined && adapter.config.duration) {
+        event.duration = state.duration;
     }
 
     if (valWithUnit !== '') {
@@ -342,6 +431,10 @@ function addEvent(event) {
 
         if (event.val !== undefined) {
             _event.val = event.val;
+        }
+
+        if (event.duration !== undefined && event.duration !== null) {
+            _event.duration = event.duration;
         }
 
         // time must be unique
@@ -392,17 +485,34 @@ function readAllNames(ids, cb) {
                 states[id].unit   = obj.common && obj.common.unit;
                 states[id].min    = obj.common && obj.common.min;
                 states[id].max    = obj.common && obj.common.max;
-                if (adapter.config.icons) {
-                    promises.push(getIcon(id, obj).then(icon => {
-                        if (icon) {
-                            states[id].icon = icon;
-                        }
-                    }));
+                let durationUsed = false;
+                if (!durationUsed && states[id].type === 'boolean') {
+                    durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d');
+                    if (!durationUsed) {
+                        durationUsed = (states[id].trueText || adapter.config.defaultBooleanTextTrue).includes('%d');
+                    }
+                    if (!durationUsed) {
+                        durationUsed = (states[id].falseText || adapter.config.defaultBooleanTextFalse).includes('%d');
+                    }
+                } else if (!durationUsed) {
+                    durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d');
                 }
 
-                if (states[id].changesOnly) {
+                states[id].durationUsed = true;
+
+                if (adapter.config.icons) {
+                    promises.push(getIconAndColor(id, obj)
+                        .then(icon => {
+                            if (icon) {
+                                states[id].icon = icon;
+                            }
+                        }));
+                }
+
+                if (states[id].changesOnly || durationUsed) {
                     adapter.getForeignState(id, (err, state) => {
-                        states[id].state = state ? state.val : null; // store to detect changes
+                        states[id].val = state ? state.val : null; // store to detect changes
+                        states[id].ts  = state ? state.ts  : null; // store to calculate duration
                         Promise.all(promises)
                             .then(() =>
                                 adapter.subscribeForeignStates(id, () =>
@@ -459,7 +569,7 @@ function reformatJsonTable(allowRelative, table) {
             Promise.resolve(table.map(ev => formatEvent(ev, allowRelative)).filter(ev => ev)));
 }
 
-function getIcon(id, obj) {
+function getIconAndColor(id, obj) {
     return new Promise(resolve => {
         if (obj) {
             resolve(obj);
@@ -469,7 +579,7 @@ function getIcon(id, obj) {
     })
         .then(obj => {
             if (obj && obj.common && obj.common.icon) {
-                return obj.common.icon;
+                return {icon: obj.common.icon, color: obj.common.color};
             } else {
                 const parts = id.split('.');
                 parts.pop();
@@ -477,7 +587,7 @@ function getIcon(id, obj) {
                     .then(obj => {
                         if (obj && obj.type === 'channel') {
                             if (obj.common && obj.common.icon) {
-                                return obj.common && obj.common.icon;
+                                return {icon: obj.common.icon, color: obj.common.color};
                             } else {
                                 const parts = obj._id.split('.');
                                 parts.pop();
@@ -485,7 +595,7 @@ function getIcon(id, obj) {
                                     .then(obj => {
                                         if (obj && (obj.type === 'channel' || obj.type === 'device')) {
                                             if (obj.common && obj.common.icon) {
-                                                return obj.common && obj.common.icon;
+                                                return {icon: obj.common.icon, color: obj.common.color};
                                             } else {
                                                 return null;
                                             }
@@ -494,8 +604,8 @@ function getIcon(id, obj) {
                                         }
                                     });
                             }
-                        } else if (obj && obj.type === 'device') {
-                            return obj.common && obj.common.icon;
+                        } else if (obj && obj.type === 'device' && obj.common) {
+                            return {icon: obj.common.icon, color: obj.common.color};
                         } else {
                             return null;
                         }
@@ -505,10 +615,15 @@ function getIcon(id, obj) {
 }
 
 async function main() {
-    textSwitchedOn = words['switched on'][systemLang] || words['switched on'].en;
-    textSwitchedOff = words['switched off'][systemLang] || words['switched off'].en;
+    textSwitchedOn          = words['switched on'][systemLang] || words['switched on'].en;
+    textSwitchedOff         = words['switched off'][systemLang] || words['switched off'].en;
     textDeviceChangedStatus = words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
-    
+    textUndefined           = words['undefined'][systemLang] || words['undefined'].en;
+    textHours               = words['hours'][systemLang] || words['hours'].en;
+    textMinutes             = words['minutes'][systemLang] || words['minutes'].en;
+    textSeconds             = words['sec'][systemLang] || words['sec'].en;
+    textMs                  = words['ms'][systemLang] || words['ms'].en;
+
     adapter.config.maxLength = parseInt(adapter.config.maxLength, 10);
     adapter.config.maxLength = adapter.config.maxLength || 100;
     if (adapter.config.maxLength > 10000) {
@@ -516,7 +631,10 @@ async function main() {
     }
 
     adapter.getForeignObject('system.config', (err, obj) => {
+        obj = obj || {};
+        obj.common = obj.common || {};
         systemLang = adapter.config.language || obj.common.language;
+        isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
 
         moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
 

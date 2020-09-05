@@ -245,6 +245,10 @@ class Options extends Component {
                         control={<Checkbox checked={this.props.native.icons || false} onChange={e => this.props.onChange('icons', e.target.checked)} />}
                         label={I18n.t('Show icons in the list')}
                     />
+                    <FormControlLabel
+                        control={<Checkbox checked={this.props.native.duration || false} onChange={e => this.props.onChange('duration', e.target.checked)} />}
+                        label={I18n.t('Show duration in the list')}
+                    />
                 </div>
                 { this.renderToast() }
             </form>
