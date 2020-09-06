@@ -16,4 +16,3 @@ admin/i18n/*/flat.txt
 /src/package-lock.json
 /lib/checkLicense.js
 /lib/list2pdf.js
-/lib/__list2pdf.js
