@@ -1,0 +1,8 @@
+El dispositivo %n cambió de estado:
+h
+m
+ms
+s
+apagado
+encendido
+indefinido

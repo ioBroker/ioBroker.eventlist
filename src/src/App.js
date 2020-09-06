@@ -10,6 +10,7 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import I18n from '@iobroker/adapter-react/i18n';
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
+import TabLicense from './Tabs/License';
 
 const styles = theme => ({
     root: {},
@@ -41,7 +42,15 @@ class App extends GenericApp {
             'zh-cn': require('./i18n/zh-cn'),
         };
 
+        if (!window.location.pathname.includes('adapter/') && window.location.port !== '3000') {
+            extendedProps.bottomButtons = false;
+        } else if (window.location.pathname.includes('/tab.html') || window.location.pathname.includes('/tab_m.html')) {
+            extendedProps.bottomButtons = false;
+        }
+
         super(props, extendedProps);
+
+        this.isTab = !extendedProps.bottomButtons;
     }
 
     getSelectedTab() {
@@ -51,7 +60,65 @@ class App extends GenericApp {
         } else
         if (tab === 'list') {
             return 1;
+        } else
+        if (tab === 'license') {
+            return 2;
         }
+    }
+
+    renderTabsForConfig() {
+        return <>
+            <AppBar position="static">
+                <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
+                    <Tab label={I18n.t('Options')}    data-name="options" />
+                    <Tab label={I18n.t('Event list')} data-name="list" />
+                    <Tab label={I18n.t('License')}    data-name="license" />
+                </Tabs>
+            </AppBar>
+
+            <div className={this.isIFrame ? this.props.classes.tabContentIFrame : this.props.classes.tabContent}>
+                {(this.state.selectedTab === 'options' || !this.state.selectedTab) && <TabOptions
+                    key="options"
+                    common={this.common}
+                    socket={this.socket}
+                    native={this.state.native}
+                    onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+                    onLoad={native => this.onLoadConfig(native)}
+                    instance={this.instance}
+                    adapterName={this.adapterName}
+                    changed={this.state.changed}
+                    onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
+                />}
+                {this.state.selectedTab === 'list' && this.renderEventList()}
+                {this.state.selectedTab === 'license' && <TabLicense
+                    key="license"
+                    common={this.common}
+                    socket={this.socket}
+                    native={this.state.native}
+                    onError={text => this.setState({errorText: text})}
+                    instance={this.instance}
+                    adapterName={this.adapterName}
+                    onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
+                />}
+            </div>
+            {this.renderSaveCloseButtons()}
+        </>;
+    }
+
+    renderEventList() {
+        return <TabList
+            key="enums"
+            editEnabled={!this.isTab}
+            showEditButton={this.isTab}
+            themeName={this.state.themeName}
+            themeType={this.state.themeType}
+            common={this.common}
+            socket={this.socket}
+            native={this.state.native}
+            onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+            instance={this.instance}
+            adapterName={this.adapterName}
+        />
     }
 
     render() {
@@ -63,40 +130,12 @@ class App extends GenericApp {
 
         return <MuiThemeProvider theme={this.state.theme}>
             <div className="App" style={{background: this.state.theme.palette.background.default, color: this.state.theme.palette.text.primary}}>
-                <AppBar position="static">
-                    <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
-                        <Tab label={I18n.t('Options')} data-name="options" />
-                        <Tab label={I18n.t('Event list')} data-name="list" />
-                    </Tabs>
-                </AppBar>
-
-                <div className={this.isIFrame ? this.props.classes.tabContentIFrame : this.props.classes.tabContent}>
-                    {(this.state.selectedTab === 'options' || !this.state.selectedTab) && (<TabOptions
-                        key="options"
-                        common={this.common}
-                        socket={this.socket}
-                        native={this.state.native}
-                        onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
-                        onLoad={native => this.onLoadConfig(native)}
-                        instance={this.instance}
-                        adapterName={this.adapterName}
-                        changed={this.state.changed}
-                        onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
-                    />)}
-                    {this.state.selectedTab === 'list' && (<TabList
-                        key="enums"
-                        themeName={this.state.themeName}
-                        themeType={this.state.themeType}
-                        common={this.common}
-                        socket={this.socket}
-                        native={this.state.native}
-                        onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
-                        instance={this.instance}
-                        adapterName={this.adapterName}
-                    />)}
-                </div>
+                {!this.isTab ?
+                    this.renderTabsForConfig()
+                    :
+                    this.renderEventList()
+                }
                 {this.renderError()}
-                {this.renderSaveCloseButtons()}
             </div>
         </MuiThemeProvider>;
     }

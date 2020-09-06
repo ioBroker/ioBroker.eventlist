@@ -19,7 +19,7 @@
         "title": "Event list",
         "titleLang": {
             "en": "Event list",
-            "de": "Veranstaltungsliste",
+            "de": "Ereignisliste",
             "ru": "Список событий",
             "pt": "Lista de evento",
             "nl": "Evenementenlijst",
@@ -60,6 +60,24 @@
             "vis"
         ],
         "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
+        "welcomeScreen": {
+            "link": "eventlist/index.html",
+            "name": {
+                "en": "Events list",
+                "de": "Ereignisliste",
+                "ru": "Список событий",
+                "pt": "Lista de eventos",
+                "nl": "Evenementen lijst",
+                "fr": "Liste des événements",
+                "it": "Elenco eventi",
+                "es": "Lista de eventos",
+                "pl": "Lista wydarzeń",
+                "zh-cn": "活动清单"
+            },
+            "img": "eventlist.admin/eventlist.png",
+            "color": "black",
+            "order": 5
+        },
         "mode": "daemon",
         "type": "visualization",
         "compact": true,
@@ -67,10 +85,9 @@
         "materializeTab": true,
         "messagebox": true,
         "adminTab": {
-            "singleton": true,
             "name": {
                 "en": "Event list",
-                "de": "Veranstaltungsliste",
+                "de": "Ereignise",
                 "ru": "Список событий",
                 "pt": "Lista de evento",
                 "nl": "Evenementenlijst",
@@ -80,8 +97,7 @@
                 "pl": "Lista wydarzeń",
                 "zh-cn": "活动列表"
             },
-            "link": "",
-            "fa-icon": "info"
+            "fa-icon": "flash_on"
         },
         "supportCustoms": true,
         "dependencies": [
@@ -103,7 +119,9 @@
         "defaultBooleanColorFalse": "",
         "language": "",
         "icons": true,
-        "duration": true
+        "duration": true,
+        "license": "",
+        "pdfButton": false
     },
     "objects": [],
     "instanceObjects": [
@@ -115,6 +133,19 @@
                 "read": false,
                 "type": "json",
                 "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "triggerPDF",
+            "common": {
+                "name": "Generate PDF file",
+                "write": true,
+                "read": false,
+                "def": false,
+                "role": "button",
+                "type": "boolean"
             },
             "type": "state",
             "native": {}
@@ -132,11 +163,10 @@
             "type": "state",
             "native": {}
         }
-    ,
+        ,
         {
             "_id": "eventJSONList",
             "common": {
-                "expert": true,
                 "name": "Event JSON table",
                 "write": false,
                 "read": true,

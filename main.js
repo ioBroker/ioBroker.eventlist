@@ -10,7 +10,8 @@ const utils       = require('@iobroker/adapter-core');
 const moment      = require('moment');
 const fs          = require('fs');
 const adapterName = require('./package.json').name.split('.').pop();
-const words         = loadWords();
+const words       = loadWords();
+let list2pdf;
 
 require('moment/locale/fr');
 require('moment/locale/de');
@@ -24,8 +25,9 @@ require('moment/locale/pl');
 require('moment/locale/pt');
 require('moment/locale/nl');
 
-
 const DEFAULT_TEMPLATE = 'default';
+const MIN_VALID_DATE = new Date(2019, 0, 1).getTime();
+const MAX_VALID_DATE = new Date(2050, 0, 1).getTime();
 
 /**
  * The adapter instance
@@ -74,6 +76,9 @@ function state2json(state) {
             table = [];
         }
     }
+
+    table = table || [];
+
     return table;
 }
 
@@ -89,6 +94,20 @@ function startAdapter(options) {
 
         // is called if a subscribed state changes
     adapter.on('stateChange', (id, state) => {
+        if (id === adapter.namespace + '.triggerPDF' && !state.ack && state.val) {
+            console.log(id);
+            if (!list2pdf) {
+                if (fs.existsSync(__dirname + '/lib/__list2pdf.js')) {
+                    list2pdf = require('./lib/__list2pdf');
+                } else if (fs.existsSync(__dirname + '/lib/list2pdf.js')) {
+                    list2pdf = require('./lib/list2pdf');
+                }
+            }
+
+            reformatJsonTable(false)
+                .then(table => list2pdf(adapter, table))
+                .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
+        } else
         if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
             eventListRaw = state2json(state);
             reformatJsonTable(true).then(table =>
@@ -364,21 +383,17 @@ function formatEvent(state, allowRelative) {
     if (icon) {
         if (!icon.startsWith('data:')) {
             if (icon.includes('.')) {
-                icon = '/adapter/' + id.split('.').shift() + '/' + icon;
+                icon = '/adapter/' + (event.id || '').split('.').shift() + '/' + icon;
             } else {
                 icon = '';
             }
         }
     }
 
+    let durationText = state.duration !== undefined ? duration2text(state.duration): '';
+
     if (eventTemplate.includes('%d')) {
-        let text;
-        if (!state.duration) {
-            text = textUndefined
-        } else {
-            text = duration2text(state.duration);
-        }
-        eventTemplate = eventTemplate.replace(/%d/g, text);
+        eventTemplate = eventTemplate.replace(/%d/g, durationText);
     }
 
     if (eventTemplate.includes('%s')) {
@@ -397,13 +412,14 @@ function formatEvent(state, allowRelative) {
     if (icon && adapter.config.icons) {
         event.icon = icon;
     }
-    if (state.duration !== null && state.duration !== undefined && adapter.config.duration) {
-        event.duration = state.duration;
+    if (durationText && adapter.config.duration) {
+        event.duration = durationText;
     }
 
     if (valWithUnit !== '') {
         event.val = valWithUnit;
     }
+
     return event;
 }
 
@@ -419,7 +435,12 @@ function addEvent(event) {
         _event.ts = event.ts || Date.now();
 
         if (typeof _event.ts !== 'number') {
-            event.ts = new Date(_event.ts).getTime();
+            _event.ts = new Date(_event.ts).getTime();
+        } else {
+            if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
+                adapter.log.warn('Invalid date provided in event: ' + new Date(_event.ts).toISOString());
+                _event.ts = new Date(_event.ts).getTime();
+            }
         }
 
         if (event.event) {
@@ -444,6 +465,8 @@ function addEvent(event) {
 
         eventListRaw.unshift(_event);
         eventListRaw.sort((a, b) => a.ts > b.ts ? -1 : (a.ts < b.ts ? 1 : 0));
+
+        adapter.log.debug('Add ' + JSON.stringify(_event));
 
         if (eventListRaw.length > adapter.config.maxLength) {
             eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
@@ -645,6 +668,7 @@ async function main() {
                 adapter.subscribeStates('insert');
                 adapter.subscribeStates('insert');
                 adapter.subscribeStates('eventListRaw');
+                adapter.subscribeStates('triggerPdfGeneration');
                 // detect changes of objects
                 adapter.subscribeForeignObjects('*');
             });

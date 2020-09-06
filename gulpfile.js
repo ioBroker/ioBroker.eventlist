@@ -14,6 +14,10 @@ const EMPTY     = '';
 const translate = require('./lib/tools.js').translateText;
 const del       = require('del');
 const cp        = require('child_process');
+const babelify   = require('babelify');
+const browserify = require('browserify');
+const obfuscate  = require('gulp-javascript-obfuscator');
+const source     = require('vinyl-source-stream');
 
 const languages = {
     en: {},
@@ -357,22 +361,22 @@ async function translateNotExisting(obj, baseText, yandex) {
 //TASKS
 
 gulp.task('adminWords2languages', done => {
-    words2languages('./admin/');
+    words2languages('./src/public/');
     done();
 });
 
 gulp.task('adminWords2languagesFlat', done => {
-    words2languagesFlat('./admin/');
+    words2languagesFlat('./src/public/');
     done();
 });
 
 gulp.task('adminLanguagesFlat2words', done => {
-    languagesFlat2words('./admin/');
+    languagesFlat2words('./src/public/');
     done();
 });
 
 gulp.task('adminLanguages2words', done => {
-    languages2words('./admin/');
+    languages2words('./src/public/');
     done();
 });
 
@@ -577,9 +581,95 @@ gulp.task('6-patch', () => new Promise(resolve => {
 
         fs.writeFileSync(__dirname + '/src/build/index.html', code);
     }
+    if (fs.existsSync(__dirname + '/src/build/index.html')) {
+        let code = fs.readFileSync(__dirname + '/src/build/index.html').toString('utf8');
+        fs.writeFileSync(__dirname + '/admin/tab_m.html', code);
+    } else if (fs.existsSync(__dirname + '/admin/index.html')) {
+        let code = fs.readFileSync(__dirname + '/admin/index.html').toString('utf8');
+        fs.writeFileSync(__dirname + '/admin/tab_m.html', code);
+    }
+
+    if (fs.existsSync(__dirname + '/widgets/eventlist.html')) {
+        let code = fs.readFileSync(__dirname + '/widgets/eventlist.html').toString('utf8');
+        code = code.replace(/version: "\d+\.\d+\.\d+"/g, 'version: "' + version + '"');
+        fs.writeFileSync(__dirname + '/widgets/eventlist.html', code);
+    }
+
     resolve();
 }));
 
 gulp.task('6-patch-dep',  gulp.series('5-copy-dep', '6-patch'));
 
-gulp.task('default', gulp.series('6-patch-dep'));
+gulp.task('7-copy-www', () =>
+    gulp.src(['admin/*/**', 'admin/*'])
+        .pipe(gulp.dest('www/'))
+);
+
+gulp.task('7-copy-www-dep', gulp.series('6-patch-dep', '7-copy-www'));
+
+function renameWWW() {
+    return new Promise((resolve, reject) => {
+        if (fs.existsSync(__dirname + '/www/tab_m.html')) {
+            fs.unlinkSync(__dirname + '/www/tab_m.html');
+        }
+        const code = fs.readFileSync(__dirname + '/www/index_m.html').toString('utf8');
+        fs.writeFileSync(__dirname + '/www/index.html', code);
+
+        if (fs.existsSync(__dirname + '/www/index_m.html')) {
+            fs.unlinkSync(__dirname + '/www/index_m.html');
+        }
+        resolve();
+    });
+}
+
+gulp.task('8-rename-www', () => renameWWW());
+
+gulp.task('8-rename-www-dep', gulp.series('7-copy-www-dep', '8-rename-www'));
+
+gulp.task('pack', () =>
+    browserify({
+        entries: ['./list2pdf.js'],
+        basedir: './lib/',
+        extensions: ['.js'],
+        debug:  false,
+        fullPaths: false,
+        insertGlobals: false,
+        bare: true,
+        node: true,
+        bundleExternal: false,
+        include: [
+            './list2pdf.js',
+            './checkLicense.js',
+        ],
+    })
+        .transform(babelify, {
+            presets: ['@babel/preset-env']
+        })
+        .bundle()
+        .pipe(source('./lib/__list2pdf.js'))
+        .pipe(gulp.dest('./')));
+
+gulp.task('obfuscate', gulp.series('pack', () =>
+    gulp.src('./lib/__list2pdf.js')
+        .pipe(obfuscate(
+            {
+                compact: true,
+                controlFlowFlattening: false,
+                deadCodeInjection: false,
+                debugProtection: false,
+                debugProtectionInterval: false,
+                disableConsoleOutput: false,
+                identifierNamesGenerator: 'hexadecimal',
+                log: false,
+                renameGlobals: true,
+                rotateStringArray: true,
+                selfDefending: true,
+                stringArray: true,
+                stringArrayEncoding: ['base64'],
+                stringArrayThreshold: 0.75,
+                unicodeEscapeSequence: false
+            }
+        )).pipe(gulp.dest('./lib/'))
+));
+
+gulp.task('default', gulp.series('8-rename-www-dep'));

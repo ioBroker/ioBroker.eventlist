@@ -1,0 +1,95 @@
+<script type="text/x-iobroker" data-template-name="eventlist">
+    <div class="row">
+        <div class="col s4 m2">
+            <input type="checkbox" data-field="enabled" data-default="false"/>
+            <!-- this field is mandatory, just to find out if to include this settings or not</span-->
+            <span class="translate">enabled</span>
+        </div>
+        <div class="col s8 m10">
+            <input type="text" data-field="event" size="30">
+            <label class="translate">Event</label>
+            <span style="font-style: italic; font-size: smaller" class="translate">You can use %s for value, %u for unit, %t for time and %n for name in the event</span>
+        </div>
+    </div>
+    <div class="row eventlist-boolean">
+        <div class="col s4 m2">
+        </div>
+        <div class="col s4 m5">
+            <input type="text" data-field="trueText" size="30">
+            <label class="translate">True text</label>
+            <span style="font-style: italic; font-size: smaller" class="translate">Leave event text empty, if this text should be used for event by true</span>
+        </div>
+        <div class="col s4 m5">
+            <input type="text" data-field="falseText" size="30">
+            <label class="translate">False text</label>
+            <span style="font-style: italic; font-size: smaller" class="translate">Leave event text empty, if this text should be used for event by false</span>
+        </div>
+    </div>
+    <div class="row eventlist-boolean">
+        <div class="col s4 m2">
+        </div>
+        <div class="col s4 m5">
+            <input type="text" data-field="trueColor" size="30">
+            <label class="translate">True color</label>
+        </div>
+        <div class="col s4 m5">
+            <input type="text" data-field="falseColor" size="30">
+            <label class="translate">False color</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s4 m2">
+        </div>
+        <div class="col s4 m5">
+            <input type="checkbox" data-field="changesOnly" data-default="false">
+            <span class="translate">Changes only</span>
+            <span style="font-style: italic; font-size: smaller" class="translate">Generate event only by state change</span>
+        </div>
+    </div
+
+</script>
+
+<script type="text/javascript">
+    $.get("adapter/eventlist/words.js", function (script) {
+        let translation = script.substring(script.indexOf('{'), script.length);
+        translation = translation.substring(0, translation.lastIndexOf(';'));
+        $.extend(systemDictionary, JSON.parse(translation));
+    });
+
+    // There are two ways how to predefine default settings:
+    // - with attribute "data-default" (content independent)
+    // - with function in global variable "defaults". Function name is equal with adapter name.
+    //   as input function receives object with all information concerning it
+    if (typeof defaults !== 'undefined') {
+        defaults["eventlist"] = function (obj, instanceObj) {
+            console.log('eventlist');
+            if (obj && obj.common && obj.common.type === 'boolean') {
+                return {
+                    enabled: false,
+                    event: 'default',
+                    trueText: 'default',
+                    falseText: 'default',
+                    trueColor: 'default',
+                    falseColor: 'default',
+                    changesOnly: true,
+                };
+            } else {
+                return {
+                    enabled: false,
+                    event: 'default',
+                    changesOnly: true,
+                };
+            }
+        }
+    }
+    if (typeof customPostInits !== 'undefined') {
+        console.log('eventlist');
+        customPostInits["eventlist"] = function ($tab, settings, instanceObj, type, role, obj) {
+            if (type === 'boolean') {
+                $('.eventlist-boolean').show();
+            } else {
+                $('.eventlist-boolean').hide();
+            }
+        };
+    }
+</script>

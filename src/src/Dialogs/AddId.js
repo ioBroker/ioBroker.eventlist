@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import moment from 'moment'
+import clsx from 'clsx'
+import withWidth from "@material-ui/core/withWidth";
 
 import 'moment/locale/fr';
 import 'moment/locale/de';
@@ -15,7 +17,6 @@ import 'moment/locale/pl';
 import 'moment/locale/pt';
 import 'moment/locale/nl';
 
-
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -27,10 +28,18 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Switch from '@material-ui/core/Switch';
 import Paper from '@material-ui/core/Paper';
+import Accordion from '@material-ui/core/Accordion';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import Typography from '@material-ui/core/Typography';
+
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+
 
 import I18n from '@iobroker/adapter-react/i18n';
 import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
 import ColorPicker from '../Components/ColorPicker';
+import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm'
 
 const styles = theme => ({
     textField: {
@@ -39,8 +48,9 @@ const styles = theme => ({
     textFieldWithButton: {
         width: 'calc(100% - 70px)'
     },
-    exampleDiv: {
+    examplePaper: {
         marginBottom: theme.spacing(2),
+        background: theme.palette.type === 'dark' ? '#5f5f5f' : '#d8d8d8'
     },
     exampleTitle: {
         fontWeight: 'bold',
@@ -62,6 +72,7 @@ const styles = theme => ({
     paper: {
         marginBottom: theme.spacing(1),
         padding: theme.spacing(1),
+        width: '100%'
     },
 
 });
@@ -75,24 +86,34 @@ class AddIdDialog extends Component {
         this.state = {
             id: this.props.id || '',
             type: '',
+            unit: '',
+            name: '',
+
             event: '',
+            eventDefault: true,
+
             trueText: '',
+            trueTextDefault: true,
             falseText: '',
             falseTextDefault: true,
-            trueTextDefault: true,
-            eventDefault: true,
+
             color: '',
             trueColor: '',
             falseColor: '',
             trueColorDefault: true,
             falseColorDefault: true,
+
+            icon: '',
+            trueIcon: '',
+            falseIcon: '',
+
             changesOnly: true,
             showSelectId: false,
             unknownId: true,
-            unit: '',
-            name: '',
+
             toggleState: false,
             exists: false,
+            confirmExit: false,
         };
 
         this.language = this.props.native.language || I18n.getLanguage();
@@ -216,10 +237,6 @@ class AddIdDialog extends Component {
             onOk={id => this.setState({id}, () => this.readSettings(id))}
             onClose={() => this.setState({showSelectId: false})}
         />;
-    }
-
-    isChanged() {
-        const original = this.originalSettings || {};
     }
 
     translate(word, lang) {
@@ -419,10 +436,35 @@ class AddIdDialog extends Component {
             });
     }
 
+    onClose() {
+        if (this.state.id && JSON.stringify(this.originalSettings) !== JSON.stringify(this.getSettings())) {
+            this.setState({confirmExit: true});
+        } else {
+            this.props.onClose();
+        }
+    }
+
+    renderConfirmExit() {
+        if (!this.state.confirmExit) {
+            return null;
+        } else {
+            return <ConfirmDialog
+                title={ I18n.t('Changes not saved.') }
+                text={ I18n.t('All changes will be lost. Exit?') }
+                ok={ I18n.t('Yes') }
+                cancel={ I18n.t('No') }
+                onClose={isYes => {
+                    this.setState({ confirmExit: false} );
+                    isYes && this.props.onClose();
+                }}
+            />;
+        }
+    }
     render() {
+        const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
         return <Dialog
             open={true}
-            onClose={() => this.props.onClose()}
+            onClose={() => this.onClose()}
             aria-labelledby="form-dialog-title"
             fullWidth={true}
             maxWidth="lg"
@@ -448,7 +490,7 @@ class AddIdDialog extends Component {
                 </div>
 
                 {this.state.id && this.state.type ?
-                    <Paper className={this.props.classes.paper}>
+                    <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
 
                         <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
                         <span className={this.props.classes.exampleText} style={{color: this.getExampleColor() || undefined}}>
@@ -483,99 +525,122 @@ class AddIdDialog extends Component {
                         />
                     </> : null}
                 {this.state.id ?
-                    <Paper className={this.props.classes.paper}>
-                        <FormControlLabel
-                            control={<Checkbox
-                                checked={this.state.eventDefault}
-                                onChange={e => this.setState({eventDefault: e.target.checked})} />
-                            }
-                            label={I18n.t('Default event text')}
-                        />
-                        <br/>
-                        {!this.state.eventDefault ? <TextField
-                            margin="dense"
-                            label={I18n.t('Event text')}
-                            value={this.state.event}
-                            onChange={e => this.setState({event: e.target.value})}
-                            type="text"
-                            className={this.props.classes.textField}
-                            helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
-                            fullWidth
-                        /> : null}
-                    </Paper>
+                    <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography className={this.props.classes.heading}>{I18n.t('Event text')}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Paper className={this.props.classes.paper}>
+                                <FormControlLabel
+                                    control={<Checkbox
+                                        checked={this.state.eventDefault}
+                                        onChange={e => this.setState({eventDefault: e.target.checked})} />
+                                    }
+                                    label={I18n.t('Default event text')}
+                                />
+                                <br/>
+                                {!this.state.eventDefault ? <TextField
+                                    margin="dense"
+                                    label={I18n.t('Event text')}
+                                    value={this.state.event}
+                                    onChange={e => this.setState({event: e.target.value})}
+                                    type="text"
+                                    className={this.props.classes.textField}
+                                    helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
+                                    fullWidth
+                                /> : null}
+                            </Paper>
+                        </AccordionDetails>
+                    </Accordion>
                     : null }
                 {this.state.id && this.state.type === 'boolean' ?
-                    [
-                        <Paper key="1" className={this.props.classes.paper}>
-                            <FormControlLabel
-                                control={<Checkbox
-                                    checked={this.state.trueTextDefault}
-                                    onChange={e => this.setState({trueTextDefault: e.target.checked})} />
-                                }
-                                label={I18n.t('Use default TRUE value text')}
-                            />
-                            {!this.state.trueTextDefault ? <TextField
-                                margin="dense"
-                                label={I18n.t('TRUE text')}
-                                value={this.state.trueText}
-                                classes={{root: this.props.classes.textDense}}
-                                onChange={e => this.setState({trueText: e.target.value})}
-                                type="text"
-                                className={this.props.classes.textField}
-                                helperText={I18n.t('This text will be used when the state is TRUE')}
-                            /> : null}
-                        </Paper>,
-                        <Paper key="2" className={this.props.classes.paper}>
-                            <FormControlLabel
-                                control={<Checkbox
-                                    checked={this.state.trueColorDefault}
-                                    onChange={e => this.setState({trueColorDefault: e.target.checked})} />
-                                }
-                                label={I18n.t('Use default TRUE value color')}
-                            />
-                            {!this.state.trueColorDefault ? <ColorPicker
-                                color={this.state.trueColor}
-                                style={{width: 200, display: 'inline-block'}}
-                                name={I18n.t('TRUE color')}
-                                onChange={color => this.setState({trueColor: color})}
-                            /> : null}
-                        </Paper>,
-                        <Paper key="3" className={this.props.classes.paper}>
-                            <FormControlLabel
-                                control={<Checkbox
-                                    checked={this.state.falseTextDefault}
-                                    onChange={e => this.setState({falseTextDefault: e.target.checked})} />
-                                }
-                                label={I18n.t('Use default FALSE value text')}
-                            />
-                            {!this.state.falseTextDefault ? <TextField
-                                margin="dense"
-                                label={I18n.t('FALSE text')}
-                                value={this.state.falseText}
-                                classes={{root: this.props.classes.textDense}}
-                                onChange={e => this.setState({falseText: e.target.value})}
-                                type="text"
-                                className={this.props.classes.textField}
-                                helperText={I18n.t('This text will be used when the state is FALSE')}
-                            /> : null}
-                        </Paper>,
-                        <Paper key="4" className={this.props.classes.paper}>
-                            <FormControlLabel
-                                control={<Checkbox
-                                    checked={this.state.falseColorDefault}
-                                    onChange={e => this.setState({falseColorDefault: e.target.checked})} />
-                                }
-                                label={I18n.t('Use default FALSE value color')}
-                            />
-                            {!this.state.falseColorDefault ? <ColorPicker
-                                style={{width: 200, display: 'inline-block'}}
-                                color={this.state.falseColor}
-                                name={I18n.t('FALSE color')}
-                                onChange={color => this.setState({falseColor: color})}
-                            /> : null}
-                        </Paper>
-                        ]
+                        <Accordion>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography className={this.props.classes.heading}>{I18n.t('True/False texts')}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <Paper className={this.props.classes.paper}>
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            checked={this.state.trueTextDefault}
+                                            onChange={e => this.setState({trueTextDefault: e.target.checked})} />
+                                        }
+                                        label={I18n.t('Use default TRUE value text')}
+                                    />
+                                    {!this.state.trueTextDefault ? <TextField
+                                        margin="dense"
+                                        label={I18n.t('TRUE text')}
+                                        value={this.state.trueText}
+                                        classes={{root: this.props.classes.textDense}}
+                                        onChange={e => this.setState({trueText: e.target.value})}
+                                        type="text"
+                                        className={this.props.classes.textField}
+                                        helperText={I18n.t('This text will be used when the state is TRUE')}
+                                    /> : null}
+                                </Paper>
+                                {narrowWidth ? <br/> : null}
+                                <Paper className={this.props.classes.paper}>
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            checked={this.state.falseTextDefault}
+                                            onChange={e => this.setState({falseTextDefault: e.target.checked})} />
+                                        }
+                                        label={I18n.t('Use default FALSE value text')}
+                                    />
+                                    {!this.state.falseTextDefault ? <TextField
+                                        margin="dense"
+                                        label={I18n.t('FALSE text')}
+                                        value={this.state.falseText}
+                                        classes={{root: this.props.classes.textDense}}
+                                        onChange={e => this.setState({falseText: e.target.value})}
+                                        type="text"
+                                        className={this.props.classes.textField}
+                                        helperText={I18n.t('This text will be used when the state is FALSE')}
+                                    /> : null}
+                                </Paper>
+                            </AccordionDetails>
+                        </Accordion>
                     : null }
+                {this.state.id && this.state.type === 'boolean' ?
+                        <Accordion>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography className={this.props.classes.heading}>{I18n.t('Colors')}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <Paper className={this.props.classes.paper}>
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            checked={this.state.trueColorDefault}
+                                            onChange={e => this.setState({trueColorDefault: e.target.checked})} />
+                                        }
+                                        label={I18n.t('Use default TRUE value color')}
+                                    />
+                                    {!this.state.trueColorDefault ? <ColorPicker
+                                        color={this.state.trueColor}
+                                        style={{width: 200, display: 'inline-block'}}
+                                        name={I18n.t('TRUE color')}
+                                        onChange={color => this.setState({trueColor: color})}
+                                    /> : null}
+                                </Paper>
+                                {narrowWidth ? <br/> : null}
+                                <Paper className={this.props.classes.paper}>
+                                    <FormControlLabel
+                                        control={<Checkbox
+                                            checked={this.state.falseColorDefault}
+                                            onChange={e => this.setState({falseColorDefault: e.target.checked})} />
+                                        }
+                                        label={I18n.t('Use default FALSE value color')}
+                                    />
+                                    {!this.state.falseColorDefault ? <ColorPicker
+                                        style={{width: 200, display: 'inline-block'}}
+                                        color={this.state.falseColor}
+                                        name={I18n.t('FALSE color')}
+                                        onChange={color => this.setState({falseColor: color})}
+                                    /> : null}
+                                </Paper>
+                            </AccordionDetails>
+                        </Accordion>
+                : null }
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => this.props.onClose()} color="primary">{I18n.t('Cancel')}</Button>
@@ -589,6 +654,7 @@ class AddIdDialog extends Component {
                 >{this.state.exists ? I18n.t('Update') : I18n.t('Add')}</Button>
             </DialogActions>
             {this.renderSelectId()}
+            {this.renderConfirmExit()}
         </Dialog>;
     }
 }
@@ -604,4 +670,4 @@ AddIdDialog.propTypes = {
     id: PropTypes.string,
 };
 
-export default withStyles(styles)(AddIdDialog);
+export default withWidth()(withStyles(styles)(AddIdDialog));

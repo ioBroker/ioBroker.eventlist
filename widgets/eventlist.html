@@ -5,131 +5,514 @@
 
     Copyright 2020 ioBroker dogafox@gmail.com
 -->
-<!-- here you can include so many css as you want -->
+
 <link rel="stylesheet" href="widgets/eventlist/css/style.css" />
-<!-- here you can include so many js-files as you want -->
-<script type="text/javascript" src="widgets/eventlist/js/eventlist.js"></script>
 
-<!-- the full description of format in data-vis-attrs can be found here:
-    https://github.com/ioBroker/ioBroker.vis/blob/master/www/js/visEditInspect.js#L39
+<script type="text/javascript">
+    'use strict';
 
-    ----------------------------------------------------------
-    Mandatory XML attributes:
-        id="tplEventlistWIDGETNAME"
-        type="text/ejs"
-        class="vis-tpl"
+    if (vis.editMode) {
+        // Add words for basic widgets
+        $.extend(true, systemDictionary, {
+            // Bars
+            "eventlistInstance":              {
+                "en": "Instance",
+                "de": "Instanz",
+                "ru": "Инстанция",
+                "pt": "Instância",
+                "nl": "Instance",
+                "fr": "Instance",
+                "it": "Instance",
+                "es": "Instance",
+                "pl": "Instancja",
+                "zh-cn": "实例"
+            },
+            "showEventTime": {
+                "en": "Time",
+                "de": "Zeit",
+                "ru": "Время",
+                "pt": "Tempo",
+                "nl": "Tijd",
+                "fr": "Temps",
+                "it": "Tempo",
+                "es": "Hora",
+                "pl": "Czas",
+                "zh-cn": "时间"
+            },
+            "showEventValue": {
+                "en": "Value",
+                "de": "Wert",
+                "ru": "Значение",
+                "pt": "Valor",
+                "nl": "Waarde",
+                "fr": "Valeur",
+                "it": "Valore",
+                "es": "Valor",
+                "pl": "Wartość",
+                "zh-cn": "值"
+            },
+            "showEventDuration": {
+                "en": "Duration",
+                "de": "Dauer",
+                "ru": "Продолжительность",
+                "pt": "Duração",
+                "nl": "Looptijd",
+                "fr": "Durée",
+                "it": "Durata",
+                "es": "Duración",
+                "pl": "Trwanie",
+                "zh-cn": "持续时间"
+            },
+            "textEventEvent": {
+                "en": "Event",
+                "de": "Ereignis",
+                "ru": "Мероприятие",
+                "pt": "Evento",
+                "nl": "Evenement",
+                "fr": "un événement",
+                "it": "Evento",
+                "es": "Evento",
+                "pl": "Zdarzenie",
+                "zh-cn": "事件"
+            },
+            "textEventTime": {
+                "en": "Time",
+                "de": "Zeit",
+                "ru": "Время",
+                "pt": "Tempo",
+                "nl": "Tijd",
+                "fr": "Temps",
+                "it": "Tempo",
+                "es": "Hora",
+                "pl": "Czas",
+                "zh-cn": "时间"
+            },
+            "textEventValue": {
+                "en": "Value",
+                "de": "Wert",
+                "ru": "Значение",
+                "pt": "Valor",
+                "nl": "Waarde",
+                "fr": "Valeur",
+                "it": "Valore",
+                "es": "Valor",
+                "pl": "Wartość",
+                "zh-cn": "值"
+            },
+            "textEventDuration": {
+                "en": "Duration",
+                "de": "Dauer",
+                "ru": "Продолжительность",
+                "pt": "Duração",
+                "nl": "Looptijd",
+                "fr": "Durée",
+                "it": "Durata",
+                "es": "Duración",
+                "pl": "Trwanie",
+                "zh-cn": "持续时间"
+            },
+            'group_headerTitle': {
+                "en": "Header texts",
+                "de": "Kopfzeilentexte",
+                "ru": "Тексты заголовков",
+                "pt": "Textos de cabeçalho",
+                "nl": "Kopteksten",
+                "fr": "Textes d'en-tête",
+                "it": "Testi di intestazione",
+                "es": "Textos de encabezado",
+                "pl": "Teksty nagłówka",
+                "zh-cn": "标题文字"
+            },
+            "widthEventEvent": {
+                "en": "Event",
+                "de": "Ereignis",
+                "ru": "Мероприятие",
+                "pt": "Evento",
+                "nl": "Evenement",
+                "fr": "un événement",
+                "it": "Evento",
+                "es": "Evento",
+                "pl": "Zdarzenie",
+                "zh-cn": "事件"
+            },
+            "widthEventTime": {
+                "en": "Time",
+                "de": "Zeit",
+                "ru": "Время",
+                "pt": "Tempo",
+                "nl": "Tijd",
+                "fr": "Temps",
+                "it": "Tempo",
+                "es": "Hora",
+                "pl": "Czas",
+                "zh-cn": "时间"
+            },
+            "widthEventValue": {
+                "en": "Value",
+                "de": "Wert",
+                "ru": "Значение",
+                "pt": "Valor",
+                "nl": "Waarde",
+                "fr": "Valeur",
+                "it": "Valore",
+                "es": "Valor",
+                "pl": "Wartość",
+                "zh-cn": "值"
+            },
+            "widthEventDuration": {
+                "en": "Duration",
+                "de": "Dauer",
+                "ru": "Продолжительность",
+                "pt": "Duração",
+                "nl": "Looptijd",
+                "fr": "Durée",
+                "it": "Durata",
+                "es": "Duración",
+                "pl": "Trwanie",
+                "zh-cn": "持续时间"
+            },
+            "group_headerWidths": {
+                "en": "Columns widths",
+                "de": "Spaltenbreiten",
+                "ru": "Ширина столбцов",
+                "pt": "Larguras das colunas",
+                "nl": "Kolombreedtes",
+                "fr": "Largeurs de colonnes",
+                "it": "Larghezze delle colonne",
+                "es": "Anchos de columnas",
+                "pl": "Szerokość kolumn",
+                "zh-cn": "列宽"
+            },
+            "eventListSampleEvent": {
+                "en": "Temperature outside changed to",
+                "de": "Außentemperatur auf geändert",
+                "ru": "Температура снаружи изменилась на",
+                "pt": "A temperatura externa mudou para",
+                "nl": "Temperatuur buiten veranderd naar",
+                "fr": "Température extérieure modifiée à",
+                "it": "La temperatura esterna è cambiata a",
+                "es": "La temperatura exterior cambió a",
+                "pl": "Temperatura na zewnątrz zmieniona na",
+                "zh-cn": "外界温度更改为"
+            },
+            "alignEventEvent": {
+                "en": "Event",
+                "de": "Ereignis",
+                "ru": "Мероприятие",
+                "pt": "Evento",
+                "nl": "Evenement",
+                "fr": "un événement",
+                "it": "Evento",
+                "es": "Evento",
+                "pl": "Zdarzenie",
+                "zh-cn": "事件"
+            },
+            "alignEventTime": {
+                "en": "Time",
+                "de": "Zeit",
+                "ru": "Время",
+                "pt": "Tempo",
+                "nl": "Tijd",
+                "fr": "Temps",
+                "it": "Tempo",
+                "es": "Hora",
+                "pl": "Czas",
+                "zh-cn": "时间"
+            },
+            "alignEventValue": {
+                "en": "Value",
+                "de": "Wert",
+                "ru": "Значение",
+                "pt": "Valor",
+                "nl": "Waarde",
+                "fr": "Valeur",
+                "it": "Valore",
+                "es": "Valor",
+                "pl": "Wartość",
+                "zh-cn": "值"
+            },
+            "alignEventDuration": {
+                "en": "Duration",
+                "de": "Dauer",
+                "ru": "Продолжительность",
+                "pt": "Duração",
+                "nl": "Looptijd",
+                "fr": "Durée",
+                "it": "Durata",
+                "es": "Duración",
+                "pl": "Trwanie",
+                "zh-cn": "持续时间"
+            },
+            "group_headerAligns": {
+                "en": "Align columns",
+                "de": "Spalten ausrichten",
+                "ru": "Выровнять столбцы",
+                "pt": "Alinhar colunas",
+                "nl": "Lijn kolommen uit",
+                "fr": "Aligner les colonnes",
+                "it": "Allinea le colonne",
+                "es": "Alinear columnas",
+                "pl": "Wyrównaj kolumny",
+                "zh-cn": "对齐列"
+            },
+            "showScroll": {
+                "en": "Show scroll",
+                "de": "Schriftrolle anzeigen",
+                "ru": "Показать прокрутку",
+                "pt": "Mostrar pergaminho",
+                "nl": "Toon scroll",
+                "fr": "Afficher le défilement",
+                "it": "Mostra scorrimento",
+                "es": "Mostrar desplazamiento",
+                "pl": "Pokaż przewijanie",
+                "zh-cn": "显示滚动"
+            },
+            "defaultStyle": {
+                "en": "Default style",
+                "de": "Standardstil",
+                "ru": "Стиль по умолчанию",
+                "pt": "Estilo padrão",
+                "nl": "Standaard stijl",
+                "fr": "Style par défaut",
+                "it": "Stile predefinito",
+                "es": "Estilo por Defecto",
+                "pl": "Domyślny styl",
+                "zh-cn": "默认样式"
+            },
+            "center": {
+                "en": "center",
+                "de": "Center",
+                "ru": "по центру",
+                "pt": "сentro",
+                "nl": "centrum",
+                "fr": "centre",
+                "it": "centro",
+                "es": "centrar",
+                "pl": "środek",
+                "zh-cn": "中央"
+            },
+            tooltip_defaultStyle: {
+                "en": "You can overload following classes: event-table for table, event-table-header for header",
+                "de": "Sie können folgende Klassen überladen: event-table für table, event-table-header für header",
+                "ru": "Вы можете перегрузить следующие классы: event-table для таблицы, event-table-header для заголовка.",
+                "pt": "Você pode sobrecarregar as seguintes classes: event-table para a tabela, event-table-header` para o cabeçalho",
+                "nl": "U kunt de volgende klassen overbelasten: event-table voor tabel, event-table-header` voor header",
+                "fr": "Vous pouvez surcharger les classes suivantes: event-table pour la table, event-table-header` pour l'en-tête",
+                "it": "Puoi sovraccaricare le seguenti classi: event-table per table, event-table-header` per header",
+                "es": "Puede sobrecargar las siguientes clases: event-table para la tabla, event-table-header` para el encabezado",
+                "pl": "Możesz przeciążać następujące klasy: event-table dla tabeli, event-table-header` dla nagłówka",
+                "zh-cn": "您可以重载以下类：表的“事件表”，标头的“事件表头”"
+            }
+        });
+    }
 
-        "type" and "class" are always the same. "id" is unique and must start with "tplSETNAME" and ends with widget name. Use camel-case for it.
+    $.extend(true, systemDictionary, {
+        "eventtableTime": {
+            "en": "Time",
+            "de": "Zeit",
+            "ru": "Время",
+            "pt": "Tempo",
+            "nl": "Tijd",
+            "fr": "Temps",
+            "it": "Tempo",
+            "es": "Hora",
+            "pl": "Czas",
+            "zh-cn": "时间"
+        },
+        "eventtableValue": {
+            "en": "Value",
+            "de": "Wert",
+            "ru": "Значение",
+            "pt": "Valor",
+            "nl": "Waarde",
+            "fr": "Valeur",
+            "it": "Valore",
+            "es": "Valor",
+            "pl": "Wartość",
+            "zh-cn": "值"
+        },
+        "eventtableEvent": {
+            "en": "Event",
+            "de": "Ereignis",
+            "ru": "Мероприятие",
+            "pt": "Evento",
+            "nl": "Evenement",
+            "fr": "un événement",
+            "it": "Evento",
+            "es": "Evento",
+            "pl": "Zdarzenie",
+            "zh-cn": "事件"
+        },
+        "eventtableDuration": {
+            "en": "Duration",
+            "de": "Dauer",
+            "ru": "Продолжительность",
+            "pt": "Duração",
+            "nl": "Looptijd",
+            "fr": "Durée",
+            "it": "Durata",
+            "es": "Duración",
+            "pl": "Trwanie",
+            "zh-cn": "持续时间"
+        }
+    });
 
-    ----------------------------------------------------------
-    data-vis-attrs - divided with semicolon the list of attributes, like attr1/id;attr2/color
-        Full format of one attribute is: attr_name(start-end)[default_value]/type,idFilter/onChangeFunc
-            attr_name - the name of the attribute, e.g. "myID"
-            start-end - creates automatically attributes from attr_namestart to attr_nameend, like "myID(1-3)" creates myID1, myID2, myID3
-            default_value - by creation of widget this attribute will be filled with this value, e.g. "myID[#001122]/color"
-            type - some predefined types have edit helpers, else it will be shown as text field
+    vis.binds.eventlist = {
+        version: "0.0.1",
+        showVersion: function () {
+            if (vis.binds.eventlist.version) {
+                console.log('Version consumption: ' + vis.binds.eventlist.version);
+                vis.binds.eventlist.version = null;
+            }
+        },
+        renderHeader(el, wid, view, data) {
+            var text = '<tr class="' + (data.defaultStyle ? 'event-table-header' : '') + '">';
+            if (data.showEventTime) {
+                text += '<th width="' + data.widthEventTime + '" style="text-align: ' + data.alignEventTime + '">' + (data.textEventTime === '_' ? _('eventtableTime') : data.textEventTime) + '</th>';
+            }
+            text += '<th width="' + data.widthEventEvent + '" style="text-align: ' + data.alignEventEvent + '">' + (data.textEventEvent === '_' ? _('eventtableEvent') : data.textEventEvent) + '</th>';
+            if (data.showEventValue) {
+                text += '<th width="' + data.widthEventValue + '" style="text-align: ' + data.alignEventValue + '">' + (data.textEventValue === '_' ? _('eventtableValue') : data.textEventValue) + '</th>';
+            }
+            if (data.showEventDuration) {
+                text += '<th width="' + data.widthEventDuration + '" style="text-align: ' + data.alignEventDuration + '">' + (data.textEventDuration === '_' ? _('eventtableDuration') : data.textEventDuration) + '</th>';
+            }
+            text += '</tr>\n';
+            return text;
+        },
+        renderRow(el, wid, view, data, json, i) {
+            var item = json[i];
+            var line = '<tr>';
+            if (data.showEventTime) {
+                line += '<td style="text-align: ' + data.alignEventTime + '">' + item.ts + '</td>';
+            }
+            line += '<td style="text-align: ' + data.alignEventEvent + '">' + item.event + '</td>';
+            if (data.showEventValue) {
+                line += '<td style="text-align: ' + data.alignEventValue + '">' + (item.val === undefined || item.val === null ? '' : item.val) + '</td>';
+            }
+            if (data.showEventDuration) {
+                line += '<td style="text-align: ' + data.alignEventDuration + '">' + (item.duration === undefined || item.duration === null ? '' : item.duration) + '</td>';
+            }
+            line += '</tr>\n';
+            return line;
+        },
+        state2json(state) {
+            state = state || {};
+            let table = state.val || [];
 
-                Type format:
-                      id - Object ID Dialog
-                      checkbox
-                      image - image
-                      number,min,max,step - non-float number. min,max,step are optional
-                      color - color picker
-                      views - Name of the view
-                      effect - jquery UI show/hide effects
-                      eff_opt - additional option to effect slide (up, down, left, right)
-                      fontName - Font name
-                      slider,min,max,step - Default step is ((max - min) / 100)
-                      select,value1,value2,... - dropdown select
-                      nselect,value1,value2,... - same as select, but without translation of items
-                      style,fileFilter,nameFilter,attrFilter
-                      custom,functionName,options,... - custom editor - functionName is starting from vis.binds.[widgetset.funct]. E.g. custom/timeAndWeather.editWeather,short
-                      group.name - define new or old group. All following attributes belongs to new group till new group.xyz
-                      group.name/byindex - like group, but all following attributes will be grouped by ID. Like group.windows/byindex;slide(1-4)/id;slide_type(1-4)/select,open,closed  Following groups will be created Windows1(slide1,slide_type1), Windows2(slide2,slide_type2), Windows3(slide3,slide_type3), Windows4(slide4,slide_type4)
-                      text - dialog box with html editor
-                      html - dialog box with html editor
+            if (typeof table !== 'object') {
+                try {
+                    table = JSON.parse(table);
+                } catch (e) {
+                    console.warn('Cannot parse event list: "' + table + '"');
+                    table = [];
+                }
+            }
 
-                If type is "id", you can define filer for "Select ID Dialog", like "myID/id,level.temperature".
-                Additionally you can define callback(onChangeFunc), which will be called if this attribute was changed by user for different purposes: validate entry, fill other attributes, ...
+            table = table || [];
 
-        You can define additional data-vis-attrs line: data-vis-attrs0, data-vis-attrs1. Anyway data-vis-attrs must be there. You may not skip numbers.
-        E.g. in "data-vis-attrs="A;" data-vis-attrs1="B" attribute B will be not parsed.
+            return table;
+        },
+        renderTable(el, wid, view, data, style, json) {
+            var table = '<table style="width: 100%;" class="' + (data.defaultStyle ? 'event-table' : '') + '"><tbody style="width: 100%;">'
+            table += vis.binds.eventlist.renderHeader(el, wid, view, data);
+            for (var i = 0; i < json.length; i++) {
+                if (!data.max_rows || i < data.max_rows) {
+                    table += vis.binds.eventlist.renderRow(el, wid, view, data, json, i);
+                } else {
+                    break;
+                }
+            }
 
-    --------------------------------------------------------
-    data-vis-type
-        Help information for user. Used for search.
-        You can define more than one type divided by comma.
-        There are following common types, but you can use your own specific types:
-            ctrl   - widget that can write some Object IDs
-            val    - widget that shows some information from Object IDs
-            static - widget do not read information from Object IDs or URL
-            button - button widget
-            dimmer - dimmer widget
-            weather - weather widget
-            ...
+            table += '</tbody></table>\n';
+            return table;
+        },
+        subscribes: [],
+        init: function (el, wid, view, data, style) {
+            var $div = $('#' + wid);
+            if (!$div.length) {
+                return setTimeout(function () {
+                    vis.binds.eventlist.init(el, wid, view, data, style);
+                }, 100);
+            }
+            data.max_rows = parseInt(data.max_rows, 10) || 0;
+            data.widthEventTime     = data.widthEventTime     === parseFloat(data.widthEventTime).toString()     ? data.widthEventTime     + 'px' : data.widthEventTime;
+            data.widthEventEvent    = data.widthEventEvent    === parseFloat(data.widthEventEvent).toString()    ? data.widthEventEvent    + 'px' : data.widthEventEvent;
+            data.widthEventValue    = data.widthEventValue    === parseFloat(data.widthEventValue).toString()    ? data.widthEventValue    + 'px' : data.widthEventValue;
+            data.widthEventDuration = data.widthEventDuration === parseFloat(data.widthEventDuration).toString() ? data.widthEventDuration + 'px' : data.widthEventDuration;
 
-    --------------------------------------------------------
-    data-vis-set
-        Name of the widget set. Must be equal to the name of this HTML file
+            if (data.showScroll) {
+                $div.css('overflow-y', 'auto');
+            }
 
-    --------------------------------------------------------
-    data-vis-prev
-        Html code used as preview of this widget. If widget is complex you can just use image as preview:
-        data-vis-prev='<img src="widgets/hqwidgets/img/prev/Prev_tplEventlistShowInstance.png"></img>'
-        Of course the image must exist.
+            var jsonID = 'eventlist.' + (parseInt(data.eventlistInstance, 10) || 0) + '.eventJSONList';
 
-    --------------------------------------------------------
-    data-vis-name
-        Readable name of widget shown in vis editor.
+            vis.conn.getStates(jsonID, (err, state) => {
+                var json = vis.binds.eventlist.state2json(state[jsonID]);
 
-    --------------------------------------------------------
-    data-vis-beta="true"
-        Shows "BETA" symbol in vis editor by preview
+                if (vis.editMode && !json.length) {
+                    json.push({
+                        ts: new Date().toLocaleTimeString(),
+                        val: '5°C',
+                        event: _('eventListSampleEvent'),
+                        duration: '1h 2s'
+                    });
+                }
 
-    --------------------------------------------------------
-    data-vis-update-style="true"
-        Call redraw of widget if some of the CSS styles in editor for this widget was changed
+                var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json);
+                $div.html(text);
 
-    You can read about Magic tags here: http://canjs.com/guides/EJS.html
-    Following magic tags are exist:
-        <% %> - execute javascript
-        <%= %> - place escaped result to HTML document
-        <%== %> - place unescaped result to HTML document
+                function onChange(wid, id, newVal) {
+                    if (id === jsonID) {
+                        var json = vis.binds.eventlist.state2json({val: newVal});
+                        var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json);
+                        $div.html(text);
+                    }
+                }
 
-    You can do "if" conditions and "for" cycles.
+                if (vis.binds.eventlist.subscribes[jsonID]) {
+                    vis.binds.eventlist.subscribes[jsonID]++;
+                } else {
+                    vis.binds.eventlist.subscribes[jsonID] = 1;
+                    vis.conn.subscribe(jsonID);
+                    console.log('Subscribe on ' + jsonID);
+                }
 
--->
-<script id="tplEventlistShowInstance"
-        type="text/ejs"
-        class="vis-tpl"
-        data-vis-prev='<div id="prev_tplEventlistShowInstance" style="position: relative; text-align: initial;padding: 4px "><div class="vis-widget_prev " style="width: 280px; height: 159px;" > <div class="eventlist-class vis-widget-prev-body " style="padding:2px"> OID: hm-rpc.0.EEQ0006629.1.STATE<br> OID value: true<br> Color: <span style="color: rgb(128, 0, 0);">#800000</span><br> htmlText: <textarea readonly="" style="width:100%">asda</textarea></div>'
-        data-vis-attrs="oid/id;myColor/color;htmlText/text;"
-        data-vis-attrs0="group.extraEventlist;extraAttr"
-        data-vis-set="eventlist"
-        data-vis-type="helper"
-        data-vis-name="Show instance">
-    <div class="vis-widget <%== this.data.attr('class') %>" style="width:230px; height:210px;" id="<%= this.data.attr('wid') %>" >
-        <div class="eventlist-class vis-widget-body <%== this.data.attr('class') %>" style="padding:2px" >
-            OID: <%= this.data.attr('oid') %><br>
-            OID value: <%== vis.states[this.data.attr('oid') + '.val'] %><br>
-            Color: <span style="color: <%= this.data.attr('myColor') %>"><%= this.data.attr('myColor') %></span><br>
-            extraAttr: <%== this.data.attr('extraAttr') %><br>
-            Browser instance: <%= vis.instance %><br>
-            htmlText: <textarea readonly style="width: calc(100% - 10px)"><%== this.data.attr('htmlText') %></textarea><br>
-        </div>
-    </div>
+                vis.registerOnChange(onChange, jsonID);
+
+                $div.data('destroy', function () {
+                    if (vis.binds.eventlist.subscribes[jsonID]) {
+                        vis.binds.eventlist.subscribes[jsonID]--;
+                        if (!vis.binds.eventlist.subscribes[jsonID]) {
+                            console.log('Unsubscribe on ' + jsonID);
+                            vis.conn.unsubscribe(jsonID);
+                            delete vis.binds.eventlist.subscribes[jsonID];
+                        }
+                        vis.unregisterOnChange(onChange, jsonID);
+                    }
+                });
+            });
+        },
+    };
+
+    vis.binds.eventlist.showVersion();
 </script>
 
-<script id="tplEventlistHelper"
+<script id="tplEventlist"
         type="text/ejs"
         class="vis-tpl"
-        data-vis-prev='<div id="prev_tplEventlistHelper" style="position: relative; text-align: initial;padding: 4px "><div class="vis-widget_prev " style="width: 280px; height: 159px;" > <div class="eventlist-class vis-widget-prev-body " style="padding:2px"> OID: hm-rpc.0.EEQ0006629.1.STATE<br> OID value: true<br> Color: <span style="color: rgb(128, 0, 0);">#800000</span><br> htmlText: <textarea readonly="" style="width:100%">asda</textarea></div>'
-        data-vis-attrs="oid/id;myColor/color;htmlText/text;"
-        data-vis-attrs0="group.extraEventlist;extraAttr"
         data-vis-set="eventlist"
-        data-vis-type="helper"
-        data-vis-name="Helper">
-    <div class="vis-widget <%== this.data.attr('class') %>" style="overflow:visible; width: 230px; height: 210px" id="<%= this.data.attr('wid') %>"><%
-        vis.binds['eventlist'].createWidget(this.data.wid, this.view, this.data, this.style);
-    %></div>
+        data-vis-type="json,table"
+        data-vis-name="Events"
+        data-vis-prev='<img src="widgets/eventlist/img/Prev_Eventlist.png"></img>'
+        data-vis-attrs="eventlistInstance[0]/instance,eventlist;"
+        data-vis-attrs0="max_rows/number;defaultStyle[true]/checkbox;defaultStyle[true]/checkbox;"
+        data-vis-attrs1="group.header;showEventTime[true]/checkbox;showEventValue[true]/checkbox;showEventDuration[false]/checkbox;"
+        data-vis-attrs2="group.headerTitle;textEventTime[_];textEventEvent[_];textEventValue[_];textEventDuration[_];"
+        data-vis-attrs3="group.headerWidths;widthEventTime;widthEventEvent;widthEventValue;widthEventDuration;"
+        data-vis-attrs4="group.headerAligns;alignEventTime[right]/select,left,right,center;alignEventEvent[right]/select,left,right,center;alignEventValue[right]/select,left,right,center;alignEventDuration[right]/select,left,right,center;"
+>
+    <div class="vis-widget <%== this.data.attr('class') %>" id="<%= this.data.attr('wid') %>" style="width: 300px; height: 150px; overflow-x: hidden">
+        <div class="vis-widget-body" style="display: inline-block" <%= (el) -> vis.binds.eventlist.init(el, this.data.wid, this.view, this.data, this.style) %> ></div>
+    </div>
 </script>

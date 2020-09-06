@@ -16,14 +16,10 @@
 ## Changelog
 
 ## Todo
-- Show in admin config
-- Show as admin tab
-- Show as web 
-- Vis widget
+- Show with icons
 - Material widget
 - PDF generator
-- insert events with message / state
-- Send messages to syslog and telegram (may be splunk)
+- Send messages to syslog and telegram (may be splunk) https://www.npmjs.com/package/splunk-logging
 
 ### 0.0.1
 * (bluefox) initial release

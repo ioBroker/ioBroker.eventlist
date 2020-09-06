@@ -1,0 +1,8 @@
+Gerät %n hat den Status geändert:
+Std
+Min
+ms
+s
+ausgeschaltet
+eingeschaltet
+nicht definiert

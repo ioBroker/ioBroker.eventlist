@@ -32,6 +32,25 @@ class AddEventDialog extends Component {
         };
     }
 
+    onOk() {
+        const event = {event: this.state.event};
+        if (this.state.ts) {
+            event.ts = this.state.ts;
+        }
+        if (this.state.val) {
+            if (parseFloat(this.state.val).toString() === this.state.val) {
+                event.val = parseFloat(this.state.val);
+            } else if (this.state.val === 'true') {
+                event.val = true;
+            } else if (this.state.val === 'false') {
+                event.val = false;
+            } else  {
+                event.val = this.state.val;
+            }
+        }
+        this.props.onClose(event);
+    }
+
     render() {
         return <Dialog open={true} onClose={() => this.props.onClose()} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">{I18n.t('Add event')}</DialogTitle>
@@ -45,6 +64,8 @@ class AddEventDialog extends Component {
                     label={I18n.t('Event text')}
                     className={this.props.classes.textField}
                     value={this.state.event}
+                    onKeyUp={e =>
+                        e.keyCode === 13 && this.state.event && (!this.state.showTime || this.state.ts) && this.onOk()}
                     onChange={e => this.setState({event: e.target.value})}
                     type="text"
                     fullWidth
@@ -85,24 +106,7 @@ class AddEventDialog extends Component {
                 </Button>
                 <Button
                     disabled={!this.state.event || (this.state.showTime && !this.state.ts)}
-                    onClick={() => {
-                        const event = {event: this.state.event};
-                        if (this.state.ts) {
-                            event.ts = this.state.ts;
-                        }
-                        if (this.state.val) {
-                            if (parseFloat(this.state.val).toString() === this.state.val) {
-                                event.val = parseFloat(this.state.val);
-                            } else if (this.state.val === 'true') {
-                                event.val = true;
-                            } else if (this.state.val === 'false') {
-                                event.val = false;
-                            } else  {
-                                event.val = this.state.val;
-                            }
-                        }
-                        this.props.onClose(event);
-                    }}
+                    onClick={() => this.onOk()}
                     color="primary">
                     {I18n.t('Insert')}
                 </Button>

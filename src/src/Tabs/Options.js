@@ -241,6 +241,7 @@ class Options extends Component {
                             <MenuItem value="zh-cn">简体中文</MenuItem>
                         </Select>
                     </FormControl>
+                    <br/>
                     <FormControlLabel
                         control={<Checkbox checked={this.props.native.icons || false} onChange={e => this.props.onChange('icons', e.target.checked)} />}
                         label={I18n.t('Show icons in the list')}
@@ -248,6 +249,10 @@ class Options extends Component {
                     <FormControlLabel
                         control={<Checkbox checked={this.props.native.duration || false} onChange={e => this.props.onChange('duration', e.target.checked)} />}
                         label={I18n.t('Show duration in the list')}
+                    />
+                    <FormControlLabel
+                        control={<Checkbox checked={this.props.native.pdfButton || false} onChange={e => this.props.onChange('pdfButton', e.target.checked)} />}
+                        label={I18n.t('Show PDF generate button on list')}
                     />
                 </div>
                 { this.renderToast() }
