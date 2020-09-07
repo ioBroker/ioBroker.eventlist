@@ -9,6 +9,10 @@ gulpfile.js
 !/widgets/**/*
 !/www/*
 !/www/**/*
+admin/i18n/flat.txt
+admin/i18n/*/flat.txt
+www/i18n/flat.txt
+www/i18n/*/flat.txt
 !/io-package.json
 !/package.json
 !/LICENSE
