@@ -42,19 +42,7 @@
     "sinon-chai": "^3.5.0",
     "@alcalzone/release-script": "^1.7.0",
     "@types/iobroker": "^3.0.12",
-    "del": "^5.1.0",
-    "babel-core": "^6.26.3",
-    "babel-minify": "^0.5.1",
-    "@babel/preset-env": "^7.11.5",
-    "babelify": "^10.0.0",
-    "browserify": "^16.5.2",
-    "gulp-exec": "^5.0.0",
-    "gulp-connect": "^5.7.0",
-    "gulp-watch": "^5.0.1",
-    "gulp-replace": "^1.0.0",
-    "gulp-javascript-obfuscator": "^1.1.6",
-    "vinyl-source-stream": "^2.0.0",
-    "vinyl-sourcemaps-apply": "^0.2.1"
+    "del": "^5.1.0"
   },
   "main": "main.js",
   "scripts": {

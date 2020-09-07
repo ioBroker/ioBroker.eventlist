@@ -14,10 +14,6 @@ const EMPTY     = '';
 const translate = require('./lib/tools.js').translateText;
 const del       = require('del');
 const cp        = require('child_process');
-const babelify   = require('babelify');
-const browserify = require('browserify');
-const obfuscate  = require('gulp-javascript-obfuscator');
-const source     = require('vinyl-source-stream');
 
 const languages = {
     en: {},
@@ -349,7 +345,7 @@ async function translateNotExisting(obj, baseText, yandex) {
 
     if (t) {
         for (let l in languages) {
-            if (!obj[l]) {                
+            if (!obj[l]) {
                 const time = new Date().getTime();
                 obj[l] = await translate(t, l, yandex);
                 console.log('en -> ' + l + ' ' + (new Date().getTime() - time) + ' ms');
@@ -435,7 +431,7 @@ gulp.task('translate', async function () {
     if (i > -1) {
         yandex = process.argv[i + 1];
     }
-    
+
     if (iopackage && iopackage.common) {
         if (iopackage.common.news) {
             console.log('Translate News');
@@ -625,51 +621,5 @@ function renameWWW() {
 gulp.task('8-rename-www', () => renameWWW());
 
 gulp.task('8-rename-www-dep', gulp.series('7-copy-www-dep', '8-rename-www'));
-
-gulp.task('pack', () =>
-    browserify({
-        entries: ['./list2pdf.js'],
-        basedir: './lib/',
-        extensions: ['.js'],
-        debug:  false,
-        fullPaths: false,
-        insertGlobals: false,
-        bare: true,
-        node: true,
-        bundleExternal: false,
-        include: [
-            './list2pdf.js',
-            './checkLicense.js',
-        ],
-    })
-        .transform(babelify, {
-            presets: ['@babel/preset-env']
-        })
-        .bundle()
-        .pipe(source('./lib/__list2pdf.js'))
-        .pipe(gulp.dest('./')));
-
-gulp.task('obfuscate', gulp.series('pack', () =>
-    gulp.src('./lib/__list2pdf.js')
-        .pipe(obfuscate(
-            {
-                compact: true,
-                controlFlowFlattening: false,
-                deadCodeInjection: false,
-                debugProtection: false,
-                debugProtectionInterval: false,
-                disableConsoleOutput: false,
-                identifierNamesGenerator: 'hexadecimal',
-                log: false,
-                renameGlobals: true,
-                rotateStringArray: true,
-                selfDefending: true,
-                stringArray: true,
-                stringArrayEncoding: ['base64'],
-                stringArrayThreshold: 0.75,
-                unicodeEscapeSequence: false
-            }
-        )).pipe(gulp.dest('./lib/'))
-));
 
 gulp.task('default', gulp.series('8-rename-www-dep'));

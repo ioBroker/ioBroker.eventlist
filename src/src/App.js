@@ -10,7 +10,8 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import I18n from '@iobroker/adapter-react/i18n';
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
-import TabLicense from './Tabs/License';
+import TabPDF from './Tabs/PdfSettings';
+import TabMessengers from './Tabs/Messengers';
 
 const styles = theme => ({
     root: {},
@@ -41,6 +42,7 @@ class App extends GenericApp {
             'pl': require('./i18n/pl'),
             'zh-cn': require('./i18n/zh-cn'),
         };
+        extendedProps.bottomButtons = true;
 
         if (!window.location.pathname.includes('adapter/') && window.location.port !== '3000') {
             extendedProps.bottomButtons = false;
@@ -61,8 +63,11 @@ class App extends GenericApp {
         if (tab === 'list') {
             return 1;
         } else
-        if (tab === 'license') {
+        if (tab === 'pdf') {
             return 2;
+        } else
+        if (tab === 'messengers') {
+            return 3;
         }
     }
 
@@ -72,7 +77,8 @@ class App extends GenericApp {
                 <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
                     <Tab label={I18n.t('Options')}    data-name="options" />
                     <Tab label={I18n.t('Event list')} data-name="list" />
-                    <Tab label={I18n.t('License')}    data-name="license" />
+                    <Tab label={I18n.t('PDF')}        data-name="pdf" />
+                    <Tab label={I18n.t('Messengers')} data-name="messengers" />
                 </Tabs>
             </AppBar>
 
@@ -90,8 +96,18 @@ class App extends GenericApp {
                     onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
                 />}
                 {this.state.selectedTab === 'list' && this.renderEventList()}
-                {this.state.selectedTab === 'license' && <TabLicense
-                    key="license"
+                {this.state.selectedTab === 'pdf' && <TabPDF
+                    key="pdf"
+                    common={this.common}
+                    socket={this.socket}
+                    native={this.state.native}
+                    onError={text => this.setState({errorText: text})}
+                    instance={this.instance}
+                    adapterName={this.adapterName}
+                    onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
+                />}
+                {this.state.selectedTab === 'messengers' && <TabMessengers
+                    key="messengers"
                     common={this.common}
                     socket={this.socket}
                     native={this.state.native}

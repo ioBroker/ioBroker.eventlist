@@ -13,13 +13,19 @@
 ## eventlist adapter for ioBroker
 
 
-## Changelog
-
 ## Todo
 - Show with icons
 - Material widget
-- PDF generator
 - Send messages to syslog and telegram (may be splunk) https://www.npmjs.com/package/splunk-logging
+
+<!--
+	Placeholder for the next version (at the beginning of the line):
+	### __WORK IN PROGRESS__
+-->
+
+## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) initial commit
 
 ### 0.0.1
 * (bluefox) initial release

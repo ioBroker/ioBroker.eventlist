@@ -1,8 +1,8 @@
 /**/*
 /gulpfile.js
 gulpfile.js
-!/lib/cloudCert.crt
-!/lib/__list2pdf.js
+!/lib/list2pdf.js
+!/lib/DejaVuSans.ttf
 !/admin/**/*
 !/admin/*
 !/widgets/*

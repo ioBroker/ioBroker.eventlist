@@ -250,10 +250,6 @@ class Options extends Component {
                         control={<Checkbox checked={this.props.native.duration || false} onChange={e => this.props.onChange('duration', e.target.checked)} />}
                         label={I18n.t('Show duration in the list')}
                     />
-                    <FormControlLabel
-                        control={<Checkbox checked={this.props.native.pdfButton || false} onChange={e => this.props.onChange('pdfButton', e.target.checked)} />}
-                        label={I18n.t('Show PDF generate button on list')}
-                    />
                 </div>
                 { this.renderToast() }
             </form>

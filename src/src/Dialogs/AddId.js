@@ -74,7 +74,6 @@ const styles = theme => ({
         padding: theme.spacing(1),
         width: '100%'
     },
-
 });
 
 const DEFAULT_TEMPLATE = 'default';
@@ -142,13 +141,13 @@ class AddIdDialog extends Component {
             this.subscribed && this.props.socket.unsubscribeState(this.subscribed, this.onStateChanged);
             if (this.state.type) {
                 this.state.id && this.props.socket.subscribeState(this.state.id, this.onStateChanged);
-                this.subscribed = this.state.id;    
+                this.subscribed = this.state.id;
             } else {
                 this.subscribed = '';
             }
         }
     }
-    
+
     onStateChanged = (id, state) => {
         this.setState({state: state || null});
     };

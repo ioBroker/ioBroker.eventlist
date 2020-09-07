@@ -121,7 +121,58 @@
         "icons": true,
         "duration": true,
         "license": "",
-        "pdfButton": false
+        "telegram": "",
+        "telegramUser": "",
+        "whatsapp": "",
+        "whatsappPhone": "",
+        "pdfButton": false,
+        "pdfSettings": {
+            "enabledTime": true,
+            "enabledEvent": true,
+            "enabledValue": true,
+            "enabledDuration": true,
+            "widthTime": 130,
+            "widthEvent": 200,
+            "widthValue": 110,
+            "widthDuration": 100,
+            "textTime": "Time",
+            "textEvent": "Event",
+            "textValue": "Value",
+            "textDuration": "Duration",
+            "textColor": "#000000",
+            "paddingLeft": 60,
+            "paddingTopFirst": 120,
+            "paddingTop": 60,
+            "pageWidth": 510,
+            "pageHeight": 740,
+            "fontSize": 10,
+            "colorLineOdd": "#E8E8E8",
+            "colorLineEven": "#FFFFFF",
+
+            "enabledHeader": true,
+            "fontSizeHeader": 13,
+            "colorHeaderBackground": "#888888",
+            "colorHeader": "#FFFFFF",
+
+            "titleColor": "#000000",
+            "titleText": "Event list",
+            "titleFontSize": 18,
+
+            "lineHeight": 18,
+
+            "pageNumberOffsetX": 50,
+            "pageNumberOffsetY": 10,
+            "pageNumberFontSize": 10,
+            "pageNumberColor": "#000000",
+            "pageNumberEnabled": true,
+
+            "margins": {
+                "top": 30,
+                "bottom": 30,
+                "left": 30,
+                "right": 30
+            }
+        }
     },
     "objects": [],
     "instanceObjects": [
@@ -162,8 +213,7 @@
             },
             "type": "state",
             "native": {}
-        }
-        ,
+        },
         {
             "_id": "eventJSONList",
             "common": {
@@ -172,6 +222,76 @@
                 "read": true,
                 "def": "[]",
                 "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent",
+            "common": {
+                "name": "Last event",
+            },
+            "type": "channel",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.json",
+            "common": {
+                "name": "Last event as JSON",
+                "write": false,
+                "read": true,
+                "def": "{}",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.event",
+            "common": {
+                "name": "Last event text",
+                "write": false,
+                "read": true,
+                "def": "",
+                "type": "string"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.ts",
+            "common": {
+                "name": "Last event time in ms",
+                "write": false,
+                "read": true,
+                "def": 0,
+                "role": "datetime",
+                "type": "number"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.duration",
+            "common": {
+                "name": "Last event duration in ms",
+                "write": false,
+                "read": true,
+                "def": 0,
+                "role": "state",
+                "type": "number"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.val",
+            "common": {
+                "name": "Last event value",
+                "write": false,
+                "read": true,
+                "role": "state",
+                "type": "mixed"
             },
             "type": "state",
             "native": {}
