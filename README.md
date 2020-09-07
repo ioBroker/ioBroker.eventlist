@@ -11,12 +11,21 @@
 [![NPM](https://nodei.co/npm/iobroker.eventlist.png?downloads=true)](https://nodei.co/npm/iobroker.eventlist/)
 
 ## eventlist adapter for ioBroker
+Allows to define the states that must be logged in event list.
 
+The list can be shown in admin, web, vis, saved as PDF, material (not yet implemented).
+
+Additionally you can send events via Telegram or WhatsApp.
+
+![List](img/list.png)
+
+![PDF](img/pdf.png)
 
 ## Todo
 - Show with icons
 - Material widget
-- Send messages to syslog and telegram (may be splunk) https://www.npmjs.com/package/splunk-logging
+- Send messages to syslog (may be splunk) https://www.npmjs.com/package/splunk-logging
+- Show PDF button in widget
 
 <!--
 	Placeholder for the next version (at the beginning of the line):

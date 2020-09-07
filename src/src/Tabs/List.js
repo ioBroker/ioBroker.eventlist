@@ -363,6 +363,22 @@ class List extends Component {
         </TableHead>;
     }
 
+    triggerPdf() {
+        if (this.state.isInstanceAlive) {
+            this.props.socket.sendTo(this.props.adapterName + '.' + this.props.instance, 'pdf', this.props.native.pdfSettings)
+                .then(() => {
+                    let myWindow;
+                    if (!window.location.pathname.includes('adapter/')) {
+                        myWindow = window.open('/eventlist/report.pdf?q=' + Date.now(), 'pdf');
+                    } else {
+                        myWindow = window.open('/files/eventlist/report.pdf?q=' + Date.now(), 'pdf');
+                    }
+
+                    myWindow && myWindow.focus();
+                });
+        }
+    }
+
     renderToolbar() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm';
         return <Toolbar className={clsx(this.props.classes.toolbarRoot, this.state.selected.length && this.props.classes.toolbarHighlight)}>
@@ -432,9 +448,7 @@ class List extends Component {
                                 aria-label="generate-pdf"
                                 size="small"
                                 disabled={!this.state.isInstanceAlive || this.state.pdfInGeneration}
-                                onClick={() => {
-                                    this.props.socket.setState(this.triggerPDFId, true, false);
-                                }}>
+                                onClick={() => this.triggerPdf()}>
                                 <IconPdf />
                             </Fab>
                         </span>
