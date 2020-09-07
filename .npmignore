@@ -7,8 +7,8 @@ gulpfile.js
 !/admin/*
 !/widgets/*
 !/widgets/**/*
-!/web/*
-!/web/**/*
+!/www/*
+!/www/**/*
 !/io-package.json
 !/package.json
 !/LICENSE
