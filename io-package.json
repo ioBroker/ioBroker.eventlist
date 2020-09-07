@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.0.1",
+        "version": "0.0.2",
         "news": {
+            "0.0.2": {
+                "en": "initial commit",
+                "de": "anfängliches Commit",
+                "ru": "начальная фиксация",
+                "pt": "commit inicial",
+                "nl": "eerste vastlegging",
+                "fr": "engagement initial",
+                "it": "commit iniziale",
+                "es": "Compromiso inicial",
+                "pl": "wstępne zatwierdzenie",
+                "zh-cn": "初次提交"
+            },
             "0.0.1": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
@@ -148,24 +160,19 @@
             "fontSize": 10,
             "colorLineOdd": "#E8E8E8",
             "colorLineEven": "#FFFFFF",
-
             "enabledHeader": true,
             "fontSizeHeader": 13,
             "colorHeaderBackground": "#888888",
             "colorHeader": "#FFFFFF",
-
             "titleColor": "#000000",
             "titleText": "Event list",
             "titleFontSize": 18,
-
             "lineHeight": 18,
-
             "pageNumberOffsetX": 50,
             "pageNumberOffsetY": 10,
             "pageNumberFontSize": 10,
             "pageNumberColor": "#000000",
             "pageNumberEnabled": true,
-
             "margins": {
                 "top": 30,
                 "bottom": 30,
