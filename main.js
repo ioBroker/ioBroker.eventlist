@@ -479,14 +479,17 @@ function addEvent(event) {
             eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
         }
 
+        const ev = formatEvent(_event, true);
+
         adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
             .then(() => reformatJsonTable(true))
             .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
             .then(() => Promise.all([
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', _event.event, true),
+                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
+                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
                 adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration, true),
+                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
+                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
                 adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
             ]))
             .then(() => sendTelegram(_event))

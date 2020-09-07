@@ -229,7 +229,7 @@
         {
             "_id": "lastEvent",
             "common": {
-                "name": "Last event",
+                "name": "Last event"
             },
             "type": "channel",
             "native": {}
@@ -274,10 +274,11 @@
         {
             "_id": "lastEvent.duration",
             "common": {
-                "name": "Last event duration in ms",
+                "name": "Last event duration",
                 "write": false,
                 "read": true,
                 "def": 0,
+                "unit": "ms",
                 "role": "state",
                 "type": "number"
             },
@@ -292,6 +293,19 @@
                 "read": true,
                 "role": "state",
                 "type": "mixed"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.id",
+            "common": {
+                "name": "Last event state id",
+                "write": false,
+                "read": true,
+                "role": "state",
+                "def": "",
+                "type": "string"
             },
             "type": "state",
             "native": {}
