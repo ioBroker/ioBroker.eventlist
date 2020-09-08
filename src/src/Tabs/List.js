@@ -35,6 +35,7 @@ import I18n from '@iobroker/adapter-react/i18n';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
+import SelectStateDialog from '../Dialogs/SelectState';
 
 const styles = theme => ({
     tab: {
@@ -411,10 +412,10 @@ class List extends Component {
                 :
                 <>
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Add state to event list')} className={this.props.classes.toolbarButton}>
-                        <Fab variant="extended" size="small" aria-label="add" color="secondary" onClick={() => this.setState({showAddIdDialog: true})}>
+                        <Fab variant="extended" size="small" aria-label="add" color="secondary" onClick={() => this.setState({selectStateShow: true})}>
                             <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
-                                <IconAddId style={{verticalAlign: 'middle'}}/>
-                                {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('State ID')}</span>}
+                                <IconEdit style={{verticalAlign: 'middle', marginRight: 8}}/>
+                                {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('States')}</span>}
                             </div>
                         </Fab>
                     </Tooltip>}
@@ -534,6 +535,24 @@ class List extends Component {
             });
     }
 
+    renderSelectState() {
+        if (!this.state.selectStateShow) {
+            return null;
+        }
+        return <SelectStateDialog
+            socket={this.props.socket}
+            adapterName={this.props.adapterName}
+            instance={this.props.instance}
+            onClose={id => {
+                if (id) {
+                    this.setState({showAddIdDialog: id, selectStateShow: false});
+                } else {
+                    this.setState({selectStateShow: false});
+                }
+            }}
+            />;
+    }
+
     renderList() {
         return <TableContainer className={this.props.classes.tableContainer}>
                 <Table
@@ -649,6 +668,7 @@ class List extends Component {
                 {this.renderConfirmDialog()}
                 {this.renderAddEventDialog()}
                 {this.renderAddIdDialog()}
+                {this.renderSelectState()}
             </Paper>
         );
     }

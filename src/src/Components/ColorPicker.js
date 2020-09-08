@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import React from 'react'
-import {ChromePicker} from 'react-color'
+import React from 'react';
+import {ChromePicker} from 'react-color';
+import PropTypes from 'prop-types';
+import {withStyles} from '@material-ui/core/styles';
+
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import {MdDelete as IconDelete} from 'react-icons/md';
-import PropTypes from "prop-types";
-import {withStyles} from "@material-ui/core/styles";
 
 const styles = theme => ({
     color: {
@@ -66,6 +67,16 @@ class ColorPicker extends React.Component {
             displayColorPicker: false,
             color: this.props.color,
         };
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        const pColor = ColorPicker.getColor(props.color);
+        const sColor = ColorPicker.getColor(state.color);
+        if (pColor !== sColor) {
+            return {color: props.color}
+        } else {
+            return null;
+        }
     }
 
     handleClick = () => {

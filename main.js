@@ -211,8 +211,8 @@ function startAdapter(options) {
             }
 
             const st = parseStates(obj.common.states);
-            if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
-                states[id].states = st;
+            if (JSON.stringify(states[id].originalStates) !== JSON.stringify(st)) {
+                states[id].originalStates = st;
                 changed = true;
             }
             if (states[id].unit !== obj.common.unit) {
@@ -282,16 +282,18 @@ function formatEvent(state, allowRelative) {
         if (!states[id]) {
             return null;
         }
-
         if (states[id].type === 'boolean') {
-            if (!states[id].event && state.val && states[id].trueText) {
-                eventTemplate = states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText;
-                color = states[id].trueColor || adapter.config.defaultBooleanColorTrue || states[id].color;
-                icon = states[id].trueIcon || states[id].icon || undefined;
-            } else if (!states[id].event && !state.val && states[id].falseText) {
-                eventTemplate = states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText;
-                color = states[id].falseColor || adapter.config.defaultBooleanColorFalse || states[id].color;
-                icon = states[id].falseIcon || states[id].icon || undefined;
+            val = state.val ? 'true' : 'false';
+            const item = this.state.states.find(item => item.val === val);
+
+            if (!states[id].event && state.val && item && item.text) {
+                eventTemplate = item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : item.text;
+                color         = item.color || adapter.config.defaultBooleanColorTrue || states[id].color;
+                icon          = item.icon  || states[id].icon || undefined;
+            } else if (!states[id].event && !state.val && item && item.text) {
+                eventTemplate = item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : item.text;
+                color         = item.color || adapter.config.defaultBooleanColorFalse || states[id].color;
+                icon          = item.icon || states[id].icon || undefined;
             } else {
                 if (states[id].event === DEFAULT_TEMPLATE) {
                     eventTemplate = adapter.config.defaultBooleanText || textDeviceChangedStatus;
@@ -300,24 +302,37 @@ function formatEvent(state, allowRelative) {
                 }
                 eventTemplate = eventTemplate.replace(/%u/g, states[id].unit || '');
                 eventTemplate = eventTemplate.replace(/%n/g, states[id].name || id);
-                val = state.val ?
-                    states[id].trueText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : states[id].trueText || textSwitchedOn
-                    :
-                    states[id].falseText === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : states[id].falseText || textSwitchedOff;
+                if (item) {
+                    val = state.val ?
+                        (item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue  || textSwitchedOn : item.text || textSwitchedOn)
+                        :
+                        (item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextFalse || textSwitchedOff : item.text || textSwitchedOff);
 
-                icon = state.val ?
-                    icon = states[id].trueIcon
-                    :
-                    icon = states[id].falseIcon;
+                    icon = state.val ?
+                        (item.icon === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanIconTrue  || states[id].icon || '' : item.icon || states[id].icon || '')
+                        :
+                        (item.icon === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanIconFalse || states[id].icon || '' : item.icon || states[id].icon || '');
 
-                icon = icon || states[id].icon || undefined;
+                    color = state.val ?
+                        (item.color === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanColorTrue  || states[id].color || '' : item.color || states[id].color || '')
+                        :
+                        (item.color === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanColorFalse || states[id].color || '' : item.color || states[id].color || '');
+                } else {
+                    val = state.val ?
+                        adapter.config.defaultBooleanTextTrue  || textSwitchedOn
+                        :
+                        adapter.config.defaultBooleanTextFalse || textSwitchedOff;
 
-                color = state.val ?
-                    states[id].trueColor || adapter.config.defaultBooleanColorTrue
-                    :
-                    states[id].falseColor || adapter.config.defaultBooleanColorFalse;
+                    icon = state.val ?
+                        (adapter.config.defaultBooleanIconTrue  || states[id].icon || '')
+                        :
+                        (adapter.config.defaultBooleanIconFalse || states[id].icon || '');
 
-                color = color || states[id].color;
+                    color = state.val ?
+                        (adapter.config.defaultBooleanColorTrue  || states[id].color || '')
+                        :
+                        (adapter.config.defaultBooleanColorFalse || states[id].color || '');
+                }
 
                 valWithUnit = val;
             }
@@ -341,12 +356,36 @@ function formatEvent(state, allowRelative) {
 
             valWithUnit = val;
 
+            if (states[id].states) {
+                const item = states[id].states.find(item => item.val === valWithUnit);
+                if (item) {
+                    if (item.text) {
+                        valWithUnit = item.text;
+                    }
+                    if (item.color) {
+                        color = item.color;
+                    }
+                    if (item.icon) {
+                        color = item.icon;
+                    }
+                } else if (states[id].originalStates) {
+                    valWithUnit = states[id].originalStates[valWithUnit] === undefined ? valWithUnit : states[id].originalStates[valWithUnit];
+                }
+
+                if (!states[id].event && valWithUnit) {
+                    eventTemplate = valWithUnit;
+                    valWithUnit = '';
+                }
+            } else if (states[id].originalStates) {
+                valWithUnit = states[id].originalStates[valWithUnit] === undefined ? valWithUnit : states[id].originalStates[valWithUnit];
+            }
+
             if (valWithUnit !== '' && states[id].unit) {
                 valWithUnit += states[id].unit;
             }
 
-            icon = states[id].icon;
-            color = states[id].color;
+            icon  = icon  || states[id].icon;
+            color = color || states[id].color;
             // todo => change bright of icon depends on value and min/max
         }
     } else {
@@ -520,12 +559,12 @@ function readAllNames(ids, cb) {
         adapter.getForeignObject(id, (err, obj) => {
             if (obj) {
                 let promises = [];
-                states[id].name = getName(obj);
-                states[id].type = obj.common && obj.common.type;
-                states[id].states = obj.common && parseStates(obj.common.states || undefined);
-                states[id].unit = obj.common && obj.common.unit;
-                states[id].min = obj.common && obj.common.min;
-                states[id].max = obj.common && obj.common.max;
+                states[id].name           = getName(obj);
+                states[id].type           = obj.common && obj.common.type;
+                states[id].originalStates = obj.common && parseStates(obj.common.states || undefined);
+                states[id].unit           = obj.common && obj.common.unit;
+                states[id].min            = obj.common && obj.common.min;
+                states[id].max            = obj.common && obj.common.max;
                 let durationUsed = false;
                 if (!durationUsed && states[id].type === 'boolean') {
                     durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d');
@@ -550,6 +589,7 @@ function readAllNames(ids, cb) {
                         }));
                 }
 
+                adapter.log.debug('Subscribe on ' + id);
                 if (states[id].changesOnly || durationUsed) {
                     adapter.getForeignState(id, (err, state) => {
                         states[id].val = state ? state.val : null; // store to detect changes

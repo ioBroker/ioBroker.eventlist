@@ -32,18 +32,26 @@ import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import Typography from '@material-ui/core/Typography';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-
+import CancelIcon from '@material-ui/icons/Cancel';
+import SaveIcon from '@material-ui/icons/Save';
+import {FaEraser as RemoveIcon} from 'react-icons/fa';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
 import ColorPicker from '../Components/ColorPicker';
-import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm'
+import IconPicker from '../Components/IconPicker';
+import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
 
 const styles = theme => ({
     textField: {
-
+        width: 250,
+        marginRight: theme.spacing(1),
     },
     textFieldWithButton: {
         width: 'calc(100% - 70px)'
@@ -74,6 +82,12 @@ const styles = theme => ({
         padding: theme.spacing(1),
         width: '100%'
     },
+    buttonIcon: {
+        marginRight: theme.spacing(1)
+    },
+    formControl: {
+        width: 200
+    }
 });
 
 const DEFAULT_TEMPLATE = 'default';
@@ -91,28 +105,18 @@ class AddIdDialog extends Component {
             event: '',
             eventDefault: true,
 
-            trueText: '',
-            trueTextDefault: true,
-            falseText: '',
-            falseTextDefault: true,
-
+            states: null,
             color: '',
-            trueColor: '',
-            falseColor: '',
-            trueColorDefault: true,
-            falseColorDefault: true,
-
             icon: '',
-            trueIcon: '',
-            falseIcon: '',
 
             changesOnly: true,
             showSelectId: false,
             unknownId: true,
 
-            toggleState: false,
+            simulateState: '',
             exists: false,
             confirmExit: false,
+            confirmRemove: false,
         };
 
         this.language = this.props.native.language || I18n.getLanguage();
@@ -132,8 +136,154 @@ class AddIdDialog extends Component {
                 this.isFloatComma = systemConfig.common.isFloatComma;
                 if (this.state.id) {
                     this.readSettings();
+                } else {
+                    this.setState({showSelectId: true});
                 }
             });
+    }
+
+    addBooleanStates(newState) {
+        const states = JSON.parse(JSON.stringify(newState.states || []));
+        let changed;
+        let trueState = states.find(item => item.val === 'true');
+        if (!trueState) {
+            trueState = {val: 'true',  text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true'};
+            states.push(trueState);
+            changed = true;
+        } else {
+            trueState.original = 'true';
+        }
+        let falseState = states.find(item => item.val === 'false');
+        if (!falseState) {
+            falseState = {val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false'};
+            states.push(falseState);
+            changed = true;
+        } else {
+            falseState.original = 'false';
+        }
+
+        let newVal = trueState.text === DEFAULT_TEMPLATE;
+        if (newVal !== trueState.defText) {
+            changed = true;
+            trueState.defText = newVal;
+        }
+
+        newVal = trueState.text === DEFAULT_TEMPLATE ? '' : trueState.text;
+        if (newVal !== trueState.text) {
+            changed = true;
+            trueState.text = newVal;
+        }
+
+        newVal = trueState.color === DEFAULT_TEMPLATE;
+        if (newVal !== trueState.defColor) {
+            changed = true;
+            trueState.defColor = newVal;
+        }
+        newVal = trueState.color === DEFAULT_TEMPLATE ? '' : trueState.color;
+        if (newVal !== trueState.color) {
+            changed = true;
+            trueState.color = newVal;
+        }
+
+        newVal = trueState.icon === DEFAULT_TEMPLATE;
+        if (newVal !== trueState.defIcon) {
+            changed = true;
+            trueState.defIcon = newVal;
+        }
+        newVal = trueState.icon === DEFAULT_TEMPLATE ? '' : trueState.icon;
+        if (newVal !== trueState.icon) {
+            changed = true;
+            trueState.icon = newVal;
+        }
+
+        newVal = falseState.text === DEFAULT_TEMPLATE;
+        if (newVal !== falseState.defText) {
+            changed = true;
+            falseState.defText = newVal;
+        }
+        newVal = falseState.text === DEFAULT_TEMPLATE ? '' : falseState.text;
+        if (newVal !== falseState.text) {
+            changed = true;
+            falseState.text = newVal;
+        }
+
+        newVal = falseState.color === DEFAULT_TEMPLATE;
+        if (newVal !== falseState.defColor) {
+            changed = true;
+            falseState.defColor = newVal;
+        }
+        newVal = falseState.color === DEFAULT_TEMPLATE ? '' : falseState.color;
+        if (newVal !== falseState.color) {
+            changed = true;
+            falseState.color = newVal;
+        }
+
+        newVal = falseState.icon === DEFAULT_TEMPLATE;
+        if (newVal !== falseState.defIcon) {
+            changed = true;
+            falseState.defIcon = newVal;
+        }
+        newVal = falseState.icon === DEFAULT_TEMPLATE ? '' : falseState.icon;
+        if (newVal !== falseState.icon) {
+            changed = true;
+            falseState.icon = newVal;
+        }
+
+        if (changed) {
+            newState.states = states;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    parseStates(states) {
+        // convert ['zero', 'one', two'] => {'0': 'zero', '1': 'one', '2': 'two']
+        if (states instanceof Array) {
+            const nState = {};
+            states.forEach((val, i) => nState[i] = val);
+            return nState;
+        } else if (typeof states !== 'object') {
+            return null;
+        } else {
+            return states;
+        }
+    }
+
+    addNumericStates(newState, objStates) {
+        const states = JSON.parse(JSON.stringify(newState.states || []));
+        let changed;
+        objStates = this.parseStates(objStates);
+        if (objStates) {
+            // {'value': 'valueName', 'value2': 'valueName2', 0: 'OFF', 1: 'ON'}
+            Object.keys(objStates).forEach(attr => {
+                let _st = states.find(item => item.val === attr);
+                if (!_st) {
+                    _st = {val: attr,  text: objStates[attr], color: '', icon: ''};
+                    states.push(_st);
+                    changed = true;
+                }
+            });
+
+            states.forEach(item => {
+                if (item.original !== objStates[item.val]) {
+                    item.original = objStates[item.val];
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                newState.states = states;
+                return true;
+            } else {
+                return false;
+            }
+        } else if (newState.states) {
+            newState.states = null;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     subscribe() {
@@ -161,43 +311,44 @@ class AddIdDialog extends Component {
             this.props.socket.getObject(id)
                 .then(obj => {
                     const newState = {
-                        type: (obj && obj.common && obj.common.type) || '',
+                        type:      (obj && obj.common && obj.common.type) || '',
                         unknownId: !obj || !obj.common || !obj.common.type,
-                        name: this.getName(obj),
-                        unit: (obj && obj.common && obj.common.unit) || ''
+                        name:      this.getName(obj),
+                        unit:      (obj && obj.common && obj.common.unit) || ''
                     };
 
                     if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
                         const newSettings = obj.common.custom[this.namespace];
                         newState.exists = true;
-                        if (newState.type === 'boolean') {
-                            newState.trueText = newSettings.trueText === DEFAULT_TEMPLATE ? '' : newSettings.trueText;
-                            newState.trueTextDefault = newSettings.trueText === DEFAULT_TEMPLATE;
 
-                            newState.falseText = newSettings.falseText === DEFAULT_TEMPLATE ? '' : newSettings.falseText;
-                            newState.falseTextDefault = newSettings.falseText === DEFAULT_TEMPLATE;
-
-                            newState.trueColor = newSettings.trueColor === DEFAULT_TEMPLATE ? '' : newSettings.trueColor;
-                            newState.trueColorDefault = newSettings.trueColor === DEFAULT_TEMPLATE;
-
-                            newState.falseColor = newSettings.falseColor === DEFAULT_TEMPLATE ? '' : newSettings.falseColor;
-                            newState.falseColorDefault = newSettings.falseColor === DEFAULT_TEMPLATE;
-                        } else {
-                            newState.trueText = '';
-                            newState.trueTextDefault = true;
-                            newState.falseText = '';
-                            newState.falseTextDefault = true;
-                            newState.trueColor = '';
-                            newState.trueColorDefault = true;
-                            newState.falseColor = '';
-                            newState.falseColorDefault = true;
-                        }
-
-                        newState.event = newSettings.event === DEFAULT_TEMPLATE ? '' : newSettings.event;
+                        newState.event        = newSettings.event === DEFAULT_TEMPLATE ? '' : newSettings.event;
                         newState.eventDefault = newSettings.event === DEFAULT_TEMPLATE;
+                        newState.icon         = newSettings.icon;
+                        newState.color        = newSettings.color;
+                        newState.states       = newSettings.states;
 
+                        if (newState.type === 'boolean') {
+                            this.addBooleanStates(newState);
+                            newState.simulateState = false;
+                        } else if (newState.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
+                            this.addNumericStates(newState, obj.common.states);
+                            newState.simulateState = null;
+                        } else {
+                            newState.states = null;
+                            newState.simulateState = null;
+                        }
                     } else {
                         newState.exists = false;
+                        if (newState.type === 'boolean') {
+                            this.addBooleanStates(newState);
+                            newState.simulateState = false;
+                        } else if (newState.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
+                            this.addNumericStates(newState, obj.common.states);
+                            newState.simulateState = null;
+                        } else {
+                            newState.states = null;
+                            newState.simulateState = null;
+                        }
                     }
 
                     this.setState(newState, () => this.originalSettings = this.getSettings());
@@ -263,50 +414,48 @@ class AddIdDialog extends Component {
 
     getExampleColor() {
         let color = '';
-        const defColor = AddIdDialog.getColor(this.state.color);
-        if (this.state.type === 'boolean') {
-            const trueColor = AddIdDialog.getColor(this.state.trueColor);
-            const falseColor = AddIdDialog.getColor(this.state.falseColor);
-
+        if (this.state.states) {
             let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.toggleState) {
+            if (this.state.type === 'boolean' && this.state.simulateState) {
                 stateVal = !stateVal;
+            } else
+            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
+                stateVal = this.state.simulateState;
             }
+            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
+            const item = this.state.states.find(item => item.val === stateVal);
 
-            if (stateVal && (trueColor || this.state.trueColorDefault)) {
-                color = trueColor || this.props.native.defaultBooleanColorTrue || '';
-            } else if (!stateVal && (falseColor || this.state.falseColorDefault)) {
-                color = falseColor || this.props.native.defaultBooleanColorFalse || '';
+            if (item && item.defColor) {
+                color = stateVal === 'true' ? AddIdDialog.getColor(this.props.native.defaultBooleanColorTrue) : AddIdDialog.getColor(this.props.native.defaultBooleanColorFalse);
+            } else if (item && item.color && AddIdDialog.getColor(item.color)) {
+                color = AddIdDialog.getColor(item.color);
             }
         }
-
-        color = color || defColor;
+        color = color || (this.state.color && AddIdDialog.getColor(this.state.color)) || '';
 
         return color;
     }
 
     getExampleIcon() {
-        let icon = '';
-        if (this.state.type === 'boolean') {
+        const defIcon = this.state.icon;
+        let icon = defIcon || '';
+        if (this.state.states) {
             let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.toggleState) {
+            if (this.state.type === 'boolean' && this.state.simulateState) {
                 stateVal = !stateVal;
+            } else
+            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
+                stateVal = this.state.simulateState;
             }
-            if (!this.state.eventDefault && !this.state.event && stateVal && (this.state.trueText || this.state.trueTextDefault)) {
-                icon = this.state.trueIcon || this.state.icon || undefined;
-            } else if (!this.state.eventDefault && !this.state.event && !stateVal && (this.state.falseText || this.state.falseTextDefault)) {
-                icon = this.state.falseIcon || this.state.icon || undefined;
-            } else {
-                icon = stateVal ?
-                    icon = this.state.trueIcon
-                    :
-                    icon = this.state.falseIcon;
+            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
+            const item = this.state.states.find(item => item.val === stateVal);
 
-                icon = icon || this.state.icon || undefined;
+            if (item.defIcon) {
+                icon = stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse;
+            } else if (item && item.icon) {
+                icon = item.icon;
             }
         }
-
-        icon = icon || this.state.icon;
 
         if (icon) {
             if (!icon.startsWith('data:')) {
@@ -320,22 +469,65 @@ class AddIdDialog extends Component {
         return icon;
     }
 
+    getExampleText() {
+        let text = '';
+        let stateVal = this.state.state ? this.state.state.val : (this.state.type === 'boolean' ? false : null);
+        if (this.state.states) {
+            if (this.state.type === 'boolean' && this.state.simulateState) {
+                stateVal = !stateVal;
+            } else
+            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
+                stateVal = this.state.simulateState;
+            }
+            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
+            const item = this.state.states.find(item => item.val === stateVal);
+
+            if (stateVal === 'true' && item) {
+                text = item.defText ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : item.text || this.textSwitchedOn;
+            } else if (stateVal === 'false' && item) {
+                text = item.defText ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : item.text || this.textSwitchedOff;
+            } else {
+                if (item && item.defText) {
+                    text = stateVal === 'true' ? this.props.native.defaultBooleanTextTrue : this.props.native.defaultBooleanTextFalse;
+                } else if (item && item.text) {
+                    text = item.text;
+                } else {
+                    text = stateVal;
+                }
+            }
+        } else {
+            if (stateVal === null || stateVal === undefined) {
+                text = 'null';
+            } else if (typeof stateVal === 'number') {
+                text = stateVal.toString();
+                if (this.isFloatComma) {
+                    text = text.replace('.', ',');
+                }
+            } else {
+                text = stateVal.toString();
+            }
+        }
+
+        return text || '';
+    }
+
     buildExample() {
         let eventTemplate = '';
-        let val = '';
         let valWithUnit = '';
         let time = this.state.state && this.state.state.ts ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat;
 
+        let valText = this.getExampleText();
+
         if (this.state.type === 'boolean') {
             let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.toggleState) {
+            if (this.state.simulateState) {
                 stateVal = !stateVal;
             }
 
-            if (!this.state.eventDefault && !this.state.event && stateVal && (this.state.trueText || this.state.trueTextDefault)) {
-                eventTemplate = (this.state.trueTextDefault || this.state.trueText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : this.state.trueText;
-            } else if (!this.state.eventDefault && !this.state.event && !stateVal && (this.state.falseText || this.state.falseTextDefault)) {
-                eventTemplate = (this.state.falseTextDefault || this.state.falseText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : this.state.falseText;
+            if (!this.state.eventDefault && !this.state.event && stateVal && valText) {
+                eventTemplate = valText;
+            } else if (!this.state.eventDefault && !this.state.event && !stateVal && valText) {
+                eventTemplate = valText;
             } else {
                 if (this.state.event === DEFAULT_TEMPLATE || this.state.eventDefault) {
                     eventTemplate = this.props.native.defaultBooleanText || this.textDeviceChangedStatus;
@@ -344,34 +536,23 @@ class AddIdDialog extends Component {
                 }
                 eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
                 eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
-                val = stateVal ?
-                    (this.state.trueTextDefault || this.state.trueText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : this.state.trueText || this.textSwitchedOn
-                    :
-                    (this.state.falseTextDefault || this.state.falseText === DEFAULT_TEMPLATE) ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : this.state.falseText || this.textSwitchedOff;
-
-                valWithUnit = val;
+                valWithUnit = valText || (stateVal ? this.textSwitchedOn : this.textSwitchedOff);
             }
         } else {
             eventTemplate = this.state.event === DEFAULT_TEMPLATE ? this.props.native.defaultNonBooleanText || this.textDeviceChangedStatus : this.state.event || this.textDeviceChangedStatus;
-            eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
-            eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
-            val = this.state.state && this.state.state.val !== undefined ? this.state.state.val : '';
 
-            if (val === null) {
-                val = 'null';
-            } else if (typeof val === 'number') {
-                val = val.toString();
-                if (this.isFloatComma) {
-                    val = val.replace('.', ',');
-                }
-            } else {
-                val = val.toString();
-            }
-
-            valWithUnit = val;
+            valWithUnit = valText;
             if (valWithUnit !== '' && this.state.unit) {
                 valWithUnit += this.state.unit;
             }
+            if (this.state.states) {
+                if (!this.state.eventDefault && !this.state.event) {
+                    eventTemplate = valWithUnit;
+                    valWithUnit = '';
+                }
+            }
+            eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
+            eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
         }
 
         if (eventTemplate.includes('%d')) {
@@ -381,7 +562,7 @@ class AddIdDialog extends Component {
         }
 
         if (eventTemplate.includes('%s')) {
-            eventTemplate = eventTemplate.replace(/%s/g, val);
+            eventTemplate = eventTemplate.replace(/%s/g, valText);
             valWithUnit = '';
         }
 
@@ -396,13 +577,36 @@ class AddIdDialog extends Component {
             event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
             changesOnly: !!this.state.changesOnly
         };
-
-        if (this.state.type === 'boolean') {
-            settings.trueText   = this.state.trueTextDefault   ? DEFAULT_TEMPLATE : this.state.trueText;
-            settings.falseText  = this.state.falseTextDefault  ? DEFAULT_TEMPLATE : this.state.falseText;
-            settings.trueColor  = this.state.trueColorDefault  ? DEFAULT_TEMPLATE : this.state.trueColor;
-            settings.falseColor = this.state.falseColorDefault ? DEFAULT_TEMPLATE : this.state.falseColor;
+        if (this.state.color && AddIdDialog.getColor(this.state.color)) {
+            settings.color = AddIdDialog.getColor(this.state.color);
         }
+        if (this.state.icon) {
+            settings.icon = this.state.icon;
+        }
+        this.state.states && this.state.states.forEach(item => {
+            settings.states = settings.states || [];
+            const it = {val: item.val};
+
+            if (item.val === 'true' || item.val === 'false') {
+                it.text  = item.defText  ? DEFAULT_TEMPLATE : item.text || '';
+                if (item.defColor || (item.color && AddIdDialog.getColor(item.color))) {
+                    it.color = item.defColor ? DEFAULT_TEMPLATE : AddIdDialog.getColor(item.color);
+                }
+                if (item.defIcon || item.icon) {
+                    it.icon = item.defIcon  ? DEFAULT_TEMPLATE : item.icon;
+                }
+            } else {
+                it.text  = item.text || '';
+                if (item.color && AddIdDialog.getColor(item.color))  {
+                    it.color = AddIdDialog.getColor(item.color);
+                }
+                if (item.icon)  {
+                    it.icon = item.icon;
+                }
+            }
+
+            settings.states.push(it);
+        });
 
         return settings;
     }
@@ -427,10 +631,24 @@ class AddIdDialog extends Component {
             .then(obj => {
                 if (obj && obj.common) {
                     obj.common.custom = obj.common.custom || {};
-
                     obj.common.custom[this.namespace] = this.getSettings();
                     this.props.socket.setObject(this.state.id, obj)
                         .then(() => cb && cb());
+                } else {
+                    cb && cb();
+                }
+            });
+    }
+
+    removeSettings(cb) {
+        this.props.socket.getObject(this.state.id)
+            .then(obj => {
+                if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
+                    obj.common.custom[this.namespace] = null;
+                    this.props.socket.setObject(this.state.id, obj)
+                        .then(() => cb && cb());
+                } else {
+                    cb && cb();
                 }
             });
     }
@@ -459,6 +677,161 @@ class AddIdDialog extends Component {
             />;
         }
     }
+
+    renderConfirmRemove() {
+        if (!this.state.confirmRemove) {
+            return null;
+        } else {
+            return <ConfirmDialog
+                title={ I18n.t('Settings will be erased.') }
+                text={ I18n.t('The state will be removed from event list and all settings erased. Are you sure?') }
+                ok={ I18n.t('Remove from list') }
+                cancel={ I18n.t('Cancel') }
+                onClose={isYes => {
+                    this.setState({ confirmRemove: false} );
+                    if (isYes) {
+                        this.removeSettings();
+                        this.props.onClose();
+                    }
+                }}
+            />;
+        }
+    }
+
+    renderState(i, narrowWidth) {
+        const state = this.state.states[i];
+        const isBoolean = state.val === 'true' || state.val === 'false';
+
+        return <Accordion key={state.val}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className={this.props.classes.heading}>{I18n.t('State')} <b>{
+                    state.original === 'true' || state.original === 'false' ?
+                        `${state.original.toUpperCase()}${state.text ? ' - ' + state.text : ''}`
+                        :
+                        `${state.original}(${state.val})${state.text ? ' - ' + state.text : ''}`
+                }</b></Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <Paper className={this.props.classes.paper}>
+                    {isBoolean ? <FormControlLabel
+                        control={<Checkbox
+                            checked={state.defText}
+                            onChange={e => {
+                                const states = JSON.parse(JSON.stringify(this.state.states));
+                                states[i].defText = e.target.checked;
+                                this.setState({states});
+                            }} />
+                        }
+                        label={I18n.t('Use default text')}
+                    /> : null}
+                    {!isBoolean || !state.defText ? <TextField
+                        margin="dense"
+                        label={I18n.t('Text')}
+                        value={state.text}
+                        classes={{root: this.props.classes.textDense}}
+                        onChange={e => {
+                            const states = JSON.parse(JSON.stringify(this.state.states));
+                            states[i].text = e.target.value;
+                            this.setState({states});
+                        }}
+                        type="text"
+                        className={this.props.classes.textField}
+                    /> : null}
+                    {narrowWidth ? <br/> : null}
+                    {isBoolean ? <FormControlLabel
+                        control={<Checkbox
+                            checked={state.defColor}
+                            onChange={e => {
+                                const states = JSON.parse(JSON.stringify(this.state.states));
+                                states[i].defColor = e.target.checked;
+                                this.setState({states});
+                            }} />
+                        }
+                        label={I18n.t('Use default color', state.val.toUpperCase())}
+                    /> : null}
+                    {!isBoolean || !state.defColor ?
+                        <ColorPicker
+                            color={state.color}
+                            style={{width: 250, display: 'inline-block'}}
+                            name={I18n.t('Color')}
+                            onChange={color => {
+                                const states = JSON.parse(JSON.stringify(this.state.states));
+                                states[i].color = color;
+                                this.setState({states});
+                            }}
+                        /> : null}
+                    {narrowWidth ? <br/> : null}
+                    {isBoolean ? <FormControlLabel
+                        control={<Checkbox
+                            checked={state.defIcon}
+                            onChange={e => {
+                                const states = JSON.parse(JSON.stringify(this.state.states));
+                                states[i].defIcon = e.target.checked;
+                                this.setState({states});
+                            }} />
+                        }
+                        label={I18n.t('Use default icon', state.val.toUpperCase())}
+                    /> : null}
+                    {!isBoolean || !state.defIcon ? <IconPicker
+                        label={I18n.t('Icon')}
+                        socket={this.props.socket}
+                        value={state.icon}
+                        onChange={e => {
+                            const states = JSON.parse(JSON.stringify(this.state.states));
+                            states[i].icon = e.target.value;
+                            this.setState({states});
+                        }}
+                    /> : null}
+                    {narrowWidth ? <br/> : null}
+                </Paper>
+            </AccordionDetails>
+        </Accordion>;
+    }
+
+    renderStateSettings(narrowWidth) {
+        return <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+                <Paper className={this.props.classes.paper}>
+                    <FormControlLabel
+                        control={<Checkbox
+                            checked={this.state.eventDefault}
+                            onChange={e => this.setState({eventDefault: e.target.checked})} />
+                        }
+                        label={I18n.t('Default text')}
+                    />
+                    {narrowWidth ? <br/> : null}
+                    {!this.state.eventDefault ? <TextField
+                        margin="dense"
+                        label={I18n.t('Event text')}
+                        value={this.state.event}
+                        onChange={e => this.setState({event: e.target.value})}
+                        type="text"
+                        className={this.props.classes.textField}
+                        helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
+                        fullWidth
+                    /> : null}
+                    <br/>
+                    <ColorPicker
+                        color={this.state.color}
+                        style={{width: 250, display: 'inline-block'}}
+                        name={I18n.t('Event color')}
+                        onChange={color => this.setState({color})}
+                    />
+                    <br/>
+                    <IconPicker
+                        socket={this.props.socket}
+                        label={I18n.t('Event icon')}
+                        value={this.state.icon}
+                        onChange={e => this.setState({icon: e.target.value})}
+                    />
+                </Paper>
+            </AccordionDetails>
+        </Accordion>;
+    }
+
     render() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
         return <Dialog
@@ -501,16 +874,33 @@ class AddIdDialog extends Component {
                                 <br/>
                                 <FormControlLabel
                                     control={<Switch
-                                        checked={this.state.toggleState}
-                                        onChange={e => this.setState({toggleState: e.target.checked})}/>
+                                        checked={!!this.state.simulateState}
+                                        onChange={e => this.setState({simulateState: e.target.checked})}/>
                                     }
                                     label={I18n.t('Toggle state to simulate')}
                                 />
                             </>
                             : null
                         }
+                        {this.state.type === 'number' && this.state.states ?
+                            <>
+                                <br/>
+                                <FormControl className={this.props.classes.formControl}>
+                                    <InputLabel>{I18n.t('Simulate value')}</InputLabel>
+                                    <Select
+                                        value={this.state.simulateState === null ? '_current_' : this.state.simulateState}
+                                        onChange={e => this.setState({simulateState: e.target.value === '_current_' ? null : e.target.value})}
+                                    >
+                                    <MenuItem value={'_current_'}>{I18n.t('current')}</MenuItem>
+                                    {this.state.states.map(item =>
+                                        <MenuItem value={item.val}>{item.original}({item.val})</MenuItem>)}
+                                </Select>
+                                </FormControl>
+                            </>
+                            : null
+                        }
                     </Paper>
-                : null }
+                    : null }
 
                 {this.state.id && this.state.type ?
                     <>
@@ -523,137 +913,27 @@ class AddIdDialog extends Component {
                             label={I18n.t('Only changes')}
                         />
                     </> : null}
-                {this.state.id ?
-                    <Accordion>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography className={this.props.classes.heading}>{I18n.t('Event text')}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Paper className={this.props.classes.paper}>
-                                <FormControlLabel
-                                    control={<Checkbox
-                                        checked={this.state.eventDefault}
-                                        onChange={e => this.setState({eventDefault: e.target.checked})} />
-                                    }
-                                    label={I18n.t('Default event text')}
-                                />
-                                <br/>
-                                {!this.state.eventDefault ? <TextField
-                                    margin="dense"
-                                    label={I18n.t('Event text')}
-                                    value={this.state.event}
-                                    onChange={e => this.setState({event: e.target.value})}
-                                    type="text"
-                                    className={this.props.classes.textField}
-                                    helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
-                                    fullWidth
-                                /> : null}
-                            </Paper>
-                        </AccordionDetails>
-                    </Accordion>
-                    : null }
-                {this.state.id && this.state.type === 'boolean' ?
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography className={this.props.classes.heading}>{I18n.t('True/False texts')}</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <Paper className={this.props.classes.paper}>
-                                    <FormControlLabel
-                                        control={<Checkbox
-                                            checked={this.state.trueTextDefault}
-                                            onChange={e => this.setState({trueTextDefault: e.target.checked})} />
-                                        }
-                                        label={I18n.t('Use default TRUE value text')}
-                                    />
-                                    {!this.state.trueTextDefault ? <TextField
-                                        margin="dense"
-                                        label={I18n.t('TRUE text')}
-                                        value={this.state.trueText}
-                                        classes={{root: this.props.classes.textDense}}
-                                        onChange={e => this.setState({trueText: e.target.value})}
-                                        type="text"
-                                        className={this.props.classes.textField}
-                                        helperText={I18n.t('This text will be used when the state is TRUE')}
-                                    /> : null}
-                                </Paper>
-                                {narrowWidth ? <br/> : null}
-                                <Paper className={this.props.classes.paper}>
-                                    <FormControlLabel
-                                        control={<Checkbox
-                                            checked={this.state.falseTextDefault}
-                                            onChange={e => this.setState({falseTextDefault: e.target.checked})} />
-                                        }
-                                        label={I18n.t('Use default FALSE value text')}
-                                    />
-                                    {!this.state.falseTextDefault ? <TextField
-                                        margin="dense"
-                                        label={I18n.t('FALSE text')}
-                                        value={this.state.falseText}
-                                        classes={{root: this.props.classes.textDense}}
-                                        onChange={e => this.setState({falseText: e.target.value})}
-                                        type="text"
-                                        className={this.props.classes.textField}
-                                        helperText={I18n.t('This text will be used when the state is FALSE')}
-                                    /> : null}
-                                </Paper>
-                            </AccordionDetails>
-                        </Accordion>
-                    : null }
-                {this.state.id && this.state.type === 'boolean' ?
-                        <Accordion>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography className={this.props.classes.heading}>{I18n.t('Colors')}</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <Paper className={this.props.classes.paper}>
-                                    <FormControlLabel
-                                        control={<Checkbox
-                                            checked={this.state.trueColorDefault}
-                                            onChange={e => this.setState({trueColorDefault: e.target.checked})} />
-                                        }
-                                        label={I18n.t('Use default TRUE value color')}
-                                    />
-                                    {!this.state.trueColorDefault ? <ColorPicker
-                                        color={this.state.trueColor}
-                                        style={{width: 200, display: 'inline-block'}}
-                                        name={I18n.t('TRUE color')}
-                                        onChange={color => this.setState({trueColor: color})}
-                                    /> : null}
-                                </Paper>
-                                {narrowWidth ? <br/> : null}
-                                <Paper className={this.props.classes.paper}>
-                                    <FormControlLabel
-                                        control={<Checkbox
-                                            checked={this.state.falseColorDefault}
-                                            onChange={e => this.setState({falseColorDefault: e.target.checked})} />
-                                        }
-                                        label={I18n.t('Use default FALSE value color')}
-                                    />
-                                    {!this.state.falseColorDefault ? <ColorPicker
-                                        style={{width: 200, display: 'inline-block'}}
-                                        color={this.state.falseColor}
-                                        name={I18n.t('FALSE color')}
-                                        onChange={color => this.setState({falseColor: color})}
-                                    /> : null}
-                                </Paper>
-                            </AccordionDetails>
-                        </Accordion>
-                : null }
+                {this.state.id     ? this.renderStateSettings() : null }
+                {this.state.states ? this.state.states.map((item, i) => this.renderState(i, narrowWidth)) : null }
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.props.onClose()} color="primary">{I18n.t('Cancel')}</Button>
+                <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
+                {this.state.exists ? <Button
+                    disabled={!this.state.id || !this.state.type}
+                    onClick={() => this.setState({confirmRemove: true})}
+                ><RemoveIcon className={this.props.classes.buttonIcon}/>{I18n.t('Remove')}</Button> : null}
                 <Button
-                    disabled={!this.state.id || !this.state.type || JSON.stringify(this.originalSettings) === JSON.stringify(this.getSettings())}
+                    disabled={!this.state.id || !this.state.type || (this.state.exists && JSON.stringify(this.originalSettings) === JSON.stringify(this.getSettings()))}
                     onClick={() =>
                         this.writeSettings(() =>
                             this.props.onClose())
                     }
                     color="primary"
-                >{this.state.exists ? I18n.t('Update') : I18n.t('Add')}</Button>
+                ><SaveIcon className={this.props.classes.buttonIcon}/>{this.state.exists ? I18n.t('Update') : I18n.t('Add')}</Button>
             </DialogActions>
             {this.renderSelectId()}
             {this.renderConfirmExit()}
+            {this.renderConfirmRemove()}
         </Dialog>;
     }
 }

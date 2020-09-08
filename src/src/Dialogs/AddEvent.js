@@ -12,11 +12,17 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 
+import CancelIcon from '@material-ui/icons/Cancel';
+import AddIcon from '@material-ui/icons/Add';
+
 import I18n from '@iobroker/adapter-react/i18n';
 
 const styles = theme => ({
     textField: {
 
+    },
+    buttonIcon: {
+        marginRight: theme.spacing(1)
     },
 });
 
@@ -102,13 +108,13 @@ class AddEventDialog extends Component {
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => this.props.onClose()} color="primary">
-                    {I18n.t('Cancel')}
+                    <CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}
                 </Button>
                 <Button
                     disabled={!this.state.event || (this.state.showTime && !this.state.ts)}
                     onClick={() => this.onOk()}
                     color="primary">
-                    {I18n.t('Insert')}
+                    <AddIcon className={this.props.classes.buttonIcon}/>{I18n.t('Insert')}
                 </Button>
             </DialogActions>
         </Dialog>;

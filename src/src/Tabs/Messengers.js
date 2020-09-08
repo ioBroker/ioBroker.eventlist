@@ -31,53 +31,6 @@ const styles = theme => ({
     },
 });
 
-const SETTINGS = {
-    enabledTime: true,
-    enabledValue: true,
-    enabledDuration: true,
-    widthTime: 130,
-    widthEvent: 200,
-    widthValue: 110,
-    widthDuration: 100,
-    textTime: 'Time',
-    textEvent: 'Event',
-    textValue: 'Value',
-    textDuration: 'Duration',
-    paddingLeft: 60,
-    paddingTopFirst: 120,
-    paddingTop: 60,
-    pageWidth: 510,
-    pageHeight: 740,
-
-    textColor: '#000000',
-    fontSize: 10,
-    colorLineOdd: '#E8E8E8',
-    colorLineEven: '#FFFFFF',
-    lineHeight: 18,
-
-    colorHeaderBackground: '#888888',
-    colorHeader: '#FFFFFF',
-    fontSizeHeader: 13,
-    enabledHeader: true,
-
-    titleColor: '#000000',
-    titleText: 'Event list',
-    titleFontSize: 18,
-
-    pageNumberOffsetX: 50,
-    pageNumberOffsetY: 10,
-    pageNumberFontSize: 10,
-    pageNumberColor: '#000000',
-    pageNumberEnabled: true,
-
-    margins: {
-        top: 30,
-        bottom: 30,
-        left: 30,
-        right: 30,
-    }
-};
-
 class Messengers extends Component {
     constructor(props) {
         super(props);

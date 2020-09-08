@@ -126,9 +126,13 @@
         "defaultBooleanTextTrue": "",
         "defaultBooleanTextFalse": "",
         "defaultBooleanText": "",
-        "defaultNonBooleanText": "",
         "defaultBooleanColorTrue": "",
         "defaultBooleanColorFalse": "",
+        "defaultBooleanIconTrue": "",
+        "defaultBooleanIconFalse": "",
+
+        "defaultNonBooleanText": "",
+
         "language": "",
         "icons": true,
         "duration": true,
@@ -181,7 +185,17 @@
             }
         }
     },
-    "objects": [],
+    "objects": [
+        {
+            "_id": "_design/custom",
+            "language": "javascript",
+            "views": {
+                "state": {
+                    "map": "function(doc) { doc.type === 'state' && doc.common && doc.common.custom && emit(doc._id, doc.common.custom) }"
+                }
+            }
+        }
+    ],
     "instanceObjects": [
         {
             "_id": "insert",
