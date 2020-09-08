@@ -33,6 +33,9 @@ Additionally you can send events via Telegram or WhatsApp.
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Objects with states are supported now 
+
 ### 0.0.2 (2020-09-07)
 * (bluefox) initial commit
 
