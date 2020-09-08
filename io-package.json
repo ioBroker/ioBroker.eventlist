@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "news": {
+            "0.0.3": {
+                "en": "Objects with states are supported now",
+                "de": "Objekte mit Status werden jetzt unterstützt",
+                "ru": "Теперь поддерживаются объекты со состояниями",
+                "pt": "Objetos com estados são suportados agora",
+                "nl": "Objecten met statussen worden nu ondersteund",
+                "fr": "Les objets avec des états sont maintenant pris en charge",
+                "it": "Gli oggetti con stati sono ora supportati",
+                "es": "Los objetos con estados son compatibles ahora",
+                "pl": "Obiekty ze stanami są teraz obsługiwane",
+                "zh-cn": "现在支持带有状态的对象"
+            },
             "0.0.2": {
                 "en": "initial commit",
                 "de": "anfängliches Commit",
@@ -130,9 +142,7 @@
         "defaultBooleanColorFalse": "",
         "defaultBooleanIconTrue": "",
         "defaultBooleanIconFalse": "",
-
         "defaultNonBooleanText": "",
-
         "language": "",
         "icons": true,
         "duration": true,
