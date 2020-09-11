@@ -25,7 +25,6 @@ import LinearProgress  from '@material-ui/core/LinearProgress';
 import {MdRefresh as IconReload} from 'react-icons/md';
 import {MdClose as IconClose} from 'react-icons/md';
 import {MdQuestionAnswer as IconQuestion} from 'react-icons/md';
-import {MdAdd as IconAddId} from 'react-icons/md';
 import {MdAdd as IconAddEvent} from 'react-icons/md';
 import {MdEdit as IconEdit} from 'react-icons/md';
 import {FaFilePdf as IconPdf} from 'react-icons/fa';
@@ -124,6 +123,9 @@ const styles = theme => ({
         lineHeight: 24,
         display: 'inline-block'
     },
+    tabMargins: {
+        paddingLeft: theme.spacing(2),
+    }
 });
 
 class List extends Component {
@@ -661,7 +663,7 @@ class List extends Component {
 
     render() {
         return (
-            <Paper className={ this.props.classes.tab }>
+            <Paper className={ clsx(this.props.classes.tab, !(this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled) && this.props.classes.tabMargins) }>
                 {this.renderToolbar()}
                 {this.state.eventList ? this.renderList() : <LinearProgress />}
                 {this.renderToast()}

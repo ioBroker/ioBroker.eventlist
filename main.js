@@ -284,7 +284,7 @@ function formatEvent(state, allowRelative) {
         }
         if (states[id].type === 'boolean') {
             val = state.val ? 'true' : 'false';
-            const item = this.state.states.find(item => item.val === val);
+            const item = states[id].states.find(item => item.val === val);
 
             if (!states[id].event && state.val && item && item.text) {
                 eventTemplate = item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : item.text;
@@ -390,7 +390,7 @@ function formatEvent(state, allowRelative) {
         }
     } else {
         eventTemplate = state.event;
-        icon = state.icon || undefined;
+        icon  = state.icon  || undefined;
         color = state.color || undefined;
 
         if (state.val !== undefined) {
@@ -418,7 +418,7 @@ function formatEvent(state, allowRelative) {
         }
     }
 
-    let durationText = state.duration !== undefined ? duration2text(state.duration) : '';
+    const durationText = state.duration !== undefined ? duration2text(state.duration) : '';
 
     if (eventTemplate.includes('%d')) {
         eventTemplate = eventTemplate.replace(/%d/g, durationText);

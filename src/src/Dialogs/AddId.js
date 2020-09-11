@@ -400,18 +400,6 @@ class AddIdDialog extends Component {
         return word;
     }
 
-    static getColor(color) {
-        if (color && typeof color === 'object') {
-            if (color.rgb) {
-                return 'rgba(' + color.rgb.r + ',' + color.rgb.g + ',' + color.rgb.b + ',' + color.rgb.a + ')';
-            } else {
-                return 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
-            }
-        } else {
-            return color || '';
-        }
-    }
-
     getExampleColor() {
         let color = '';
         if (this.state.states) {
@@ -426,12 +414,12 @@ class AddIdDialog extends Component {
             const item = this.state.states.find(item => item.val === stateVal);
 
             if (item && item.defColor) {
-                color = stateVal === 'true' ? AddIdDialog.getColor(this.props.native.defaultBooleanColorTrue) : AddIdDialog.getColor(this.props.native.defaultBooleanColorFalse);
-            } else if (item && item.color && AddIdDialog.getColor(item.color)) {
-                color = AddIdDialog.getColor(item.color);
+                color = stateVal === 'true' ? ColorPicker.getColor(this.props.native.defaultBooleanColorTrue) : ColorPicker.getColor(this.props.native.defaultBooleanColorFalse);
+            } else if (item && item.color && ColorPicker.getColor(item.color)) {
+                color = ColorPicker.getColor(item.color);
             }
         }
-        color = color || (this.state.color && AddIdDialog.getColor(this.state.color)) || '';
+        color = color || (this.state.color && ColorPicker.getColor(this.state.color)) || '';
 
         return color;
     }
@@ -577,8 +565,8 @@ class AddIdDialog extends Component {
             event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
             changesOnly: !!this.state.changesOnly
         };
-        if (this.state.color && AddIdDialog.getColor(this.state.color)) {
-            settings.color = AddIdDialog.getColor(this.state.color);
+        if (this.state.color && ColorPicker.getColor(this.state.color)) {
+            settings.color = ColorPicker.getColor(this.state.color);
         }
         if (this.state.icon) {
             settings.icon = this.state.icon;
@@ -589,16 +577,16 @@ class AddIdDialog extends Component {
 
             if (item.val === 'true' || item.val === 'false') {
                 it.text  = item.defText  ? DEFAULT_TEMPLATE : item.text || '';
-                if (item.defColor || (item.color && AddIdDialog.getColor(item.color))) {
-                    it.color = item.defColor ? DEFAULT_TEMPLATE : AddIdDialog.getColor(item.color);
+                if (item.defColor || (item.color && ColorPicker.getColor(item.color))) {
+                    it.color = item.defColor ? DEFAULT_TEMPLATE : ColorPicker.getColor(item.color);
                 }
                 if (item.defIcon || item.icon) {
                     it.icon = item.defIcon  ? DEFAULT_TEMPLATE : item.icon;
                 }
             } else {
                 it.text  = item.text || '';
-                if (item.color && AddIdDialog.getColor(item.color))  {
-                    it.color = AddIdDialog.getColor(item.color);
+                if (item.color && ColorPicker.getColor(item.color))  {
+                    it.color = ColorPicker.getColor(item.color);
                 }
                 if (item.icon)  {
                     it.icon = item.icon;

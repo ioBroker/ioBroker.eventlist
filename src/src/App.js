@@ -12,6 +12,7 @@ import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
 import TabPDF from './Tabs/PdfSettings';
 import TabMessengers from './Tabs/Messengers';
+import ColorPicker from './Components/ColorPicker';
 
 const styles = theme => ({
     root: {},
@@ -68,6 +69,15 @@ class App extends GenericApp {
         } else
         if (tab === 'messengers') {
             return 3;
+        }
+    }
+
+    onPrepareSave(native) {
+        if (native.defaultBooleanColorTrue) {
+            native.defaultBooleanColorTrue = ColorPicker.getColor(native.defaultBooleanColorTrue);
+        }
+        if (native.defaultBooleanColorFalse) {
+            native.defaultBooleanColorFalse = ColorPicker.getColor(native.defaultBooleanColorFalse);
         }
     }
 

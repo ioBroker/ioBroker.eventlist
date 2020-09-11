@@ -60,6 +60,12 @@ const styles = theme => ({
         fontSize: 12,
         color: 'red',
         fontStyle: 'italic',
+    },
+    buttonIcon: {
+        marginRight: theme.spacing(2),
+    },
+    buttonFormat: {
+        marginTop: 20,
     }
 });
 
@@ -152,7 +158,12 @@ class Options extends Component {
                         onChange={ e => this.props.onChange('dateFormat', e.target.value) }
                         margin="normal"
                     />
-                    <Button variant="contained" onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}><IconHelp/>{I18n.t('Format description')}</Button>
+                    <Button
+                        variant="contained"
+                        className={this.props.classes.buttonFormat}
+                        onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}>
+                            <IconHelp className={this.props.classes.buttonIcon}/>{I18n.t('Format description')}
+                    </Button>
                     <br/>
                     <TextField
                         label={ I18n.t('Show absolute time after seconds') }
@@ -170,8 +181,9 @@ class Options extends Component {
                         className={ this.props.classes.input }
                         value={ this.props.native.defaultBooleanText }
                         type="text"
-                        onChange={ e => this.props.onChange('defaultBooleanTextTrue', e.target.value) }
+                        onChange={ e => this.props.onChange('defaultBooleanText', e.target.value) }
                         margin="normal"
+                        helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                     />
                     <br/>
                     <TextField
@@ -187,7 +199,7 @@ class Options extends Component {
                         className={ this.props.classes.input }
                         value={ this.props.native.defaultBooleanTextFalse }
                         type="text"
-                        onChange={ e => this.props.onChange('defaultBooleanTextTrue', e.target.value) }
+                        onChange={ e => this.props.onChange('defaultBooleanTextFalse', e.target.value) }
                         margin="normal"
                     />
                     <br/>
@@ -195,13 +207,13 @@ class Options extends Component {
                         color={this.props.native.defaultBooleanColorTrue}
                         style={{width: 300, display: 'inline-block', marginRight: 16}}
                         name={I18n.t('Default color by TRUE')}
-                        onChange={color => this.setState({defaultBooleanColorTrue: color})}
+                        onChange={color => this.props.onChange('defaultBooleanColorTrue', color)}
                     />
                     <ColorPicker
-                        color={this.state.defaultBooleanColorFalse}
+                        color={this.props.native.defaultBooleanColorFalse}
                         style={{width: 300, display: 'inline-block'}}
                         name={I18n.t('Default color by FALSE')}
-                        onChange={color => this.setState({defaultBooleanColorFalse: color})}
+                        onChange={color => this.props.onChange('defaultBooleanColorFalse', color)}
                     />
                     <br/>
                     <TextField
@@ -211,15 +223,7 @@ class Options extends Component {
                         type="text"
                         onChange={ e => this.props.onChange('defaultNonBooleanText', e.target.value) }
                         margin="normal"
-                    />
-                    <br/>
-                    <TextField
-                        label={ I18n.t('Default event text for non boolean states') }
-                        className={ this.props.classes.input }
-                        value={ this.props.native.defaultNonBooleanText }
-                        type="text"
-                        onChange={ e => this.props.onChange('defaultNonBooleanText', e.target.value) }
-                        margin="normal"
+                        helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                     />
                     <br/>
                     <FormControl className={this.props.classes.input}>
@@ -241,6 +245,15 @@ class Options extends Component {
                             <MenuItem value="zh-cn">简体中文</MenuItem>
                         </Select>
                     </FormControl>
+                    <br/>
+                    <FormControlLabel
+                        control={<Checkbox checked={this.props.native.icons || false} onChange={e => this.props.onChange('icons', e.target.checked)} />}
+                        label={I18n.t('Show icons in the list')}
+                    />
+                    <FormControlLabel
+                        control={<Checkbox checked={this.props.native.duration || false} onChange={e => this.props.onChange('duration', e.target.checked)} />}
+                        label={I18n.t('Show duration in the list')}
+                    />
                     <br/>
                     <FormControlLabel
                         control={<Checkbox checked={this.props.native.icons || false} onChange={e => this.props.onChange('icons', e.target.checked)} />}
