@@ -13,6 +13,10 @@ import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ColorPicker from '../Components/ColorPicker';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
 
 import I18n from '@iobroker/adapter-react/i18n';
 
@@ -44,10 +48,14 @@ const styles = theme => ({
     },
     noCheckbox: {
         paddingLeft: 32,
+    },
+    formControl: {
+        minWidth: 200,
     }
 });
 
 const SETTINGS = {
+    orientation: 'portrait',
     enabledTime: true,
     enabledValue: true,
     enabledDuration: true,
@@ -114,7 +122,6 @@ class PdfSettings extends Component {
 
         this.aliveId = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
         this.triggerPDFId = `${this.props.adapterName}.${this.props.instance}.triggerPDF`;
-
     }
 
     componentDidMount() {
@@ -443,7 +450,7 @@ class PdfSettings extends Component {
                 />
                 <TextField
                     disabled={this.state.pdfInGeneration}
-                    key="top"
+                    key="right"
                     type="right"
                     className={this.props.classes.field}
                     label={I18n.t('Right')}
@@ -550,6 +557,16 @@ class PdfSettings extends Component {
                 control={<Checkbox checked={this.props.native.pdfButton || false} onChange={e => this.props.onChange('pdfButton', e.target.checked)} />}
                 label={I18n.t('Show PDF generate button on list')}
             />
+            <FormControl className={this.props.classes.formControl}>
+                <InputLabel>{I18n.t('Page orientation')}</InputLabel>
+                <Select
+                    value={this.state.orientation || 'portrait'}
+                    onChange={e => this.props.onChange('orientation', e.target.value)}
+                >
+                    <MenuItem value="portrait">{I18n.t('Portrait')}</MenuItem>
+                    <MenuItem value="landscape">{I18n.t('Landscape')}</MenuItem>
+                </Select>
+            </FormControl>
             {this.renderPageHeader(settings)}
             {this.renderSettingsTime(settings)}
             {this.renderSettingsEvent(settings)}

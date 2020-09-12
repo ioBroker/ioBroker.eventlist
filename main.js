@@ -28,14 +28,15 @@ const MAX_VALID_DATE = new Date(2050, 0, 1).getTime();
  * @type {ioBroker.Adapter}
  */
 let adapter;
-let states = {};
+const states = {};
+let alarmMode = false;
+
 let systemLang;
 let isFloatComma;
 let eventListRaw;
 let textSwitchedOn;
 let textSwitchedOff;
 let textDeviceChangedStatus;
-let textUndefined;
 let textHours;
 let textMinutes;
 let textSeconds;
@@ -45,9 +46,10 @@ function loadWords() {
     let lines = fs.existsSync(__dirname + '/admin/words.js') ?
         fs.readFileSync(__dirname + '/admin/words.js').toString('utf8').split(/\r\n|\n|\r/) :
         fs.readFileSync(__dirname + '/src/public/words.js').toString('utf8').split(/\r\n|\n|\r/);
+
     lines = lines.map(l => l.trim()).map(l => l.replace(/'/g, '"')).filter(l => l);
-    let start = lines.findIndex(line => line.startsWith('systemDictionary = {'));
-    let end = lines.findIndex(line => line.startsWith('};'));
+    const start = lines.findIndex(line => line.startsWith('systemDictionary = {'));
+    const end = lines.findIndex(line => line.startsWith('};'));
     lines.splice(end, lines.length - end);
     lines.splice(0, start + 1);
     lines[lines.length - 1] = lines[lines.length - 1].replace(/,$/, ''); // remove last comma
@@ -89,11 +91,12 @@ function startAdapter(options) {
     // is called if a subscribed state changes
     adapter.on('stateChange', (id, state) => {
         if (id === adapter.namespace + '.triggerPDF' && !state.ack && state.val) {
-            console.log(id);
-
             reformatJsonTable(false)
                 .then(table => list2pdf(adapter, 'report.pdf', table))
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
+        } else if (id === adapter.namespace + '.alarm' && !state.ack) {
+            adapter.log.info('Switch ALRM state to ' + state.val);
+            alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
         } else if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
             eventListRaw = state2json(state);
             reformatJsonTable(true).then(table =>
@@ -165,85 +168,11 @@ function startAdapter(options) {
     });
 
     adapter.on('objectChange', (id, obj) => {
-        let changed = false;
-        let promises = [];
-        if (obj && obj.common && obj.common.custom && obj.common.custom[adapter.namespace] && obj.common.custom[adapter.namespace].enabled) {
-            let settings = obj.common.custom[adapter.namespace];
-            if (!states[id]) {
-                changed = true;
-                states[id] = settings;
-                adapter.log.info('Enabled event list for ' + id);
-                setImmediate(() => adapter.subscribeForeignStates(id));
-            }
-            // detect relevant changes
-            if (states[id].event !== settings.event) {
-                states[id].event = settings.event;
-                changed = true;
-            }
-            if (states[id].changesOnly !== settings.changesOnly) {
-                if (!settings.changesOnly) {
-                    delete states[id].val;
-                } else {
-                    // read value
-                    promises.push(adapter.getForeignStateAsync(id)
-                        .then(state => states[id].val = state ? state.val : null));
-                }
-                states[id].changesOnly = settings.changesOnly;
-                changed = true;
-            }
-            if (states[id].falseText !== settings.falseText) {
-                states[id].falseText = settings.falseText;
-                changed = true;
-            }
-            if (states[id].trueText !== settings.trueText) {
-                states[id].trueText = settings.trueText;
-                changed = true;
-            }
-            if (states[id].type !== obj.common.type) {
-                states[id].type = obj.common.type;
-                changed = true;
-            }
-            if (adapter.config.icons) {
-                if (states[id].icon !== obj.common.icon) {
-                    states[id].icon = obj.common.icon;
-                    changed = true;
-                }
-            }
-
-            const st = parseStates(obj.common.states);
-            if (JSON.stringify(states[id].originalStates) !== JSON.stringify(st)) {
-                states[id].originalStates = st;
-                changed = true;
-            }
-            if (states[id].unit !== obj.common.unit) {
-                states[id].unit = obj.common.unit;
-                changed = true;
-            }
-            if (states[id].min !== obj.common.min) {
-                states[id].min = obj.common.min;
-                changed = true;
-            }
-            if (states[id].max !== obj.common.max) {
-                states[id].max = obj.common.max;
-                changed = true;
-            }
-            const name = getName(obj);
-            if (states[id].name !== name) {
-                states[id].name = name;
-                changed = true;
-            }
-        } else if (states[id]) {
-            changed = true;
-            adapter.log.debug('Removed event list: ' + id);
-            delete states[id];
-            setImmediate(() => adapter.unsubscribeForeignStates(id));
-        }
-
-        if (changed) {
-            Promise.all(promises)
-                .then(() => reformatJsonTable(true))
-                .then(table => adapter.setState('eventJSONList', JSON.stringify(table), true));
-        }
+        updateStateSettings(id, obj)
+            .then(changed =>
+                changed ? reformatJsonTable(true) : Promise.resolve())
+            .then(table =>
+                table && adapter.setState('eventJSONList', JSON.stringify(table), true));
     });
 
     return adapter;
@@ -257,7 +186,7 @@ function duration2text(ms, withSpaces) {
     } else if (ms < 3600000) {
         return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${textMinutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${textSeconds}`;
     } else {
-        const hours = Math.floor(ms / 3600000);
+        const hours   = Math.floor(ms / 3600000);
         const minutes = Math.floor(ms / 60000) % 60;
         const seconds = Math.round(Math.floor(ms % 60000) / 1000);
         return `${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes} ${seconds}${withSpaces ? ' ' : ''}${textSeconds}`;
@@ -272,7 +201,7 @@ function formatEvent(state, allowRelative) {
     let color = state.color || '';
     let icon = '';
 
-    let date = new Date(state.ts);
+    const date = new Date(state.ts);
     const time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
 
     event._id = date.getTime();
@@ -284,7 +213,8 @@ function formatEvent(state, allowRelative) {
         }
         if (states[id].type === 'boolean') {
             val = state.val ? 'true' : 'false';
-            const item = states[id].states.find(item => item.val === val);
+
+            const item = states[id].states && states[id].states.find(item => item.val === val);
 
             if (!states[id].event && state.val && item && item.text) {
                 eventTemplate = item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : item.text;
@@ -452,21 +382,63 @@ function formatEvent(state, allowRelative) {
 }
 
 function sendTelegram(event) {
-    if (adapter.config.telegram !== undefined && adapter.config.telegram !== '' && adapter.config.telegram !== false && adapter.config.telegram !== null) {
-        const text =  `${event.event}${event.val !== undefined ? ' ' + event.val : ''}`;
-        adapter.sendTo('telegram.' + adapter.config.telegram, 'send', {text, user: adapter.config.telegramUser || undefined});
-    } else {
-        return Promise.resolve();
+    if (event.id && states[event.id] &&
+        (alarmMode || !states[event.id].messagesInAlarmsOnly) &&
+        ((states[event.id].defaultMessengers && adapter.config.defaultTelegram && adapter.config.defaultTelegram.length) ||
+        (!states[event.id].defaultMessengers && states[event.id].telegram && states[event.id].telegram.length))
+    ) {
+        const instances = (states[event.id].defaultMessengers && adapter.config.defaultTelegram) ||
+            (!states[event.id].defaultMessengers && states[event.id].telegram);
+
+        const ev = formatEvent(event, true);
+        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+
+        instances.forEach(num =>
+            adapter.sendTo('telegram.' + num, 'send', {text}));
     }
+
+    return Promise.resolve();
 }
 
 function sendWhatsApp(event) {
-    if (adapter.config.whatsapp !== undefined && adapter.config.whatsapp !== '' && adapter.config.whatsapp !== false && adapter.config.whatsapp !== null) {
-        const text =  `${event.event}${event.val !== undefined ? ' ' + event.val : ''}`;
-        adapter.sendTo('whatsapp-cmb.' + adapter.config.whatsapp, 'send', {text, phone: adapter.config.whatsappPhone || undefined});
-    } else {
-        return Promise.resolve();
+    if (event.id && states[event.id] &&
+        (alarmMode || !states[event.id].messagesInAlarmsOnly) &&
+        ((states[event.id].defaultMessengers && adapter.config.defaultWhatsAppCMB && adapter.config.defaultWhatsAppCMB.length) ||
+        (!states[event.id].defaultMessengers && states[event.id].whatsAppCMB && states[event.id].whatsAppCMB.length))
+    ) {
+        const instances = (states[event.id].defaultMessengers && adapter.config.defaultWhatsAppCMB) ||
+            (!states[event.id].defaultMessengers && states[event.id].whatsAppCMB);
+
+        const ev = formatEvent(event, true);
+        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+
+        instances.forEach(num =>
+            adapter.sendTo('whatsapp-cmb.' + num, 'send', {text}));
     }
+
+    return Promise.resolve();
+}
+
+function sendPushover(event) {
+    if (event.id && states[event.id] &&
+        (alarmMode || !states[event.id].messagesInAlarmsOnly) &&
+        ((states[event.id].defaultMessengers && adapter.config.defaultPushover && adapter.config.defaultPushover.length) ||
+        (!states[event.id].defaultMessengers && states[event.id].pushover && states[event.id].pushover.length))
+    ) {
+        const instances = (states[event.id].defaultMessengers && adapter.config.defaultPushover) ||
+            (!states[event.id].defaultMessengers && states[event.id].pushover);
+
+        const ev = formatEvent(event, true);
+        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+
+        instances.forEach(num =>
+            adapter.sendTo('pushover.' + num, 'send', {text}));
+    }
+
+    return Promise.resolve();
 }
 
 function addEvent(event) {
@@ -476,6 +448,10 @@ function addEvent(event) {
         if (!event.event && !event.id) {
             adapter.log.warn('Cannot add empty event to the list');
             return;
+        }
+
+        if (!alarmMode && states[event.id] && states[event.id].alarmsOnly) {
+            return adapter.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
         }
 
         _event.ts = event.ts || Date.now();
@@ -533,6 +509,7 @@ function addEvent(event) {
             ]))
             .then(() => sendTelegram(_event))
             .then(() => sendWhatsApp(_event))
+            .then(() => sendPushover(_event))
             .then(() => resolve(_event));
     });
 }
@@ -550,88 +527,176 @@ function parseStates(states) {
     return states;
 }
 
+function updateStateSettings(id, obj) {
+    if (!obj || !obj.common || !obj.common.custom || !obj.common.custom[adapter.namespace] || !obj.common.custom[adapter.namespace].enabled) {
+        if (states[id]) {
+            adapter.log.debug('Removed from event list: ' + id);
+            delete states[id];
+            return adapter.unsubscribeForeignStatesAsync(id)
+                .then(() => true);
+        } else {
+            return Promise.resolve(false);
+        }
+    } else {
+        const id = obj._id;
+        const promises = [];
+        const needSubscribe = !states[id];
+        let changed = false;
+        const settings = obj.common.custom[adapter.namespace];
+        if (states[id]) {
+            // detect relevant changes
+            if (states[id].event !== settings.event) {
+                states[id].event = settings.event;
+                changed = true;
+            }
+            if (states[id].changesOnly !== settings.changesOnly) {
+                states[id].changesOnly = settings.changesOnly;
+                changed = true;
+            }
+            if (states[id].alarmsOnly !== settings.alarmsOnly) {
+                states[id].alarmsOnly = settings.alarmsOnly;
+                changed = true;
+            }
+            if (states[id].defaultMessengers !== settings.defaultMessengers) {
+                states[id].defaultMessengers = settings.defaultMessengers;
+                changed = true;
+            }
+            if (states[id].messagesInAlarmsOnly !== settings.messagesInAlarmsOnly) {
+                states[id].messagesInAlarmsOnly = settings.messagesInAlarmsOnly;
+                changed = true;
+            }
+            if (JSON.stringify(states[id].whatsAppCMB) !== JSON.stringify(settings.whatsAppCMB)) {
+                states[id].whatsAppCMB = settings.whatsAppCMB;
+                changed = true;
+            }
+            if (JSON.stringify(states[id].telegram) !== JSON.stringify(settings.telegram)) {
+                states[id].telegram = settings.telegram;
+                changed = true;
+            }
+            if (JSON.stringify(states[id].pushover) !== JSON.stringify(settings.pushover)) {
+                states[id].pushover = settings.pushover;
+                changed = true;
+            }
+            const st = parseStates(settings.states || undefined);
+            if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
+                states[id].states = st;
+                changed = true;
+            }
+        } else {
+            states[id] = settings;
+            changed = true;
+        }
+
+        if (states[id].type !== obj.common.type) {
+            states[id].type = obj.common.type;
+            changed = true;
+        }
+
+        const st = parseStates(obj.common.states || undefined);
+        if (JSON.stringify(states[id].originalStates) !== JSON.stringify(st)) {
+            states[id].originalStates = st;
+            changed = true;
+        }
+        if (states[id].unit !== obj.common.unit) {
+            states[id].unit = obj.common.unit;
+            changed = true;
+        }
+        if (states[id].min !== obj.common.min) {
+            states[id].min = obj.common.min;
+            changed = true;
+        }
+        if (states[id].max !== obj.common.max) {
+            states[id].max = obj.common.max;
+            changed = true;
+        }
+        const name = getName(obj);
+        if (states[id].name !== name) {
+            states[id].name = name;
+            changed = true;
+        }
+
+        let durationUsed = adapter.config.duration;
+
+        if (!durationUsed && states[id].type === 'boolean') {
+            durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d');
+            if (!durationUsed) {
+                durationUsed = (states[id].trueText || adapter.config.defaultBooleanTextTrue).includes('%d');
+            }
+            if (!durationUsed) {
+                durationUsed = (states[id].falseText || adapter.config.defaultBooleanTextFalse).includes('%d');
+            }
+        } else if (!durationUsed) {
+            durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d');
+        }
+
+        if (states[id].durationUsed !== durationUsed) {
+            states[id].durationUsed = durationUsed;
+            changed = true;
+        }
+
+        if (adapter.config.icons) {
+            promises.push(getIconAndColor(id, obj)
+                .then(icon => {
+                    if (icon !== states[id].icon) {
+                        changed = true;
+                        states[id].icon = icon;
+                    }
+                }));
+        }
+
+
+
+        needSubscribe && adapter.log.debug('Subscribe on ' + id);
+
+        if (states[id].val === undefined && (states[id].changesOnly || durationUsed)) {
+            return adapter.getForeignStateAsync(id)
+                .then(state => {
+                    states[id].val = state ? state.val : null; // store to detect changes
+                    states[id].ts  = state ? state.ts  : null; // store to calculate duration
+                    return Promise.all(promises);
+                })
+                .then(() => needSubscribe ? adapter.subscribeForeignStatesAsync(id) : Promise.resolve())
+                .then(() => changed);
+        } else {
+            return Promise.all(promises)
+                .then(() => needSubscribe ? adapter.subscribeForeignStatesAsync(id) : Promise.resolve())
+                .then(() => changed);
+        }
+    }
+}
+
 // Read all Object names sequentially, that do not have aliases
-function readAllNames(ids, cb) {
+function readAllNames(ids, _resolve) {
+    if (!_resolve) {
+        return new Promise(resolve => readAllNames(ids, resolve));
+    } else
     if (!ids || !ids.length) {
-        cb && cb();
+        _resolve();
     } else {
         const id = ids.shift();
-        adapter.getForeignObject(id, (err, obj) => {
-            if (obj) {
-                let promises = [];
-                states[id].name           = getName(obj);
-                states[id].type           = obj.common && obj.common.type;
-                states[id].originalStates = obj.common && parseStates(obj.common.states || undefined);
-                states[id].unit           = obj.common && obj.common.unit;
-                states[id].min            = obj.common && obj.common.min;
-                states[id].max            = obj.common && obj.common.max;
-                let durationUsed = false;
-                if (!durationUsed && states[id].type === 'boolean') {
-                    durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d');
-                    if (!durationUsed) {
-                        durationUsed = (states[id].trueText || adapter.config.defaultBooleanTextTrue).includes('%d');
-                    }
-                    if (!durationUsed) {
-                        durationUsed = (states[id].falseText || adapter.config.defaultBooleanTextFalse).includes('%d');
-                    }
-                } else if (!durationUsed) {
-                    durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d');
-                }
-
-                states[id].durationUsed = true;
-
-                if (adapter.config.icons) {
-                    promises.push(getIconAndColor(id, obj)
-                        .then(icon => {
-                            if (icon) {
-                                states[id].icon = icon;
-                            }
-                        }));
-                }
-
-                adapter.log.debug('Subscribe on ' + id);
-                if (states[id].changesOnly || durationUsed) {
-                    adapter.getForeignState(id, (err, state) => {
-                        states[id].val = state ? state.val : null; // store to detect changes
-                        states[id].ts = state ? state.ts : null; // store to calculate duration
-                        Promise.all(promises)
-                            .then(() =>
-                                adapter.subscribeForeignStates(id, () =>
-                                    setImmediate(readAllNames, ids, cb)));
-                    });
-                } else {
-                    Promise.all(promises)
-                        .then(() =>
-                            adapter.subscribeForeignStates(id, () =>
-                                setImmediate(readAllNames, ids, cb)));
-                }
-            } else {
-                setImmediate(readAllNames, ids, cb);
-            }
-        });
+        adapter.getForeignObjectAsync(id)
+            .then(obj => updateStateSettings(id, obj))
+            .then(() => setImmediate(readAllNames, ids, _resolve));
     }
 }
 
 function readStates() {
-    return new Promise(resolve =>
-        adapter.getObjectView('custom', 'state', {}, (err, doc) => {
+    return adapter.getObjectViewAsync('custom', 'state', {})
+        .then(doc => {
             const readNames = [];
             if (doc && doc.rows) {
-                for (let i = 0, l = doc.rows.length; i < l; i++) {
-                    if (doc.rows[i].value) {
-                        const id = doc.rows[i].id;
-                        const obj = doc.rows[i].value;
-                        if (obj[adapter.namespace] && obj[adapter.namespace].enabled) {
-                            states[id] = obj[adapter.namespace];
-                            readNames.push(id);
+                doc.rows.forEach(item => {
+                    if (item.value) {
+                        const obj = item.value;
+                        if (obj && obj[adapter.namespace] && obj[adapter.namespace].enabled) {
+                            readNames.push(item.id);
                         }
                     }
-                }
+                });
             }
 
-            readAllNames(JSON.parse(JSON.stringify(readNames)), () =>
-                resolve());
-        }));
+            return readAllNames(JSON.parse(JSON.stringify(readNames)));
+        });
 }
 
 function reformatJsonTable(allowRelative, table) {
@@ -696,14 +761,13 @@ function getIconAndColor(id, obj) {
 }
 
 function main() {
-    textSwitchedOn = words['switched on'][systemLang] || words['switched on'].en;
-    textSwitchedOff = words['switched off'][systemLang] || words['switched off'].en;
+    textSwitchedOn          = words['switched on'][systemLang]               || words['switched on'].en;
+    textSwitchedOff         = words['switched off'][systemLang]              || words['switched off'].en;
     textDeviceChangedStatus = words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
-    textUndefined = words['undefined'][systemLang] || words['undefined'].en;
-    textHours = words['hours'][systemLang] || words['hours'].en;
-    textMinutes = words['minutes'][systemLang] || words['minutes'].en;
-    textSeconds = words['sec'][systemLang] || words['sec'].en;
-    textMs = words['ms'][systemLang] || words['ms'].en;
+    textHours               = words['hours'][systemLang]                     || words['hours'].en;
+    textMinutes             = words['minutes'][systemLang]                   || words['minutes'].en;
+    textSeconds             = words['sec'][systemLang]                       || words['sec'].en;
+    textMs                  = words['ms'][systemLang]                        || words['ms'].en;
 
     adapter.config.maxLength = parseInt(adapter.config.maxLength, 10);
     adapter.config.maxLength = adapter.config.maxLength || 100;
@@ -711,26 +775,31 @@ function main() {
         adapter.config.maxLength = 10000;
     }
 
-    adapter.getForeignObject('system.config', (err, obj) => {
-        obj = obj || {};
-        obj.common = obj.common || {};
-        systemLang = adapter.config.language || obj.common.language;
-        isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
+    adapter.getStateAsync('alarmMode')
+        .then(state => {
+            alarmMode = !!(state && state.val);
+            return adapter.getForeignObjectAsync('system.config');
+        })
+        .then(obj => {
+            obj = obj || {};
+            obj.common = obj.common || {};
+            systemLang = adapter.config.language || obj.common.language;
+            isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
 
-        moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
+            moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
 
-        readStates()
-            .then(() => reformatJsonTable(true)) // Update table according to new settings
-            .then(json => {
-                adapter.setState('eventJSONList', JSON.stringify(json), true);
-                adapter.subscribeStates('insert');
-                adapter.subscribeStates('insert');
-                adapter.subscribeStates('eventListRaw');
-                adapter.subscribeStates('triggerPDF');
-                // detect changes of objects
-                adapter.subscribeForeignObjects('*');
-            });
-    });
+            return readStates();
+        })
+        .then(() => reformatJsonTable(true)) // Update table according to new settings
+        .then(json => Promise.all([
+            adapter.setStateAsync('eventJSONList', JSON.stringify(json), true),
+            adapter.subscribeStatesAsync('insert'),
+            adapter.subscribeStatesAsync('eventListRaw'),
+            adapter.subscribeStatesAsync('triggerPDF'),
+            adapter.subscribeStatesAsync('alarm'),
+            // detect changes of objects
+            adapter.subscribeForeignObjectsAsync('*'),
+        ]));
 }
 
 // @ts-ignore parent is a valid property on module

@@ -11,7 +11,7 @@ import I18n from '@iobroker/adapter-react/i18n';
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
 import TabPDF from './Tabs/PdfSettings';
-import TabMessengers from './Tabs/Messengers';
+//import TabMessengers from './Tabs/Messengers';
 import ColorPicker from './Components/ColorPicker';
 
 const styles = theme => ({
@@ -79,6 +79,7 @@ class App extends GenericApp {
         if (native.defaultBooleanColorFalse) {
             native.defaultBooleanColorFalse = ColorPicker.getColor(native.defaultBooleanColorFalse);
         }
+        super.onPrepareSave();
     }
 
     renderTabsForConfig() {
@@ -116,7 +117,7 @@ class App extends GenericApp {
                     adapterName={this.adapterName}
                     onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
                 />}
-                {this.state.selectedTab === 'messengers' && <TabMessengers
+                {/*this.state.selectedTab === 'messengers' && <TabMessengers
                     key="messengers"
                     common={this.common}
                     socket={this.socket}
@@ -125,7 +126,7 @@ class App extends GenericApp {
                     instance={this.instance}
                     adapterName={this.adapterName}
                     onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
-                />}
+                />*/}
             </div>
             {this.renderSaveCloseButtons()}
         </>;
@@ -150,7 +151,7 @@ class App extends GenericApp {
     render() {
         if (!this.state.loaded) {
             return <MuiThemeProvider theme={this.state.theme}>
-                <Loader theme={this.state.themeType} />
+                <Loader themeType={this.state.themeType} />
             </MuiThemeProvider>
         }
 

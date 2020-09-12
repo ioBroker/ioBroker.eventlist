@@ -147,12 +147,9 @@
         "icons": true,
         "duration": true,
         "license": "",
-        "telegram": "",
-        "telegramUser": "",
-        "whatsapp": "",
-        "whatsappPhone": "",
         "pdfButton": false,
         "pdfSettings": {
+            "orientation": "portrait",
             "enabledTime": true,
             "enabledEvent": true,
             "enabledValue": true,
@@ -193,7 +190,10 @@
                 "left": 30,
                 "right": 30
             }
-        }
+        },
+        "defaultWhatsAppCMB": [],
+        "defaultTelegram": [],
+        "defaultPushover": []
     },
     "objects": [
         {
@@ -228,6 +228,19 @@
                 "def": false,
                 "role": "button",
                 "type": "boolean"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "alarm",
+            "common": {
+                "name": "Switch alarm state",
+                "write": true,
+                "read": true,
+                "type": "boolean",
+                "role": "switch",
+                "desc": "Toggle alarm state"
             },
             "type": "state",
             "native": {}

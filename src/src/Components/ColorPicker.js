@@ -67,6 +67,7 @@ class ColorPicker extends React.Component {
             displayColorPicker: false,
             color: this.props.color,
         };
+        this.divRef = React.createRef();
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -106,7 +107,17 @@ class ColorPicker extends React.Component {
 
     render() {
         const color = ColorPicker.getColor(this.state.color);
-        return <div style={this.props.style}>
+        let style = {};
+        if (this.state.displayColorPicker && this.props.openAbove) {
+            style = {
+                top: -241,
+            }
+        }
+        return <div
+            style={Object.assign({}, this.props.style || {}, {position: 'relative'})}
+            className={ this.props.className || ''}
+            ref={this.divRef}
+        >
             <TextField
                 id="name"
                 style={{width: 'calc(100% - 80px)'}}
@@ -126,7 +137,7 @@ class ColorPicker extends React.Component {
                 <div className={this.props.classes.color}
                      style={{background: color}} />
             </div>
-            { this.state.displayColorPicker ? <div className={this.props.classes.popover}>
+            { this.state.displayColorPicker ? <div className={this.props.classes.popover} style={style}>
                 <div className={this.props.classes.cover} onClick={() => this.handleClose()}/>
                 <ChromePicker color={ this.state.color } onChangeComplete={color => this.handleChange(color)} />
             </div> : null }
@@ -140,6 +151,8 @@ ColorPicker.propTypes = {
     onChange: PropTypes.func.isRequired,
     name: PropTypes.string,
     style: PropTypes.object,
+    className: PropTypes.string,
+    openAbove: PropTypes.bool,
 };
 
 export default withStyles(styles)(ColorPicker);

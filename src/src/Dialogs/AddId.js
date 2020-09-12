@@ -42,6 +42,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import SaveIcon from '@material-ui/icons/Save';
 import {FaEraser as RemoveIcon} from 'react-icons/fa';
 
+import MessengerSelect from '../Components/MessengerSelect';
 import I18n from '@iobroker/adapter-react/i18n';
 import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
 import ColorPicker from '../Components/ColorPicker';
@@ -87,7 +88,12 @@ const styles = theme => ({
     },
     formControl: {
         width: 200
-    }
+    },
+    inputMessengers: {
+        minWidth: 200,
+        marginRight: theme.spacing(2),
+        marginBottom: theme.spacing(2),
+    },
 });
 
 const DEFAULT_TEMPLATE = 'default';
@@ -95,6 +101,13 @@ const DEFAULT_TEMPLATE = 'default';
 class AddIdDialog extends Component {
     constructor(props) {
         super(props);
+
+        let expanded = window.localStorage.getItem('eventlist.addid.expanded') || '[]';
+        try {
+            expanded = JSON.parse(expanded);
+        } catch (e) {
+            expanded = [];
+        }
 
         this.state = {
             id: this.props.id || '',
@@ -104,6 +117,13 @@ class AddIdDialog extends Component {
 
             event: '',
             eventDefault: true,
+            alarmsOnly: false,
+
+            defaultMessengers: true,
+            messagesInAlarmsOnly: false,
+            whatsAppCMB: [],
+            pushover: [],
+            telegram: [],
 
             states: null,
             color: '',
@@ -112,6 +132,7 @@ class AddIdDialog extends Component {
             changesOnly: true,
             showSelectId: false,
             unknownId: true,
+            expanded,
 
             simulateState: '',
             exists: false,
@@ -311,10 +332,18 @@ class AddIdDialog extends Component {
             this.props.socket.getObject(id)
                 .then(obj => {
                     const newState = {
-                        type:      (obj && obj.common && obj.common.type) || '',
-                        unknownId: !obj || !obj.common || !obj.common.type,
-                        name:      this.getName(obj),
-                        unit:      (obj && obj.common && obj.common.unit) || ''
+                        type:        (obj && obj.common && obj.common.type) || '',
+                        unknownId:   !obj || !obj.common || !obj.common.type,
+                        name:        this.getName(obj),
+                        unit:        (obj && obj.common && obj.common.unit) || '',
+                        whatsAppCMB: [],
+                        pushover:    [],
+                        telegram:    [],
+                        event:       '',
+                        icon:        '',
+                        color:       '',
+                        alarmsOnly:  false,
+                        messagesInAlarmsOnly: false,
                     };
 
                     if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
@@ -326,6 +355,12 @@ class AddIdDialog extends Component {
                         newState.icon         = newSettings.icon;
                         newState.color        = newSettings.color;
                         newState.states       = newSettings.states;
+                        newState.alarmsOnly   = newSettings.alarmsOnly;
+                        newState.messagesInAlarmsOnly = newSettings.messagesInAlarmsOnly;
+                        newState.whatsAppCMB  = newSettings.whatsAppCMB || [];
+                        newState.pushover     = newSettings.pushover || [];
+                        newState.telegram     = newSettings.telegram || [];
+                        newState.defaultMessengers = newSettings.defaultMessengers === undefined ? true : newSettings.defaultMessengers;
 
                         if (newState.type === 'boolean') {
                             this.addBooleanStates(newState);
@@ -338,6 +373,11 @@ class AddIdDialog extends Component {
                             newState.simulateState = null;
                         }
                     } else {
+                        newState.defaultMessengers = true;
+                        newState.whatsAppCMB = this.props.native.defaultWhatsAppCMB || [];
+                        newState.pushover    = this.props.native.defaultPushover    || [];
+                        newState.telegram    = this.props.native.defaultTelegram    || [];
+
                         newState.exists = false;
                         if (newState.type === 'boolean') {
                             this.addBooleanStates(newState);
@@ -563,7 +603,8 @@ class AddIdDialog extends Component {
         const settings = {
             enabled: true,
             event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
-            changesOnly: !!this.state.changesOnly
+            changesOnly: !!this.state.changesOnly,
+            defaultMessengers: !!this.state.defaultMessengers
         };
         if (this.state.color && ColorPicker.getColor(this.state.color)) {
             settings.color = ColorPicker.getColor(this.state.color);
@@ -571,6 +612,22 @@ class AddIdDialog extends Component {
         if (this.state.icon) {
             settings.icon = this.state.icon;
         }
+        if (this.state.alarmsOnly) {
+            settings.alarmsOnly = true;
+        }
+        if (this.state.messagesInAlarmsOnly) {
+            settings.messagesInAlarmsOnly = true;
+        }
+        if (this.state.pushover && this.state.pushover.length && !this.state.defaultMessengers) {
+            settings.pushover = this.state.pushover;
+        }
+        if (this.state.telegram && this.state.telegram.length && !this.state.defaultMessengers) {
+            settings.telegram = this.state.telegram;
+        }
+        if (this.state.whatsAppCMB && this.state.whatsAppCMB.length && !this.state.defaultMessengers) {
+            settings.whatsAppCMB = this.state.whatsAppCMB;
+        }
+
         this.state.states && this.state.states.forEach(item => {
             settings.states = settings.states || [];
             const it = {val: item.val};
@@ -649,6 +706,19 @@ class AddIdDialog extends Component {
         }
     }
 
+    onToggle(id) {
+        const expanded = [...this.state.expanded];
+        const pos = expanded.indexOf(id);
+        if (pos !== -1)  {
+            expanded.splice(pos, 1);
+        } else {
+            expanded.push(id);
+            expanded.sort();
+        }
+        window.localStorage.setItem('eventlist.addid.expanded', JSON.stringify(expanded));
+        this.setState({expanded});
+    }
+
     renderConfirmExit() {
         if (!this.state.confirmExit) {
             return null;
@@ -690,7 +760,11 @@ class AddIdDialog extends Component {
         const state = this.state.states[i];
         const isBoolean = state.val === 'true' || state.val === 'false';
 
-        return <Accordion key={state.val}>
+        return <Accordion
+            key={state.val}
+            expanded={this.state.expanded.includes('state_' + state.val)}
+            onChange={() => this.onToggle('state_' + state.val)}
+        >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography className={this.props.classes.heading}>{I18n.t('State')} <b>{
                     state.original === 'true' || state.original === 'false' ?
@@ -739,6 +813,7 @@ class AddIdDialog extends Component {
                     /> : null}
                     {!isBoolean || !state.defColor ?
                         <ColorPicker
+                            openAbove={true}
                             color={state.color}
                             style={{width: 250, display: 'inline-block'}}
                             name={I18n.t('Color')}
@@ -777,7 +852,10 @@ class AddIdDialog extends Component {
     }
 
     renderStateSettings(narrowWidth) {
-        return <Accordion>
+        return <Accordion
+            expanded={this.state.expanded.includes('state_settings')}
+            onChange={() => this.onToggle('state_settings')}
+        >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}</Typography>
             </AccordionSummary>
@@ -806,6 +884,7 @@ class AddIdDialog extends Component {
                         color={this.state.color}
                         style={{width: 250, display: 'inline-block'}}
                         name={I18n.t('Event color')}
+                        openAbove={true}
                         onChange={color => this.setState({color})}
                     />
                     <br/>
@@ -820,8 +899,78 @@ class AddIdDialog extends Component {
         </Accordion>;
     }
 
+    renderMessengers(narrowWidth) {
+        const messengers = !this.state.expanded.includes('state_messengers') ? [
+            this.state.telegram && this.state.telegram.length ? 'Telegram(' + this.state.telegram.join(', ') + ')' : '',
+            this.state.whatsAppCMB && this.state.whatsAppCMB.length ? ', WhatsAppCMB(' + this.state.telegram.join(', ') + ')' : '',
+            this.state.pushover && this.state.pushover.length ? ', Pushover(' + this.state.telegram.join(', ') + ')' : '',
+        ].filter(t => t).join('; ') : '';
+
+        return <Accordion
+            expanded={this.state.expanded.includes('state_messengers')}
+            onChange={() => this.onToggle('state_messengers')}
+        >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className={this.props.classes.heading}>{I18n.t('Messengers')}{
+                    !this.state.expanded.includes('state_messengers') && messengers ?
+                        ' - ' + messengers
+                        :
+                        ''
+                }
+                </Typography>
+            </AccordionSummary>
+            <AccordionDetails style={{display: 'block'}}>
+                <FormControlLabel
+                    control={<Checkbox
+                        disabled={this.state.alarmsOnly}
+                        checked={this.state.messagesInAlarmsOnly || this.state.alarmsOnly}
+                        onChange={e => this.setState({messagesInAlarmsOnly: e.target.checked})} />
+                    }
+                    label={I18n.t('Only in alarm state')}
+                />
+                {narrowWidth && <br/>}
+                <FormControlLabel
+                    control={<Checkbox
+                        checked={this.state.defaultMessengers}
+                        onChange={e => this.setState({defaultMessengers: e.target.checked})} />
+                    }
+                    label={I18n.t('Default messengers')}
+                />
+                <br/>
+                {this.state.defaultMessengers ? null : <MessengerSelect
+                    label={ I18n.t('Telegram') }
+                    adapterName={'telegram'}
+                    className={ this.props.classes.inputMessengers }
+                    onChange={value => this.setState({telegram: value})}
+                    selected={ this.state.telegram }
+                    socket={this.props.socket}
+                />}
+                {narrowWidth && !this.state.defaultMessengers && <br/>}
+                {this.state.defaultMessengers ? null : <MessengerSelect
+                    label={ I18n.t('WhatsApp-CMB') }
+                    adapterName={'whatsapp-cmb'}
+                    className={ this.props.classes.inputMessengers }
+                    onChange={value => this.setState({whatsAppCMB: value})}
+                    selected={ this.state.whatsAppCMB}
+                    socket={this.props.socket}
+                />}
+                {narrowWidth && !this.state.defaultMessengers && <br/>}
+                {this.state.defaultMessengers ? null : <MessengerSelect
+                    label={ I18n.t('Pushover') }
+                    adapterName={'pushover'}
+                    className={ this.props.classes.inputMessengers }
+                    onChange={value => this.setState({pushover: value})}
+                    selected={ this.state.pushover}
+                    socket={this.props.socket}
+                />}
+            </AccordionDetails>
+        </Accordion>;
+    }
+
     render() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
+
+
         return <Dialog
             open={true}
             onClose={() => this.onClose()}
@@ -900,9 +1049,18 @@ class AddIdDialog extends Component {
                             }
                             label={I18n.t('Only changes')}
                         />
+                        {narrowWidth && <br/>}
+                        <FormControlLabel
+                            control={<Checkbox
+                                checked={!!this.state.alarmsOnly}
+                                onChange={e => this.setState({alarmsOnly: e.target.checked})} />
+                            }
+                            label={I18n.t('Only in alarm state')}
+                        />
                     </> : null}
                 {this.state.id     ? this.renderStateSettings() : null }
                 {this.state.states ? this.state.states.map((item, i) => this.renderState(i, narrowWidth)) : null }
+                {this.state.id     ? this.renderMessengers(narrowWidth) : null}
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
