@@ -33,6 +33,9 @@ Additionally you can send events via Telegram or WhatsApp.
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Implemented the alarm mode and messengers 
+
 ### 0.0.3 (2020-09-08)
 * (bluefox) Objects with states are supported now 
 
