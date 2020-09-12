@@ -2,8 +2,8 @@ const fs        = require('fs');
 const path      = require('path');
 const fileName  = 'words.js';
 const EMPTY     = '';
+const translate = require('./lib/tools.js').translateText;
 const iopackage = require('./io-package.json');
-const request = require('request');
 
 const languages = {
     en: {},
@@ -18,9 +18,8 @@ const languages = {
     'zh-cn': {}
 };
 
-function translateIoBroker(text) {
-    return new Promise((resolve, reject) =>
-        resolve({}));
+function translateIoBroker(text, lang) {
+    return translate(text, lang);
 }
 
 function lang2data(lang, isFlat) {
@@ -383,12 +382,19 @@ async function syncWords(src, words) {
         let changed = false;
         for (let w = 0; w < words.length; w++) {
             if (!json[words[w]]) {
-                if (translated[words[w]]) {
+                if (translated[words[w]] && translated[words[w]][lang]) {
                     json[words[w]] = translated[words[w]][lang] || '';
                 } else {
                     try {
                         console.log(`Translate "${words[w]} to ${lang.toUpperCase()}`);
-                        translated[words[w]] = await translateIoBroker(words[w]);
+                        const text = await translateIoBroker(words[w]);
+                        if (typeof text === 'object') {
+                            translated[words[w]] = text;
+                        } else {
+                            translated[words[w]] = translated[words[w]] || {};
+                            translated[words[w]][lang] = text;
+                        }
+
                         json[words[w]] = translated[words[w]][lang] || '';
                     } catch (e) {
                         console.error('Cannot translate: ' + e);

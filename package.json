@@ -42,6 +42,7 @@
     "@alcalzone/release-script": "^1.7.0",
     "@types/iobroker": "^3.0.12",
     "del": "^5.1.0",
+    "axios": "^0.20.0",
     "request": "^2.88.2"
   },
   "main": "main.js",
