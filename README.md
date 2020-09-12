@@ -33,7 +33,7 @@ Additionally you can send events via Telegram or WhatsApp.
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.1.0 (2020-09-12)
 * (bluefox) Implemented the alarm mode and messengers 
 
 ### 0.0.3 (2020-09-08)

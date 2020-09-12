@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.0.3",
+        "version": "0.1.0",
         "news": {
+            "0.1.0": {
+                "en": "Implemented the alarm mode and messengers",
+                "de": "Alarmmodus und Messenger implementiert",
+                "ru": "Реализован режим будильника и мессенджеры.",
+                "pt": "Implementado o modo de alarme e mensageiros",
+                "nl": "Implementeerde de alarmmodus en boodschappers",
+                "fr": "Implémentation du mode d'alarme et des messagers",
+                "it": "Implementato la modalità di allarme e messenger",
+                "es": "Implementado el modo de alarma y mensajeros",
+                "pl": "Zaimplementowano tryb alarmowy i komunikatory",
+                "zh-cn": "实施了警报模式和信使"
+            },
             "0.0.3": {
                 "en": "Objects with states are supported now",
                 "de": "Objekte mit Status werden jetzt unterstützt",
