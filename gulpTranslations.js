@@ -407,11 +407,12 @@ async function syncWords(src, words) {
         }
 
         // todo remove unused
+        const keys = Object.keys(json).sort();
+        const _json = {};
+        keys.forEach(w => _json[w] = json[w]);
 
-        if (changed) {
-            console.log('Updated: ' + lang);
-            fs.writeFileSync(fileName, JSON.stringify(json, null, 2));
-        }
+        console.log('Updated: ' + lang);
+        fs.writeFileSync(fileName, JSON.stringify(_json, null, 2));
     }
     return true;
 }

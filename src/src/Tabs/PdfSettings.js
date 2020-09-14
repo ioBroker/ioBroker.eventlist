@@ -548,6 +548,21 @@ class PdfSettings extends Component {
         </Accordion>;
     }
 
+    toggleOrientation(orientation, e) {
+        if (orientation && orientation !== (this.props.native.pdfSettings.orientation || 'portrait')) {
+            let pageWidth = this.props.native.pdfSettings.pageWidth;
+            this.onChange('pageWidth', this.props.native.pdfSettings.pageHeight);
+            this.onChange('pageHeight', pageWidth);
+            const top = this.props.native.pdfSettings.margins.top;
+            this.onChange('margins.top', this.props.native.pdfSettings.margins.left);
+            this.onChange('margins.left', top);
+            const bottom = this.props.native.pdfSettings.margins.bottom;
+            this.onChange('margins.bottom', this.props.native.pdfSettings.margins.right);
+            this.onChange('margins.right', bottom);
+            this.onChange('orientation', e.target.value, e);
+        }
+    }
+
     renderSettings() {
         const settings = Object.assign({}, SETTINGS, this.props.native.pdfSettings);
 
@@ -560,8 +575,8 @@ class PdfSettings extends Component {
             <FormControl className={this.props.classes.formControl}>
                 <InputLabel>{I18n.t('Page orientation')}</InputLabel>
                 <Select
-                    value={this.state.orientation || 'portrait'}
-                    onChange={e => this.props.onChange('orientation', e.target.value)}
+                    value={settings.orientation || 'portrait'}
+                    onChange={e => this.toggleOrientation(e.target.value, e)}
                 >
                     <MenuItem value="portrait">{I18n.t('Portrait')}</MenuItem>
                     <MenuItem value="landscape">{I18n.t('Landscape')}</MenuItem>

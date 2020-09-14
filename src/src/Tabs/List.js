@@ -125,7 +125,10 @@ const styles = theme => ({
     },
     tabMargins: {
         paddingLeft: theme.spacing(2),
-    }
+    },
+    buttonAddState: {
+        minWidth: '120px !important',
+    },
 });
 
 class List extends Component {
@@ -414,7 +417,7 @@ class List extends Component {
                 :
                 <>
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Add state to event list')} className={this.props.classes.toolbarButton}>
-                        <Fab variant="extended" size="small" aria-label="add" color="secondary" onClick={() => this.setState({selectStateShow: true})}>
+                        <Fab variant="extended" size="small" aria-label="add" color="secondary" classes={{root: this.props.classes.buttonAddState}} onClick={() => this.setState({selectStateShow: true})}>
                             <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                 <IconEdit style={{verticalAlign: 'middle', marginRight: 8}}/>
                                 {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('States')}</span>}

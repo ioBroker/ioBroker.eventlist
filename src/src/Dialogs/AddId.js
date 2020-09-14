@@ -876,7 +876,10 @@ class AddIdDialog extends Component {
                         onChange={e => this.setState({event: e.target.value})}
                         type="text"
                         className={this.props.classes.textField}
-                        helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
+                        helperText={ this.state.type === 'number' ?
+                            I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference')
+                            :
+                            I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                         fullWidth
                     /> : null}
                     <br/>

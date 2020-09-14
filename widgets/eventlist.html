@@ -361,28 +361,35 @@
         version: "0.1.0",
         showVersion: function () {
             if (vis.binds.eventlist.version) {
-                console.log('Version consumption: ' + vis.binds.eventlist.version);
+                console.log('Version eventlist: ' + vis.binds.eventlist.version);
                 vis.binds.eventlist.version = null;
             }
         },
         renderHeader(el, wid, view, data) {
             var text = '<tr class="' + (data.defaultStyle ? 'event-table-header' : '') + '">';
-            if (data.showEventTime) {
-                text += '<th width="' + data.widthEventTime + '" style="text-align: ' + data.alignEventTime + '">' + (data.textEventTime === '_' ? _('eventtableTime') : data.textEventTime) + '</th>';
+            if (data.showEventTime || data.showEventTime === undefined) {
+                text += '<th width="' + data.widthEventTime + '" style="text-align: ' + data.alignEventTime + '">' + (data.textEventTime === '_' || data.textEventTime === undefined ? _('eventtableTime') : data.textEventTime) + '</th>';
             }
-            text += '<th width="' + data.widthEventEvent + '" style="text-align: ' + data.alignEventEvent + '">' + (data.textEventEvent === '_' ? _('eventtableEvent') : data.textEventEvent) + '</th>';
-            if (data.showEventValue) {
-                text += '<th width="' + data.widthEventValue + '" style="text-align: ' + data.alignEventValue + '">' + (data.textEventValue === '_' ? _('eventtableValue') : data.textEventValue) + '</th>';
+            text += '<th width="' + data.widthEventEvent + '" style="text-align: ' + data.alignEventEvent + '">' + (data.textEventEvent === '_' || data.textEventEvent === undefined ? _('eventtableEvent') : data.textEventEvent) + '</th>';
+            if (data.showEventValue || data.showEventValue === undefined) {
+                text += '<th width="' + data.widthEventValue + '" style="text-align: ' + data.alignEventValue + '">' + (data.textEventValue === '_' || data.textEventValue === undefined ? _('eventtableValue') : data.textEventValue) + '</th>';
             }
-            if (data.showEventDuration) {
-                text += '<th width="' + data.widthEventDuration + '" style="text-align: ' + data.alignEventDuration + '">' + (data.textEventDuration === '_' ? _('eventtableDuration') : data.textEventDuration) + '</th>';
+            if (data.showEventDuration || data.showEventDuration === undefined) {
+                text += '<th width="' + data.widthEventDuration + '" style="text-align: ' + data.alignEventDuration + '">' + (data.textEventDuration === '_' || data.textEventDuration === undefined ? _('eventtableDuration') : data.textEventDuration) + '</th>';
             }
             text += '</tr>\n';
             return text;
         },
         renderRow(el, wid, view, data, json, i) {
             var item = json[i];
-            var line = '<tr>';
+            var style = [];
+            if (item._style) {
+                var attrs = Object.keys(item._style);
+                for (var t = 0; t < attrs.length; t++) {
+                    style.push(attrs[t] + ': ' + item._style[attrs[t]]);
+                }
+            }
+            var line = '<tr style="' + style.join('; ') + '">';
             if (data.showEventTime) {
                 line += '<td style="text-align: ' + data.alignEventTime + '">' + item.ts + '</td>';
             }
@@ -414,7 +421,7 @@
             return table;
         },
         renderTable(el, wid, view, data, style, json) {
-            var table = '<table style="width: 100%;" class="' + (data.defaultStyle ? 'event-table' : '') + '"><tbody style="width: 100%;">'
+            var table = '<table style="width: 100%;" class="' + (data.defaultStyle || data.defaultStyle === undefined ? 'event-table' : '') + '"><tbody style="width: 100%;">'
             table += vis.binds.eventlist.renderHeader(el, wid, view, data);
             for (var i = 0; i < json.length; i++) {
                 if (!data.max_rows || i < data.max_rows) {
@@ -436,10 +443,13 @@
                 }, 100);
             }
             data.max_rows = parseInt(data.max_rows, 10) || 0;
-            data.widthEventTime     = data.widthEventTime     === parseFloat(data.widthEventTime).toString()     ? data.widthEventTime     + 'px' : data.widthEventTime;
-            data.widthEventEvent    = data.widthEventEvent    === parseFloat(data.widthEventEvent).toString()    ? data.widthEventEvent    + 'px' : data.widthEventEvent;
-            data.widthEventValue    = data.widthEventValue    === parseFloat(data.widthEventValue).toString()    ? data.widthEventValue    + 'px' : data.widthEventValue;
-            data.widthEventDuration = data.widthEventDuration === parseFloat(data.widthEventDuration).toString() ? data.widthEventDuration + 'px' : data.widthEventDuration;
+            data.widthEventTime     = data.widthEventTime     === parseFloat(data.widthEventTime).toString()     ? data.widthEventTime     + 'px' : data.widthEventTime || '';
+            data.widthEventEvent    = data.widthEventEvent    === parseFloat(data.widthEventEvent).toString()    ? data.widthEventEvent    + 'px' : data.widthEventEvent || '';
+            data.widthEventValue    = data.widthEventValue    === parseFloat(data.widthEventValue).toString()    ? data.widthEventValue    + 'px' : data.widthEventValue || '';
+            data.widthEventDuration = data.widthEventDuration === parseFloat(data.widthEventDuration).toString() ? data.widthEventDuration + 'px' : data.widthEventDuration || '';
+            data.showEventTime      = data.showEventTime      === undefined ? true : data.showEventTime;
+            data.showEventValue     = data.showEventValue     === undefined ? true : data.showEventValue;
+            data.showEventDuration  = data.showEventDuration  === undefined ? true : data.showEventDuration;
 
             if (data.showScroll) {
                 $div.css('overflow-y', 'auto');

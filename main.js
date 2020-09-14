@@ -130,6 +130,10 @@ function startAdapter(options) {
                             state.duration = null;
                         }
                         states[id].ts = state.ts;
+
+                        if (states[id].type === 'number' && states[id].val !== null && states[id].val !== undefined && state.val !== null && state.val !== undefined) {
+                            state.diff = state.val - state[id].val;
+                        }
                     }
                     states[id].val = state.val;
                 }
@@ -142,6 +146,11 @@ function startAdapter(options) {
                     state.duration = null;
                 }
                 states[id].ts = state.ts;
+
+                if (states[id].type === 'number' && states[id].val !== null && states[id].val !== undefined && state.val !== null && state.val !== undefined) {
+                    state.diff = state.val - state[id].val;
+                }
+                states[id].val = state.val;
             }
 
             state.id = id;
@@ -352,6 +361,9 @@ function formatEvent(state, allowRelative) {
 
     if (eventTemplate.includes('%d')) {
         eventTemplate = eventTemplate.replace(/%d/g, durationText);
+    }
+    if (eventTemplate.includes('%g')) {
+        eventTemplate = eventTemplate.replace(/%g/g, isFloatComma ? state.diff.toString().replace('.', ',') : state.diff);
     }
 
     if (eventTemplate.includes('%s')) {
@@ -626,7 +638,8 @@ function updateStateSettings(id, obj) {
                 durationUsed = (states[id].falseText || adapter.config.defaultBooleanTextFalse).includes('%d');
             }
         } else if (!durationUsed) {
-            durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d');
+            durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
+                (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
         }
 
         if (states[id].durationUsed !== durationUsed) {
@@ -643,8 +656,6 @@ function updateStateSettings(id, obj) {
                     }
                 }));
         }
-
-
 
         needSubscribe && adapter.log.debug('Subscribe on ' + id);
 
