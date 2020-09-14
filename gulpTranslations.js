@@ -18,8 +18,19 @@ const languages = {
     'zh-cn': {}
 };
 
-function translateIoBroker(text, lang) {
-    return translate(text, lang);
+const request = require('request');
+function translateIoBroker(text) {
+    return new Promise((resolve, reject) =>
+        request.post('https://translator.iobroker.in/translator',
+            {form: {together: false, text}},
+            (error, response, body) => {
+                if (error || response.statusCode >= 400) {
+                    return reject('upload failed:' + error);
+                } else {
+                    body = JSON.parse(body);
+                    resolve(body[text]);
+                }
+            }));
 }
 
 function lang2data(lang, isFlat) {
