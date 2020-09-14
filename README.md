@@ -23,8 +23,9 @@ Additionally you can send events via Telegram or WhatsApp.
 
 ## Alarm mode
 The events could be generated only in alarm mode.
-The alarm mode could be controlled by variable eventlist.X.alarm. 
-Additionaly the messages to messengers could be sent only if alarm mode is ON.
+The alarm mode could be controlled by variable `eventlist.X.alarm`.
+ 
+Additionally the messages to messengers could be sent only if alarm mode is ON.
 
 Use case:
 - E.g. door sensor can send the messages only if nobody is home. Elsewise the events about door opening will be only collected in the event list.  

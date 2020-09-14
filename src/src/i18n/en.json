@@ -110,6 +110,7 @@
   "You can add event to table, e.g. some comment.": "You can add event to table, e.g. some comment.",
   "You can add state to the event list, so the changes will be monitored.": "You can add state to the event list, so the changes will be monitored.",
   "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration",
+  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference": "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference",
   "current": "current",
   "hours": "hours",
   "license_hint": "license_hint",

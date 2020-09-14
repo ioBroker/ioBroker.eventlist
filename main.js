@@ -90,18 +90,18 @@ function startAdapter(options) {
 
     // is called if a subscribed state changes
     adapter.on('stateChange', (id, state) => {
-        if (id === adapter.namespace + '.triggerPDF' && !state.ack && state.val) {
+        if (id === adapter.namespace + '.triggerPDF' && state && !state.ack && state.val) {
             reformatJsonTable(false)
                 .then(table => list2pdf(adapter, 'report.pdf', table))
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
-        } else if (id === adapter.namespace + '.alarm' && !state.ack) {
+        } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
             adapter.log.info('Switch ALRM state to ' + state.val);
             alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
-        } else if (id === adapter.namespace + '.eventListRaw' && !state.ack && state.val) {
+        } else if (id === adapter.namespace + '.eventListRaw' && state && !state.ack && state.val) {
             eventListRaw = state2json(state);
             reformatJsonTable(true).then(table =>
                 adapter.setState('eventJSONList', JSON.stringify(table), true));
-        } else if (id === adapter.namespace + '.insert' && !state.ack && state.val) {
+        } else if (id === adapter.namespace + '.insert' && state && !state.ack && state.val) {
             if (state.val.startsWith('{')) {
                 try {
                     state.val = JSON.parse(state.val);
@@ -116,7 +116,11 @@ function startAdapter(options) {
                     .then(event =>
                         adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
             }
-        } else if (states[id]) {
+        } else if (states[id] && state) {
+            if (states[id].states && state.val !== null && state.val !== undefined && states[id].states[state.val.toString()] && states[id].states[state.val.toString()].disabled) {
+                adapter.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
+                return;
+            }
             // ignore non changed states
             if (states[id].changesOnly) {
                 if (state && states[id].val === state.val) {

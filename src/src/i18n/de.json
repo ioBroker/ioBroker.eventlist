@@ -106,6 +106,7 @@
   "You can add event to table, e.g. some comment.": "Sie können der Tabelle ein Ereignis hinzufügen, z. B. ein Kommentar",
   "You can add state to the event list, so the changes will be monitored.": "Sie können der Ereignisliste einen Status hinzufügen, damit die Änderungen überwacht werden.",
   "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "Sie können Muster verwenden: %s - Wert, %u - Einheit, %n - Name, %t - Zeit, %d - Dauer",
+  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference": "Sie können Muster verwenden: %s - Wert, %u - Einheit, %n - Name, %t - Zeit, %d - Dauer, %g - Differenz",
   "current": "Aktuell",
   "hours": "S",
   "license_hint": "Lizenzhinweis",

@@ -41,6 +41,10 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import CancelIcon from '@material-ui/icons/Cancel';
 import SaveIcon from '@material-ui/icons/Save';
 import {FaEraser as RemoveIcon} from 'react-icons/fa';
+import {FaMinus as EmptyIcon} from 'react-icons/fa';
+import {FaWhatsapp as WhatsappIcon} from 'react-icons/fa';
+import Telegram from '../assets/telegram.svg';
+import Pushover from '../assets/pushover.svg';
 
 import MessengerSelect from '../Components/MessengerSelect';
 import I18n from '@iobroker/adapter-react/i18n';
@@ -94,9 +98,20 @@ const styles = theme => ({
         marginRight: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
+    flex: {
+        flexGrow: 1,
+    },
+    messengersIcon: {
+        width: 24,
+        height: 24,
+    },
+    whatsAppIcon: {
+        color: '#45c655'
+    }
 });
 
 const DEFAULT_TEMPLATE = 'default';
+const DISABLED_TEXT = '-------------';
 
 class AddIdDialog extends Component {
     constructor(props) {
@@ -168,7 +183,7 @@ class AddIdDialog extends Component {
         let changed;
         let trueState = states.find(item => item.val === 'true');
         if (!trueState) {
-            trueState = {val: 'true',  text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true'};
+            trueState = {val: 'true',  text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true', disabled: false};
             states.push(trueState);
             changed = true;
         } else {
@@ -176,7 +191,7 @@ class AddIdDialog extends Component {
         }
         let falseState = states.find(item => item.val === 'false');
         if (!falseState) {
-            falseState = {val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false'};
+            falseState = {val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false', disabled: false};
             states.push(falseState);
             changed = true;
         } else {
@@ -188,7 +203,6 @@ class AddIdDialog extends Component {
             changed = true;
             trueState.defText = newVal;
         }
-
         newVal = trueState.text === DEFAULT_TEMPLATE ? '' : trueState.text;
         if (newVal !== trueState.text) {
             changed = true;
@@ -280,7 +294,7 @@ class AddIdDialog extends Component {
             Object.keys(objStates).forEach(attr => {
                 let _st = states.find(item => item.val === attr);
                 if (!_st) {
-                    _st = {val: attr,  text: objStates[attr], color: '', icon: ''};
+                    _st = {val: attr,  text: objStates[attr], color: '', icon: '', disabled: false};
                     states.push(_st);
                     changed = true;
                 }
@@ -510,6 +524,10 @@ class AddIdDialog extends Component {
             stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
             const item = this.state.states.find(item => item.val === stateVal);
 
+            if (item && item.disabled) {
+                return DISABLED_TEXT;
+            }
+
             if (stateVal === 'true' && item) {
                 text = item.defText ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : item.text || this.textSwitchedOn;
             } else if (stateVal === 'false' && item) {
@@ -545,6 +563,10 @@ class AddIdDialog extends Component {
         let time = this.state.state && this.state.state.ts ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat;
 
         let valText = this.getExampleText();
+
+        if (valText === DISABLED_TEXT) {
+            return I18n.t('DISABLED');
+        }
 
         if (this.state.type === 'boolean') {
             let stateVal = !!(this.state.state && this.state.state.val);
@@ -631,6 +653,11 @@ class AddIdDialog extends Component {
         this.state.states && this.state.states.forEach(item => {
             settings.states = settings.states || [];
             const it = {val: item.val};
+
+            if (item.disabled)  {
+                it.disabled = true;
+                return;
+            }
 
             if (item.val === 'true' || item.val === 'false') {
                 it.text  = item.defText  ? DEFAULT_TEMPLATE : item.text || '';
@@ -760,20 +787,35 @@ class AddIdDialog extends Component {
         const state = this.state.states[i];
         const isBoolean = state.val === 'true' || state.val === 'false';
 
+        let color = state.defColor ? (state.val === 'true' ? this.props.native.defaultBooleanColorTrue : this.props.native.defaultBooleanColorFalse) : state.color;
+        color = !state.disabled && color ? ColorPicker.getColor(color) : '';
+
         return <Accordion
             key={state.val}
-            expanded={this.state.expanded.includes('state_' + state.val)}
+            expanded={this.state.expanded.includes('state_' + state.val) && !state.disabled}
             onChange={() => this.onToggle('state_' + state.val)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography className={this.props.classes.heading}>{I18n.t('State')} <b>{
+            <AccordionSummary expandIcon={!state.disabled ? <ExpandMoreIcon /> : <EmptyIcon/>}>
+                <Typography className={this.props.classes.heading}>{I18n.t('State')} <span style={{color: color || undefined, fontWeight: 'bold'}}>{
                     state.original === 'true' || state.original === 'false' ?
                         `${state.original.toUpperCase()}${state.text ? ' - ' + state.text : ''}`
                         :
                         `${state.original}(${state.val})${state.text ? ' - ' + state.text : ''}`
-                }</b></Typography>
+                }</span></Typography>
+                <div className={this.props.classes.flex}/>
+                <FormControlLabel
+                    control={<Checkbox
+                        checked={!!state.disabled}
+                        onChange={e => {
+                            const states = JSON.parse(JSON.stringify(this.state.states));
+                            states[i].disabled = e.target.checked;
+                            this.setState({states});
+                        }} />
+                    }
+                    label={I18n.t('Disable logging')}
+                />
             </AccordionSummary>
-            <AccordionDetails>
+            {!state.disabled && <AccordionDetails>
                 <Paper className={this.props.classes.paper}>
                     {isBoolean ? <FormControlLabel
                         control={<Checkbox
@@ -847,11 +889,14 @@ class AddIdDialog extends Component {
                     /> : null}
                     {narrowWidth ? <br/> : null}
                 </Paper>
-            </AccordionDetails>
+            </AccordionDetails>}
         </Accordion>;
     }
 
     renderStateSettings(narrowWidth) {
+        const color = ColorPicker.getrColor(this.state.color);
+        const text = this.state.eventDefault ? (this.state.type === 'boolean' ? this.props.native.defaultBooleanText : this.props.native.defaultNonBooleanText) : this.state.event || I18n.t('Use the specific state texts');
+
         return <Accordion
             expanded={this.state.expanded.includes('state_settings')}
             onChange={() => this.onToggle('state_settings')}
@@ -866,7 +911,7 @@ class AddIdDialog extends Component {
                             checked={this.state.eventDefault}
                             onChange={e => this.setState({eventDefault: e.target.checked})} />
                         }
-                        label={I18n.t('Default text')}
+                        label={<span><span>{I18n.t('Default text')}</span>(!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null</span>}
                     />
                     {narrowWidth ? <br/> : null}
                     {!this.state.eventDefault ? <TextField
@@ -903,23 +948,22 @@ class AddIdDialog extends Component {
     }
 
     renderMessengers(narrowWidth) {
+        const count = (this.state.telegram ? this.state.telegram.length : 0) +
+            (this.state.whatsAppCMB ? this.state.whatsAppCMB.length : 0) +
+            (this.state.pushover ? this.state.pushover.length : 0);
         const messengers = !this.state.expanded.includes('state_messengers') ? [
-            this.state.telegram && this.state.telegram.length ? 'Telegram(' + this.state.telegram.join(', ') + ')' : '',
-            this.state.whatsAppCMB && this.state.whatsAppCMB.length ? ', WhatsAppCMB(' + this.state.telegram.join(', ') + ')' : '',
-            this.state.pushover && this.state.pushover.length ? ', Pushover(' + this.state.telegram.join(', ') + ')' : '',
-        ].filter(t => t).join('; ') : '';
+            this.state.telegram    && this.state.telegram.length    ? [<img src={Telegram} key="icon" alt="telegram" className={this.props.classes.messengersIcon}/>, <span key="text">{'(' + this.state.telegram.join(', ')    + ')'}</span>] : null,
+            this.state.whatsAppCMB && this.state.whatsAppCMB.length ? [<WhatsappIcon key="icon" className={clsx(this.props.classes.messengersIcon, this.props.classes.whatsAppIcon)}/>, <span key="text">{'(' + this.state.whatsAppCMB.join(', ') + ')'}</span>] : null,
+            this.state.pushover    && this.state.pushover.length    ? [<img src={Pushover} key="icon" alt="pushover" className={this.props.classes.messengersIcon}/>, <span key="text">{'('    + this.state.pushover.join(', ')    + ')'}</span>] : null,
+        ] : null;
 
         return <Accordion
             expanded={this.state.expanded.includes('state_messengers')}
             onChange={() => this.onToggle('state_messengers')}
         >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography className={this.props.classes.heading}>{I18n.t('Messengers')}{
-                    !this.state.expanded.includes('state_messengers') && messengers ?
-                        ' - ' + messengers
-                        :
-                        ''
-                }
+                <Typography className={this.props.classes.heading}>{I18n.t('Messengers') + (count ? ' - ' : '')}
+                    {messengers}
                 </Typography>
             </AccordionSummary>
             <AccordionDetails style={{display: 'block'}}>
@@ -972,7 +1016,14 @@ class AddIdDialog extends Component {
 
     render() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
-
+        let val = '';
+        if (this.state.state && this.state.state.val) {
+            if (this.state.state.val === null || this.state.state.val === undefined) {
+                val = ' - --';
+            } else {
+                val = ' - ' + this.state.state.val.toString();
+            }
+        }
 
         return <Dialog
             open={true}
@@ -1031,7 +1082,7 @@ class AddIdDialog extends Component {
                                         value={this.state.simulateState === null ? '_current_' : this.state.simulateState}
                                         onChange={e => this.setState({simulateState: e.target.value === '_current_' ? null : e.target.value})}
                                     >
-                                    <MenuItem value={'_current_'}>{I18n.t('current')}</MenuItem>
+                                    <MenuItem value={'_current_'}>{I18n.t('current') + val}</MenuItem>
                                     {this.state.states.map(item =>
                                         <MenuItem value={item.val}>{item.original}({item.val})</MenuItem>)}
                                 </Select>
