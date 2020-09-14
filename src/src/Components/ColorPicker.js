@@ -88,16 +88,33 @@ class ColorPicker extends React.Component {
         this.setState({displayColorPicker: false});
     };
 
-    static getColor(color) {
+    static getColor(color, isHex) {
         if (color && typeof color === 'object') {
             if (color.rgb) {
-                return 'rgba(' + color.rgb.r + ',' + color.rgb.g + ',' + color.rgb.b + ',' + color.rgb.a + ')';
+                if (isHex) {
+                    return '#' + color.rgb.r.toString(16).padStart(2, '0') + color.rgb.g.toString(16).padStart(2, '0') + color.rgb.b.toString(16).padStart(2, '0');
+                } else {
+                    return 'rgba(' + color.rgb.r + ',' + color.rgb.g + ',' + color.rgb.b + ',' + color.rgb.a + ')';
+                }
             } else {
-                return 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
+                if (isHex) {
+                    return '#' + color.r.toString(16).padStart(2, '0') + color.g.toString(16).padStart(2, '0') + color.b.toString(16).padStart(2, '0');
+                } else {
+                    return 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
+                }
             }
         } else {
-            return color || '';
+            return isHex ? ColorPicker.rgb2hex(color || '') : color || '';
         }
+    }
+
+    static rgb2hex(rgb){
+        const m = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+
+        return m && m.length === 4 ? '#' +
+            parseInt(m[1],10).toString(16).padStart(2, '0') +
+            parseInt(m[2],10).toString(16).padStart(2, '0') +
+            parseInt(m[3],10).toString(16).padStart(2, '0') : rgb;
     }
 
     handleChange = color => {
@@ -119,6 +136,7 @@ class ColorPicker extends React.Component {
             ref={this.divRef}
         >
             <TextField
+                disabled={this.props.disabled}
                 id="name"
                 style={{width: 'calc(100% - 80px)'}}
                 label={this.props.name || 'color'}
@@ -128,6 +146,7 @@ class ColorPicker extends React.Component {
                 onChange={e => this.handleChange(e.target.value)}
             />
             <IconButton
+                disabled={this.props.disabled}
                 onClick={() => this.handleChange('')}
                 size="small"
                 className={this.props.classes.delButton}
@@ -137,7 +156,7 @@ class ColorPicker extends React.Component {
                 <div className={this.props.classes.color}
                      style={{background: color}} />
             </div>
-            { this.state.displayColorPicker ? <div className={this.props.classes.popover} style={style}>
+            { this.state.displayColorPicker && !this.props.disabled ? <div className={this.props.classes.popover} style={style}>
                 <div className={this.props.classes.cover} onClick={() => this.handleClose()}/>
                 <ChromePicker color={ this.state.color } onChangeComplete={color => this.handleChange(color)} />
             </div> : null }
@@ -147,6 +166,7 @@ class ColorPicker extends React.Component {
 }
 
 ColorPicker.propTypes = {
+    disabled: PropTypes.bool,
     color: PropTypes.string,
     onChange: PropTypes.func.isRequired,
     name: PropTypes.string,

@@ -109,7 +109,7 @@
   "Yes": "tak",
   "You can add event to table, e.g. some comment.": "Możesz dodać wydarzenie do tabeli, np. jakiś komentarz.",
   "You can add state to the event list, so the changes will be monitored.": "Możesz dodać stan do listy zdarzeń, dzięki czemu zmiany będą monitorowane.",
-  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "Możesz użyć wzorców: %s  - wartość,% u - jednostka,% n - nazwa,% t - czas,% d - czas trwania",
+  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "Możesz użyć wzorców: %s  - wartość, %u - jednostka, %n - nazwa, %t - czas, %d - czas trwania",
   "current": "obecny",
   "hours": "godziny",
   "license_hint": "license_hint",

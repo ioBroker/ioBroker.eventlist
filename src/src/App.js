@@ -11,7 +11,6 @@ import I18n from '@iobroker/adapter-react/i18n';
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
 import TabPDF from './Tabs/PdfSettings';
-//import TabMessengers from './Tabs/Messengers';
 import ColorPicker from './Components/ColorPicker';
 
 const styles = theme => ({
@@ -66,9 +65,6 @@ class App extends GenericApp {
         } else
         if (tab === 'pdf') {
             return 2;
-        } else
-        if (tab === 'messengers') {
-            return 3;
         }
     }
 
@@ -79,7 +75,24 @@ class App extends GenericApp {
         if (native.defaultBooleanColorFalse) {
             native.defaultBooleanColorFalse = ColorPicker.getColor(native.defaultBooleanColorFalse);
         }
+
+        Object.keys(native.pdfSettings).forEach(attr => {
+            if (attr.toLowerCase().includes('color')) {
+                if (typeof native.pdfSettings[attr] === 'object') {
+                    native.pdfSettings[attr] = ColorPicker.getColor(native.pdfSettings[attr], true);
+                }
+                if (native.pdfSettings[attr].startsWith('rgb')) {
+                    native.pdfSettings[attr] = ColorPicker.RGB2hex(native.pdfSettings[attr]);
+                }
+            }
+        });
+
         super.onPrepareSave();
+    }
+
+    updateNative(native, cb) {
+        const changed = JSON.stringify(native) !== JSON.stringify(this.savedNative);
+        this.setState({native, changed}, cb);
     }
 
     renderTabsForConfig() {
@@ -89,7 +102,6 @@ class App extends GenericApp {
                     <Tab label={I18n.t('Options')}    data-name="options" />
                     <Tab label={I18n.t('Event list')} data-name="list" />
                     <Tab label={I18n.t('PDF')}        data-name="pdf" />
-                    <Tab label={I18n.t('Messengers')} data-name="messengers" />
                 </Tabs>
             </AppBar>
 
@@ -116,17 +128,8 @@ class App extends GenericApp {
                     instance={this.instance}
                     adapterName={this.adapterName}
                     onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
+                    updateNative={(native, cb) => this.updateNative(native, cb)}
                 />}
-                {/*this.state.selectedTab === 'messengers' && <TabMessengers
-                    key="messengers"
-                    common={this.common}
-                    socket={this.socket}
-                    native={this.state.native}
-                    onError={text => this.setState({errorText: text})}
-                    instance={this.instance}
-                    adapterName={this.adapterName}
-                    onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
-                />*/}
             </div>
             {this.renderSaveCloseButtons()}
         </>;

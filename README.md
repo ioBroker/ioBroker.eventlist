@@ -21,6 +21,14 @@ Additionally you can send events via Telegram or WhatsApp.
 
 ![PDF](img/pdf.png)
 
+## Alarm mode
+The events could be generated only in alarm mode.
+The alarm mode could be controlled by variable eventlist.X.alarm. 
+Additionaly the messages to messengers could be sent only if alarm mode is ON.
+
+Use case:
+- E.g. door sensor can send the messages only if nobody is home. Elsewise the events about door opening will be only collected in the event list.  
+
 ## Todo
 - Show with icons
 - Material widget
@@ -33,7 +41,7 @@ Additionally you can send events via Telegram or WhatsApp.
 -->
 
 ## Changelog
-### 0.1.0 (2020-09-12)
+### 0.1.1 (2020-09-14)
 * (bluefox) Implemented the alarm mode and messengers 
 
 ### 0.0.3 (2020-09-08)

@@ -41,6 +41,12 @@ const styles = theme => ({
     field: {
         width: 100,
         marginRight: theme.spacing(1),
+        marginTop: theme.spacing(1),
+    },
+    fieldWide: {
+        width: 250,
+        marginRight: theme.spacing(1),
+        marginTop: theme.spacing(1),
     },
     accordionContent: {
         marginTop: 0,
@@ -50,6 +56,7 @@ const styles = theme => ({
         paddingLeft: 32,
     },
     formControl: {
+        paddingRight: theme.spacing(1),
         minWidth: 200,
     }
 });
@@ -150,12 +157,29 @@ class PdfSettings extends Component {
             this.triggerTimer = setTimeout(() => {
                 this.triggerTimer = null;
                 this.setState({pdfInGeneration: true});
-                this.props.socket.sendTo(this.props.adapterName + '.' + this.props.instance, 'pdf', this.props.native.pdfSettings)
+                const settings = JSON.parse(JSON.stringify(this.props.native.pdfSettings));
+                Object.keys(settings).forEach(attr => {
+                    if (attr.toLowerCase().includes('color')) {
+                        if (typeof settings[attr] === 'object') {
+                            settings[attr] = ColorPicker.getColor(settings[attr], true);
+                        }
+                        if (settings[attr].startsWith('rgb')) {
+                            settings[attr] = ColorPicker.rgb2hex(settings[attr]);
+                        }
+                    }
+                });
+
+                this.props.socket.sendTo(this.props.adapterName + '.' + this.props.instance, 'pdf', settings)
                     .then(() =>
                         this.setState({pdfInGeneration: false, random: this.state.random + 1}, () =>
                             setTimeout(() => {
                                 if (this.lastElement) {
-                                    this.lastElement.focus();
+                                    try {
+                                        this.lastElement.focus();
+                                    } catch (e) {
+
+                                    }
+
                                     this.lastElement = null;
                                 }
                             })));
@@ -164,7 +188,7 @@ class PdfSettings extends Component {
     }
 
     onChange(attr, value, e) {
-        if (e) {
+        if (e && e.target) {
             this.lastElement = e.target;
             //e.stopPropagation();
         }
@@ -184,6 +208,86 @@ class PdfSettings extends Component {
         this.setState({expanded});
     }
 
+    toggleOrientation(orientation, e) {
+        if (orientation && orientation !== (this.props.native.pdfSettings.orientation || 'portrait')) {
+            const native = JSON.parse(JSON.stringify(this.props.native));
+            const pageWidth = native.pdfSettings.pageWidth;
+            const top = native.pdfSettings.margins.top;
+            const bottom = native.pdfSettings.margins.bottom;
+            native.pdfSettings.pageWidth = native.pdfSettings.pageHeight;
+            native.pdfSettings.pageHeight = pageWidth;
+            native.pdfSettings.margins.top = native.pdfSettings.margins.left;
+            native.pdfSettings.margins.left = top;
+            native.pdfSettings.margins.bottom = native.pdfSettings.margins.right;
+            native.pdfSettings.margins.right = bottom;
+            native.pdfSettings.orientation = orientation;
+            this.props.updateNative(native);
+        }
+    }
+
+    renderPageSize(settings) {
+        return <Accordion
+            expanded={this.state.expanded.includes('sizes')}
+            onChange={(event, ex) => this.onExpand('sizes', ex)}
+        >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Page size')}</AccordionSummary>
+            <AccordionDetails style={{display: 'block'}}>
+                <FormControl className={this.props.classes.formControl}>
+                    <InputLabel>{I18n.t('Page orientation')}</InputLabel>
+                    <Select
+                        disabled={this.state.pdfInGeneration}
+                        value={settings.orientation || 'portrait'}
+                        onChange={e => this.toggleOrientation(e.target.value, e)}
+                    >
+                        <MenuItem value="portrait">{I18n.t('Portrait')}</MenuItem>
+                        <MenuItem value="landscape">{I18n.t('Landscape')}</MenuItem>
+                    </Select>
+                </FormControl>
+                <TextField
+                    disabled={this.state.pdfInGeneration}
+                    type="number"
+                    className={this.props.classes.field}
+                    label={I18n.t('Width')}
+                    value={settings.pageWidth}
+                    onChange={e => this.onChange('pageWidth', e.target.value, e)}
+                />
+                <TextField
+                    disabled={this.state.pdfInGeneration}
+                    type="number"
+                    className={this.props.classes.field}
+                    label={I18n.t('Height')}
+                    value={settings.pageHeight}
+                    onChange={e => this.onChange('pageHeight', e.target.value, e)}
+                />
+                <br/>
+                <TextField
+                    disabled={this.state.pdfInGeneration}
+                    type="number"
+                    className={this.props.classes.fieldWide}
+                    label={I18n.t('Padding top for first page')}
+                    value={settings.paddingTopFirst}
+                    onChange={e => this.onChange('paddingTopFirst', e.target.value, e)}
+                />
+                <TextField
+                    disabled={this.state.pdfInGeneration}
+                    type="number"
+                    className={this.props.classes.fieldWide}
+                    label={I18n.t('Padding top for other pages')}
+                    value={settings.paddingTop}
+                    onChange={e => this.onChange('paddingTop', e.target.value, e)}
+                />
+                <TextField
+                    disabled={this.state.pdfInGeneration}
+                    type="number"
+                    className={this.props.classes.field}
+                    label={I18n.t('Padding left')}
+                    value={settings.paddingLeft}
+                    onChange={e => this.onChange('paddingLeft', e.target.value, e)}
+                />
+            </AccordionDetails>
+        </Accordion>;
+    }
+
     renderSettingsTime(settings) {
         return <Accordion
             expanded={settings.enabledTime && this.state.expanded.includes('enabledTime')}
@@ -191,6 +295,7 @@ class PdfSettings extends Component {
         >
             <AccordionSummary expandIcon={settings.enabledTime ? <ExpandMoreIcon /> : null} classes={{content: this.props.classes.accordionContent}}>
                 <FormControlLabel
+                    disabled={this.state.pdfInGeneration}
                     key="enabledTime"
                     onFocus={event => event.stopPropagation()}
                     onClick={event => event.stopPropagation()}
@@ -257,6 +362,7 @@ class PdfSettings extends Component {
         >
             <AccordionSummary expandIcon={settings.enabledValue ? <ExpandMoreIcon /> : null} classes={{content: this.props.classes.accordionContent}}>
                 <FormControlLabel
+                    disabled={this.state.pdfInGeneration}
                     onFocus={event => event.stopPropagation()}
                     onClick={event => event.stopPropagation()}
                     key="enabledValue"
@@ -295,6 +401,7 @@ class PdfSettings extends Component {
         >
             <AccordionSummary expandIcon={settings.enabledDuration ? <ExpandMoreIcon /> : null} classes={{content: this.props.classes.accordionContent}}>
                 <FormControlLabel
+                    disabled={this.state.pdfInGeneration}
                     onFocus={event => event.stopPropagation()}
                     onClick={event => event.stopPropagation()}
                     key="enabledDuration"
@@ -344,6 +451,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('titleText', e.target.value, e)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.titleColor}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Color')}
@@ -369,6 +477,7 @@ class PdfSettings extends Component {
         >
             <AccordionSummary expandIcon={settings.pageNumberEnabled ? <ExpandMoreIcon /> : null} classes={{content: this.props.classes.accordionContent}}>
                 <FormControlLabel
+                    disabled={this.state.pdfInGeneration}
                     onFocus={event => event.stopPropagation()}
                     onClick={event => event.stopPropagation()}
                     key="pageNumberEnabled"
@@ -387,6 +496,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('pageNumberFontSize', e.target.value, e)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.pageNumberColor}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Color')}
@@ -470,6 +580,7 @@ class PdfSettings extends Component {
                 <FormControlLabel
                     onFocus={event => event.stopPropagation()}
                     onClick={event => event.stopPropagation()}
+                    disabled={this.state.pdfInGeneration}
                     key="enabledHeader"
                     control={<Checkbox checked={settings.enabledHeader || false} onChange={e => this.onChange('enabledHeader', e.target.checked, e)} />}
                     label={I18n.t('Show table header')}
@@ -486,12 +597,14 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('fontSizeHeader', e.target.value, e)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.colorHeaderBackground}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Background')}
                     onChange={color => this.onChange('colorHeaderBackground', color)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.colorHeader}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Text color')}
@@ -518,18 +631,21 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('fontSize', e.target.value, e)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.textColor}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Color')}
                     onChange={color => this.onChange('textColor', color)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.colorLineOdd}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Odd line background')}
                     onChange={color => this.onChange('colorLineOdd', color)}
                 />
                 <ColorPicker
+                    disabled={this.state.pdfInGeneration}
                     color={settings.colorLineEven}
                     style={{width: 300, display: 'inline-block', marginRight: 16}}
                     name={I18n.t('Even line background')}
@@ -548,21 +664,6 @@ class PdfSettings extends Component {
         </Accordion>;
     }
 
-    toggleOrientation(orientation, e) {
-        if (orientation && orientation !== (this.props.native.pdfSettings.orientation || 'portrait')) {
-            let pageWidth = this.props.native.pdfSettings.pageWidth;
-            this.onChange('pageWidth', this.props.native.pdfSettings.pageHeight);
-            this.onChange('pageHeight', pageWidth);
-            const top = this.props.native.pdfSettings.margins.top;
-            this.onChange('margins.top', this.props.native.pdfSettings.margins.left);
-            this.onChange('margins.left', top);
-            const bottom = this.props.native.pdfSettings.margins.bottom;
-            this.onChange('margins.bottom', this.props.native.pdfSettings.margins.right);
-            this.onChange('margins.right', bottom);
-            this.onChange('orientation', e.target.value, e);
-        }
-    }
-
     renderSettings() {
         const settings = Object.assign({}, SETTINGS, this.props.native.pdfSettings);
 
@@ -572,25 +673,16 @@ class PdfSettings extends Component {
                 control={<Checkbox checked={this.props.native.pdfButton || false} onChange={e => this.props.onChange('pdfButton', e.target.checked)} />}
                 label={I18n.t('Show PDF generate button on list')}
             />
-            <FormControl className={this.props.classes.formControl}>
-                <InputLabel>{I18n.t('Page orientation')}</InputLabel>
-                <Select
-                    value={settings.orientation || 'portrait'}
-                    onChange={e => this.toggleOrientation(e.target.value, e)}
-                >
-                    <MenuItem value="portrait">{I18n.t('Portrait')}</MenuItem>
-                    <MenuItem value="landscape">{I18n.t('Landscape')}</MenuItem>
-                </Select>
-            </FormControl>
+            {this.renderPageSize(settings)}
+            {this.renderSettingsTitle(settings)}
             {this.renderPageHeader(settings)}
+            {this.renderPageMargins(settings)}
+            {this.renderSettingsText(settings)}
             {this.renderSettingsTime(settings)}
             {this.renderSettingsEvent(settings)}
             {this.renderSettingsValue(settings)}
             {this.renderSettingsDuration(settings)}
-            {this.renderSettingsTitle(settings)}
             {this.renderPageNumbers(settings)}
-            {this.renderPageMargins(settings)}
-            {this.renderSettingsText(settings)}
 
         </Grid>;
     }
@@ -623,6 +715,7 @@ class PdfSettings extends Component {
 PdfSettings.propTypes = {
     native: PropTypes.object.isRequired,
     onChange: PropTypes.func,
+    updateNative: PropTypes.func,
     socket: PropTypes.object.isRequired,
     instance: PropTypes.number.isRequired,
     adapterName: PropTypes.string.isRequired,

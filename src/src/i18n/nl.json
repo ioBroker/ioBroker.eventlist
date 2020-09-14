@@ -109,7 +109,7 @@
   "Yes": "Ja",
   "You can add event to table, e.g. some comment.": "U kunt een evenement aan de tafel toevoegen, bijv. wat commentaar.",
   "You can add state to the event list, so the changes will be monitored.": "U kunt een staat toevoegen aan de evenementenlijst, zodat de wijzigingen worden gecontroleerd.",
-  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "U kunt patronen gebruiken: %s  - waarde,% u - eenheid,% n - naam,% t - tijd,% d - duur",
+  "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration": "U kunt patronen gebruiken: %s  - waarde, %u - eenheid, %n - naam, %t - tijd, %d - duur",
   "current": "actueel",
   "hours": "uren",
   "license_hint": "licentie_hint",
