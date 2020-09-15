@@ -9,10 +9,14 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 
 import ClearIcon from '@material-ui/icons/Close';
+import CancelIcon from '@material-ui/icons/Close';
+import CheckIcon from '@material-ui/icons/Check';
 import SelectIcon from '@material-ui/icons/ViewModule';
 
 const styles = theme => ({
@@ -22,6 +26,13 @@ const styles = theme => ({
     textFieldWithButton: {
         width: 'calc(100% - 70px)'
     },
+    textDense: {
+        marginTop: 0,
+        marginBottom: 0,
+    },
+    buttonIcon: {
+        marginRight: theme.spacing(1),
+    }
 });
 
 class IconPicker extends React.Component {
@@ -30,53 +41,46 @@ class IconPicker extends React.Component {
         this.state = {
             value: this.props.value || '',
             showDialog: false,
+            selectedTab: 0,
         };
+    }
+    renderPredefinedIcons() {
+
     }
 
     renderDialog() {
         if (!this.state.showDialog) {
-
+            return null;
         }
-        <Dialog
+        return <Dialog
             open={true}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
+            onClose={() => this.setState({showDialog: false})}
         >
-            <DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
+            <DialogTitle>{I18n.t('Select icon...')}</DialogTitle>
             <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                    Let Google help apps determine location. This means sending anonymous location data to
-                    Google, even when no apps are running.
-                </DialogContentText>
+                <Tabs value={this.state.selectedTab} onChange={(e, selectedTab) => this.setState({selectedTab})}>
+                    <Tab label={I18n.t('Predefined')} />
+                    <Tab label={I18n.t('User defined')} />
+                </Tabs>
+                {this.state.selectedTab === 0 && <div>
+                    {this.renderPredefinedIcons()}
+                </div>}
+                {this.state.selectedTab === 1 && <div>
+                </div>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleClose} color="primary">
-                    Disagree
-                </Button>
-                <Button onClick={handleClose} color="primary" autoFocus>
-                    Agree
+                <Button onClick={() => this.setState({showDialog: false})} color="primary"><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
+                <Button onClick={() => this.props.onClose(this.state.value)} color="primary" autoFocus>
+                    <CheckIcon className={this.props.classes.buttonIcon}/>{I18n.t('Select')}
                 </Button>
             </DialogActions>
         </Dialog>
     }
 
-    renderPredefinedIcons() {
-
-    }
-
     render() {
-        const color = ColorPicker.getColor(this.state.color);
-        let style = {};
-        if (this.state.displayColorPicker && this.props.openAbove) {
-            style = {
-                top: -241,
-            }
-        }
         return <div
-            style={Object.assign({}, this.props.style || {}, {position: 'relative'})}
+            style={this.props.style || {}}
             className={ this.props.className || ''}
-            ref={this.divRef}
         >
             <TextField
                 margin="dense"
@@ -85,17 +89,17 @@ class IconPicker extends React.Component {
                 onChange={e => this.setState({value: e.target.value})}
                 type="text"
                 InputProps={{
-                    endAdornment: this.state.searchedValue ? (
+                    endAdornment: this.state.value ? (
                         <IconButton
-                            onClick={() => this.setState({ searchedValue: '' })}>
+                            onClick={() => this.setState({ value: '' })}>
                             <ClearIcon />
                         </IconButton>
                     ) : undefined,
                 }}
                 className={this.props.classes.textField}
             />
-            <IconButton>
-
+            <IconButton onClick={() => this.setState({showDialog: true})}>
+                <SelectIcon/>
             </IconButton>
             {this.renderDialog()}
         </div>

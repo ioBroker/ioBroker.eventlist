@@ -352,6 +352,9 @@ function formatEvent(state, allowRelative) {
     }
 
     if (icon) {
+        color = color || (typeof icon === 'object' ? icon.color : '');
+        icon = typeof icon === 'object' ? icon.icon : icon;
+
         if (!icon.startsWith('data:')) {
             if (icon.includes('.')) {
                 icon = '/adapter/' + (event.id || '').split('.').shift() + '/' + icon;

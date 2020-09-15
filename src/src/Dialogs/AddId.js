@@ -894,7 +894,7 @@ class AddIdDialog extends Component {
     }
 
     renderStateSettings(narrowWidth) {
-        const color = ColorPicker.getrColor(this.state.color);
+        const color = ColorPicker.getColor(this.state.color);
         const text = this.state.eventDefault ? (this.state.type === 'boolean' ? this.props.native.defaultBooleanText : this.props.native.defaultNonBooleanText) : this.state.event || I18n.t('Use the specific state texts');
 
         return <Accordion
