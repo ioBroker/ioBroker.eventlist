@@ -911,7 +911,10 @@ class AddIdDialog extends Component {
                             checked={this.state.eventDefault}
                             onChange={e => this.setState({eventDefault: e.target.checked})} />
                         }
-                        label={<span><span>{I18n.t('Default text')}</span>(!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null</span>}
+                        label={<span>
+                            <span>{I18n.t('Default text')}</span>
+                            {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
+                        </span>}
                     />
                     {narrowWidth ? <br/> : null}
                     {!this.state.eventDefault ? <TextField

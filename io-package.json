@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "news": {
-            "0.1.2": {
+            "0.1.3": {
                 "en": "Implemented the alarm mode and messengers",
                 "de": "Alarmmodus und Messenger implementiert",
                 "ru": "Реализован режим будильника и мессенджеры.",

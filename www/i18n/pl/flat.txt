@@ -1,8 +1,0 @@
-Urządzenie %n zmieniło stan:
-godziny
-m
-ms
-s
-wyłączony
-włączony
-nieokreślony

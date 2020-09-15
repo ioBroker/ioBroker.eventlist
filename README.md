@@ -42,7 +42,7 @@ Use case:
 -->
 
 ## Changelog
-### 0.1.2 (2020-09-15)
+### 0.1.3 (2020-09-15)
 * (bluefox) Implemented the alarm mode and messengers 
 
 ### 0.0.3 (2020-09-08)

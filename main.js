@@ -229,6 +229,10 @@ function formatEvent(state, allowRelative) {
 
             const item = states[id].states && states[id].states.find(item => item.val === val);
 
+            if (item && item.disabled) {
+                return null;
+            }
+
             if (!states[id].event && state.val && item && item.text) {
                 eventTemplate = item.text === DEFAULT_TEMPLATE ? adapter.config.defaultBooleanTextTrue || textSwitchedOn : item.text;
                 color         = item.color || adapter.config.defaultBooleanColorTrue || states[id].color;
@@ -297,13 +301,14 @@ function formatEvent(state, allowRelative) {
                 val = val.toString();
             }
 
-            valWithUnit = val;
-
             if (states[id].states) {
-                const item = states[id].states.find(item => item.val === valWithUnit);
+                const item = states[id].states.find(item => item.val === val);
                 if (item) {
+                    if (item.disabled) {
+                        return null;
+                    }
                     if (item.text) {
-                        valWithUnit = item.text;
+                        val = item.text;
                     }
                     if (item.color) {
                         color = item.color;
@@ -312,19 +317,21 @@ function formatEvent(state, allowRelative) {
                         color = item.icon;
                     }
                 } else if (states[id].originalStates) {
-                    valWithUnit = states[id].originalStates[valWithUnit] === undefined ? valWithUnit : states[id].originalStates[valWithUnit];
+                    val = states[id].originalStates[val] === undefined ? val : states[id].originalStates[val];
                 }
 
-                if (!states[id].event && valWithUnit) {
-                    eventTemplate = valWithUnit;
-                    valWithUnit = '';
+                if (!states[id].event && val) {
+                    eventTemplate = val;
+                    val = '';
                 }
             } else if (states[id].originalStates) {
-                valWithUnit = states[id].originalStates[valWithUnit] === undefined ? valWithUnit : states[id].originalStates[valWithUnit];
+                val = states[id].originalStates[val] === undefined ? val : states[id].originalStates[val];
             }
 
-            if (valWithUnit !== '' && states[id].unit) {
+            if (val !== '' && states[id].unit) {
                 valWithUnit += states[id].unit;
+            } else {
+                valWithUnit = val;
             }
 
             icon  = icon  || states[id].icon;
@@ -410,11 +417,13 @@ function sendTelegram(event) {
             (!states[event.id].defaultMessengers && states[event.id].telegram);
 
         const ev = formatEvent(event, true);
-        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
-        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+        if (ev) {
+            const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+            adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
-        instances.forEach(num =>
-            adapter.sendTo('telegram.' + num, 'send', {text}));
+            instances.forEach(num =>
+                adapter.sendTo('telegram.' + num, 'send', {text}));
+        }
     }
 
     return Promise.resolve();
@@ -430,11 +439,13 @@ function sendWhatsApp(event) {
             (!states[event.id].defaultMessengers && states[event.id].whatsAppCMB);
 
         const ev = formatEvent(event, true);
-        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
-        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+        if (ev) {
+            const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+            adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
-        instances.forEach(num =>
-            adapter.sendTo('whatsapp-cmb.' + num, 'send', {text}));
+            instances.forEach(num =>
+                adapter.sendTo('whatsapp-cmb.' + num, 'send', {text}));
+        }
     }
 
     return Promise.resolve();
@@ -450,11 +461,13 @@ function sendPushover(event) {
             (!states[event.id].defaultMessengers && states[event.id].pushover);
 
         const ev = formatEvent(event, true);
-        const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
-        adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+        if (ev) {
+            const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+            adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
-        instances.forEach(num =>
-            adapter.sendTo('pushover.' + num, 'send', {text}));
+            instances.forEach(num =>
+                adapter.sendTo('pushover.' + num, 'send', {text}));
+        }
     }
 
     return Promise.resolve();
@@ -515,21 +528,25 @@ function addEvent(event) {
 
         const ev = formatEvent(_event, true);
 
-        adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-            .then(() => reformatJsonTable(true))
-            .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
-            .then(() => Promise.all([
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
-                adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
-            ]))
-            .then(() => sendTelegram(_event))
-            .then(() => sendWhatsApp(_event))
-            .then(() => sendPushover(_event))
-            .then(() => resolve(_event));
+        if (ev) {
+            adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                .then(() => reformatJsonTable(true))
+                .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
+                .then(() => Promise.all([
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
+                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
+                ]))
+                .then(() => sendTelegram(_event))
+                .then(() => sendWhatsApp(_event))
+                .then(() => sendPushover(_event))
+                .then(() => resolve(_event));
+        } else {
+            resolve(_event);
+        }
     });
 }
 
