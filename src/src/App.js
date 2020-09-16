@@ -12,6 +12,7 @@ import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
 import TabPDF from './Tabs/PdfSettings';
 import ColorPicker from './Components/ColorPicker';
+import Router from '@iobroker/adapter-react/Components/Router';
 
 const styles = theme => ({
     root: {},
@@ -98,7 +99,7 @@ class App extends GenericApp {
     renderTabsForConfig() {
         return <>
             <AppBar position="static">
-                <Tabs value={this.getSelectedTab()} onChange={(e, index) => this.selectTab(e.target.parentNode.dataset.name, index)}>
+                <Tabs value={this.getSelectedTab()} onChange={(e, index) => Router.doNavigate(e.target.parentNode.dataset.name)}>
                     <Tab label={I18n.t('Options')}    data-name="options" />
                     <Tab label={I18n.t('Event list')} data-name="list" />
                     <Tab label={I18n.t('PDF')}        data-name="pdf" />

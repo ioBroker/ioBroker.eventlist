@@ -52,6 +52,7 @@ import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
 import ColorPicker from '../Components/ColorPicker';
 import IconPicker from '../Components/IconPicker';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
+import Image from '../Components/Image';
 
 const styles = theme => ({
     textField: {
@@ -337,6 +338,51 @@ class AddIdDialog extends Component {
         this.setState({state: state || null});
     };
 
+    readIconAndColor(id, obj) {
+        return new Promise(resolve => {
+            if (obj) {
+                resolve(obj);
+            } else {
+                return this.props.socket.getObject(id);
+            }
+        })
+            .then(obj => {
+                if (obj && obj.common && obj.common.icon) {
+                    return {icon: obj.common.icon, color: obj.common.color};
+                } else {
+                    const parts = id.split('.');
+                    parts.pop();
+                    return this.props.socket.getObject(parts.join('.'))
+                        .then(obj => {
+                            if (obj && obj.type === 'channel') {
+                                if (obj.common && obj.common.icon) {
+                                    return {icon: obj.common.icon, color: obj.common.color};
+                                } else {
+                                    const parts = obj._id.split('.');
+                                    parts.pop();
+                                    return this.props.socket.getObject(parts.join('.'))
+                                        .then(obj => {
+                                            if (obj && (obj.type === 'channel' || obj.type === 'device')) {
+                                                if (obj.common && obj.common.icon) {
+                                                    return {icon: obj.common.icon, color: obj.common.color};
+                                                } else {
+                                                    return null;
+                                                }
+                                            } else {
+                                                return null;
+                                            }
+                                        });
+                                }
+                            } else if (obj && obj.type === 'device' && obj.common) {
+                                return {icon: obj.common.icon, color: obj.common.color};
+                            } else {
+                                return null;
+                            }
+                        });
+                }
+            });
+    }
+
     readSettings(id) {
         id = id || this.state.id;
         if (this.readTypeTimer) {
@@ -405,7 +451,18 @@ class AddIdDialog extends Component {
                         }
                     }
 
-                    this.setState(newState, () => this.originalSettings = this.getSettings());
+                    return this.readIconAndColor(id, obj)
+                        .then(result => {
+                            if (result && result.icon) {
+                                // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
+                                // or                                                  /hm-rpc.admin/icons/113_hmip-psm_thumb.png
+                                newState.ownIcon = `/adapter/${id.split('.')[0]}${result.icon}`;
+                            }
+                            if (result && result.color) {
+                                newState.ownColor = result.color;
+                            }
+                            this.setState(newState, () => this.originalSettings = this.getSettings());
+                        });
                 })
                 .catch(e => this.setState({type: '', unknownId: true, name: '', unit: ''}))
                 .then(() => {
@@ -455,7 +512,7 @@ class AddIdDialog extends Component {
     }
 
     getExampleColor() {
-        let color = '';
+        let color = this.state.ownColor || '';
         if (this.state.states) {
             let stateVal = !!(this.state.state && this.state.state.val);
             if (this.state.type === 'boolean' && this.state.simulateState) {
@@ -479,7 +536,7 @@ class AddIdDialog extends Component {
     }
 
     getExampleIcon() {
-        const defIcon = this.state.icon;
+        const defIcon = this.state.icon || this.state.ownIcon;
         let icon = defIcon || '';
         if (this.state.states) {
             let stateVal = !!(this.state.state && this.state.state.val);
@@ -493,21 +550,12 @@ class AddIdDialog extends Component {
             const item = this.state.states.find(item => item.val === stateVal);
 
             if (item.defIcon) {
-                icon = stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse;
+                icon = (stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse) || this.state.ownIcon || '';
             } else if (item && item.icon) {
                 icon = item.icon;
             }
         }
 
-        if (icon) {
-            if (!icon.startsWith('data:')) {
-                if (icon.includes('.')) {
-                    icon = '/adapter/' + this.state.id.split('.').shift() + '/' + icon;
-                } else {
-                    icon = '';
-                }
-            }
-        }
         return icon;
     }
 
@@ -878,12 +926,13 @@ class AddIdDialog extends Component {
                         label={I18n.t('Use default icon', state.val.toUpperCase())}
                     /> : null}
                     {!isBoolean || !state.defIcon ? <IconPicker
+                        color={color}
                         label={I18n.t('Icon')}
                         socket={this.props.socket}
                         value={state.icon}
-                        onChange={e => {
+                        onChange={icon => {
                             const states = JSON.parse(JSON.stringify(this.state.states));
-                            states[i].icon = e.target.value;
+                            states[i].icon = icon;
                             this.setState({states});
                         }}
                     /> : null}
@@ -902,7 +951,9 @@ class AddIdDialog extends Component {
             onChange={() => this.onToggle('state_settings')}
         >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}</Typography>
+                <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}
+                    {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
+                </Typography>
             </AccordionSummary>
             <AccordionDetails>
                 <Paper className={this.props.classes.paper}>
@@ -913,7 +964,6 @@ class AddIdDialog extends Component {
                         }
                         label={<span>
                             <span>{I18n.t('Default text')}</span>
-                            {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
                         </span>}
                     />
                     {narrowWidth ? <br/> : null}
@@ -940,10 +990,11 @@ class AddIdDialog extends Component {
                     />
                     <br/>
                     <IconPicker
+                        color={this.state.color}
                         socket={this.props.socket}
                         label={I18n.t('Event icon')}
                         value={this.state.icon}
-                        onChange={e => this.setState({icon: e.target.value})}
+                        onChange={icon => this.setState({icon: icon})}
                     />
                 </Paper>
             </AccordionDetails>
@@ -954,11 +1005,12 @@ class AddIdDialog extends Component {
         const count = (this.state.telegram ? this.state.telegram.length : 0) +
             (this.state.whatsAppCMB ? this.state.whatsAppCMB.length : 0) +
             (this.state.pushover ? this.state.pushover.length : 0);
-        const messengers = !this.state.expanded.includes('state_messengers') ? [
+
+        const messengers = [
             this.state.telegram    && this.state.telegram.length    ? [<img src={Telegram} key="icon" alt="telegram" className={this.props.classes.messengersIcon}/>, <span key="text">{'(' + this.state.telegram.join(', ')    + ')'}</span>] : null,
             this.state.whatsAppCMB && this.state.whatsAppCMB.length ? [<WhatsappIcon key="icon" className={clsx(this.props.classes.messengersIcon, this.props.classes.whatsAppIcon)}/>, <span key="text">{'(' + this.state.whatsAppCMB.join(', ') + ')'}</span>] : null,
             this.state.pushover    && this.state.pushover.length    ? [<img src={Pushover} key="icon" alt="pushover" className={this.props.classes.messengersIcon}/>, <span key="text">{'('    + this.state.pushover.join(', ')    + ')'}</span>] : null,
-        ] : null;
+        ];
 
         return <Accordion
             expanded={this.state.expanded.includes('state_messengers')}
@@ -1028,6 +1080,9 @@ class AddIdDialog extends Component {
             }
         }
 
+        const changed = !this.state.exists || JSON.stringify(this.originalSettings) !== JSON.stringify(this.getSettings());
+        const exampleColor = this.getExampleColor() || undefined;
+
         return <Dialog
             open={true}
             onClose={() => this.onClose()}
@@ -1059,8 +1114,8 @@ class AddIdDialog extends Component {
                     <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
 
                         <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
-                        <span className={this.props.classes.exampleText} style={{color: this.getExampleColor() || undefined}}>
-                            {this.props.native.icon ? <img src={this.getExampleIcon()} alt="event" className={this.props.classes.exampleIcon}/>: null}
+                        <span className={this.props.classes.exampleText} style={{color: exampleColor}}>
+                            {this.props.native.icons ? <Image src={this.getExampleIcon()} className={this.props.classes.exampleIcon} color={exampleColor}/>: null}
                             {this.buildExample()}
                         </span>
                         {this.state.type === 'boolean' ?
@@ -1120,13 +1175,13 @@ class AddIdDialog extends Component {
                 {this.state.id     ? this.renderMessengers(narrowWidth) : null}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
+                <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{!changed ? I18n.t('Close') : I18n.t('Cancel')}</Button>
                 {this.state.exists ? <Button
                     disabled={!this.state.id || !this.state.type}
                     onClick={() => this.setState({confirmRemove: true})}
                 ><RemoveIcon className={this.props.classes.buttonIcon}/>{I18n.t('Remove')}</Button> : null}
                 <Button
-                    disabled={!this.state.id || !this.state.type || (this.state.exists && JSON.stringify(this.originalSettings) === JSON.stringify(this.getSettings()))}
+                    disabled={!this.state.id || !this.state.type || !changed}
                     onClick={() =>
                         this.writeSettings(() =>
                             this.props.onClose())

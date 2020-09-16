@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
+import clsx from 'clsx';
 
 import TextField from '@material-ui/core/TextField';
 import I18n from '@iobroker/adapter-react/i18n';
@@ -10,21 +11,36 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import Grid from '@material-ui/core/Grid';
 
 import ClearIcon from '@material-ui/icons/Close';
 import CancelIcon from '@material-ui/icons/Close';
 import CheckIcon from '@material-ui/icons/Check';
 import SelectIcon from '@material-ui/icons/ViewModule';
 
+import Image from './Image';
+
+import IconLampTable from './assets/lamp_table.svg';
+import IconLampCeiling from './assets/lamp_ceiling.svg';
+
+const ICONS = [
+    {icon: IconLampTable, color: '#FFFFFF', name: 'Table lamp'},
+    {icon: IconLampCeiling, color: '#FFFFFF', name: 'Ceiling lamp'},
+];
+
 const styles = theme => ({
+    div: {
+        width: 300,
+        lineHeight: '48px',
+    },
     textField: {
 
     },
     textFieldWithButton: {
-        width: 'calc(100% - 70px)'
+        width: 'calc(100% - 102px)',
+        verticalAlign: 'bottom'
     },
     textDense: {
         marginTop: 0,
@@ -32,6 +48,40 @@ const styles = theme => ({
     },
     buttonIcon: {
         marginRight: theme.spacing(1),
+    },
+    icon: {
+        width: 32,
+        height: 32,
+        margin: theme.spacing(1),
+        color: theme.palette.type === 'dark' ? '#FFF' : '#000'
+    },
+    grid: {
+        padding: theme.spacing(2)
+    },
+    gridIcon: {
+        '&:hover': {
+            background: theme.palette.primary.dark,
+        },
+        textAlign: 'center',
+    },
+    selectButton: {
+        verticalAlign: 'bottom'
+    },
+    iconSelected: {
+        background: theme.palette.primary.main,
+        '&:hover': {
+            background: theme.palette.primary.light,
+        }
+    },
+    imagePreviewDiv: {
+        display: 'inline-block',
+        marginRight: theme.spacing(1),
+        verticalAlign: 'bottom',
+    },
+    imagePreview: {
+        width: 32,
+        height: 32,
+        color: theme.palette.type === 'dark' ? '#FFF' : '#000',
     }
 });
 
@@ -39,13 +89,95 @@ class IconPicker extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            color: this.props.color || '',
             value: this.props.value || '',
+            dialogValue: '',
             showDialog: false,
             selectedTab: 0,
+            imgError: false,
         };
     }
-    renderPredefinedIcons() {
 
+    static getDerivedStateFromProps(props, state) {
+        const newState = {};
+        let changed = false;
+
+        if (props && state && props.value !== state.value) {
+            newState.value = props.value;
+            changed = true;
+        }
+
+        if (props && state && props.color !== state.color) {
+            newState.color = props.color;
+            changed = true;
+        }
+
+        return changed ? newState : null;
+    }
+
+    renderOneIcon(item, i) {
+        return <Grid
+             item
+             xs
+             key={item.name || i}
+             className={clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith('preset:') && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
+             onClick={e => this.setState({dialogValue: 'preset:' + item.name})}
+             onDoubleClick={e => this.setState({dialogValue: 'preset:' + item.name}, () => this.onDialogClose(this.state.dialogValue))}
+        >
+            <img className={this.props.classes.icon} src={item.icon} alt={item.name} style={item.color ? {color: item.color} : {}}/>
+        </Grid>;
+    }
+
+    renderPredefinedIcons() {
+        return <Grid container spacing={2} justify="center" className={this.props.classes.grid}>{
+            ICONS.map((item, i) => this.renderOneIcon(item, i))
+        }</Grid>;
+    }
+
+    fetchIcon(src) {
+        return fetch(src)
+            .then(response => response.text())
+    }
+
+    getIdFromSrc(svg) {
+        const len = 'data:image/svg+xml;base64, ';
+        if (!svg || !svg.startsWith(len)) {
+            return null;
+        }
+        svg = svg.substring(len.length);
+        try {
+            svg = atob(svg);
+            const m = svg.match(/<svg id="([^"]+)"/);
+            return m ? m[1] : null;
+        } catch (e) {
+            console.warn('Cannot decode ' + svg);
+        }
+        return null;
+    }
+
+    onDialogClose(value) {
+        if (value) {
+            if (value.startsWith('preset:')) {
+                value = value.substring(7);
+                const item = ICONS.find(item => item.name === value);
+                if (item) {
+                    //fetch icon
+                    this.fetchIcon(item.icon)
+                        .then(svg => {
+                            svg = svg.replace('<svg ', '<svg id="' + value + '" ');
+                            const valueSvg = 'data:image/svg+xml;base64, ' + window.btoa(svg);
+                            this.setState({value: valueSvg, showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: ''}, () => {
+                                this.props.onChange(valueSvg);
+                            });
+                        });
+                } else {
+                    this.setState({value: '', showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: ''}, () =>
+                        this.props.onChange(''));
+                }
+            }
+        } else {
+            this.setState({showDialog: false});
+        }
     }
 
     renderDialog() {
@@ -54,6 +186,8 @@ class IconPicker extends React.Component {
         }
         return <Dialog
             open={true}
+            fullWidth
+            maxWidth="lg"
             onClose={() => this.setState({showDialog: false})}
         >
             <DialogTitle>{I18n.t('Select icon...')}</DialogTitle>
@@ -69,8 +203,12 @@ class IconPicker extends React.Component {
                 </div>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.setState({showDialog: false})} color="primary"><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
-                <Button onClick={() => this.props.onClose(this.state.value)} color="primary" autoFocus>
+                <Button onClick={() => this.onDialogClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
+                <Button onClick={() => this.onDialogClose(this.state.dialogValue)}
+                        color="primary"
+                        disabled={!this.state.dialogValue || this.state.dialogInitialValue === this.state.dialogValue}
+                        autoFocus
+                >
                     <CheckIcon className={this.props.classes.buttonIcon}/>{I18n.t('Select')}
                 </Button>
             </DialogActions>
@@ -80,25 +218,46 @@ class IconPicker extends React.Component {
     render() {
         return <div
             style={this.props.style || {}}
-            className={ this.props.className || ''}
+            className={ clsx(this.props.classes.div, this.props.className)}
         >
+            <div className={this.props.classes.imagePreviewDiv}>
+                <Image
+                    showError={true}
+                    color={this.state.color}
+                    className={this.props.classes.imagePreview}
+                    src={this.state.value}
+                    alt="preview"
+                />
+            </div>
             <TextField
                 margin="dense"
                 label={this.props.label || I18n.t('Icon')}
                 value={this.state.value}
-                onChange={e => this.setState({value: e.target.value})}
+                onChange={e => this.setState({value: e.target.value, imgError: false}, () => this.props.onChange(this.state.value))}
                 type="text"
                 InputProps={{
                     endAdornment: this.state.value ? (
                         <IconButton
-                            onClick={() => this.setState({ value: '' })}>
+                            onClick={() => {
+                                this.setState({value: '', imgError: false}, () => this.props.onChange(''));
+                            }}>
                             <ClearIcon />
                         </IconButton>
                     ) : undefined,
                 }}
-                className={this.props.classes.textField}
+                className={this.props.classes.textFieldWithButton}
             />
-            <IconButton onClick={() => this.setState({showDialog: true})}>
+            <IconButton
+                className={this.props.classes.selectButton}
+                onClick={() => {
+                let id = this.getIdFromSrc(this.state.value);
+                if (id) {
+                    id = 'preset:' + id;
+                } else {
+                    id = this.state.value;
+                }
+                this.setState({showDialog: true, dialogValue: id, dialogInitialValue: id});
+            }}>
                 <SelectIcon/>
             </IconButton>
             {this.renderDialog()}
@@ -107,6 +266,7 @@ class IconPicker extends React.Component {
 }
 
 IconPicker.propTypes = {
+    color: PropTypes.string,
     value: PropTypes.string,
     label: PropTypes.string,
     onChange: PropTypes.func.isRequired,

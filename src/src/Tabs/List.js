@@ -35,6 +35,8 @@ import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
 import SelectStateDialog from '../Dialogs/SelectState';
+import Router from '@iobroker/adapter-react/Components/Router';
+import Image from '../Components/Image';
 
 const styles = theme => ({
     tab: {
@@ -129,6 +131,11 @@ const styles = theme => ({
     buttonAddState: {
         minWidth: '120px !important',
     },
+    icon: {
+        width: 28,
+        height: 28,
+        verticalAlign: 'middle',
+    }
 });
 
 class List extends Component {
@@ -148,6 +155,8 @@ class List extends Component {
             editEnabled = false;
         }
 
+        const location = Router.getLocation();
+
         this.state = {
             toast: '',
             isInstanceAlive: false,
@@ -157,8 +166,9 @@ class List extends Component {
             orderBy: 'ts',
             selected: [],
             showDeleteConfirm: false,
-            showAddIdDialog: false,
-            showAddEventDialog: false,
+            showSelectState: location.dialog === 'selectState',
+            showAddIdDialog: location.dialog === 'addId' ? location.id || true : false,
+            showAddEventDialog: location.dialog === 'addEvent',
             selectedId: '',
             editEnabled,
             editAvailable,
@@ -172,6 +182,7 @@ class List extends Component {
 
         this.headCells = [
             { id: 'ts',    label: I18n.t('Time'),  align: 'right' },
+            { id: 'icon'},
             { id: 'event', label: I18n.t('Event'), align: 'center' },
             { id: 'val',   label: I18n.t('Value'), align: 'left' },
         ];
@@ -328,37 +339,38 @@ class List extends Component {
                         inputProps={{ 'aria-label': 'select all desserts' }}
                     />
                 </TableCell>}
-                {
-                    this.props.native.icons ? <TableCell
-                        component="th"
-                        className={this.props.classes.tdIcons}
-                        align="left"
-                        padding="none"
-                    /> : null
-                }
-
-                {this.headCells.map(headCell => (
+                {this.headCells.map(cell =>
+                    cell.id === 'icon' ?  (
+                            this.props.native.icons ? <TableCell
+                                key={cell.id}
+                                component="th"
+                                className={this.props.classes.tdIcons}
+                                align="left"
+                                padding="none"
+                            /> : null
+                        )
+                    :
                     <TableCell
-                        key={headCell.id}
-                        className={this.props.classes['td' + headCell.id[0].toUpperCase() + headCell.id.substring(1)]}
-                        align={headCell.align}
+                        key={cell.id}
+                        className={this.props.classes['td' + cell.id[0].toUpperCase() + cell.id.substring(1)]}
+                        align={cell.align}
                         padding="none"
                         component="th"
-                        sortDirection={this.state.orderBy === headCell.id ? this.state.order : false}
+                        sortDirection={this.state.orderBy === cell.id ? this.state.order : false}
                     >
                         <TableSortLabel
-                            active={this.state.orderBy === headCell.id}
-                            direction={this.state.orderBy === headCell.id ? this.state.order : 'asc'}
-                            onClick={createSortHandler(headCell.id)}
+                            active={this.state.orderBy === cell.id}
+                            direction={this.state.orderBy === cell.id ? this.state.order : 'asc'}
+                            onClick={createSortHandler(cell.id)}
                         >
-                            {headCell.label}
-                            {this.state.orderBy === headCell.id ?
+                            {cell.label}
+                            {this.state.orderBy === cell.id ?
                                 <span className={this.props.classes.visuallyHidden}>{this.state.order === 'desc' ? I18n.t('sorted descending') : I18n.t('sorted ascending')}</span>
                                 : null
                             }
                         </TableSortLabel>
                     </TableCell>
-                ))}
+                )}
                 {this.props.native.duration ?
                     <TableCell className={this.props.classes.tdDuration} component="th" padding="none" align="right">
                         {I18n.t('Duration')}</TableCell>
@@ -408,7 +420,10 @@ class List extends Component {
                     </Tooltip>
                     {this.state.selectedId ?
                         <Tooltip title={I18n.t('Edit settings for state')}>
-                            <IconButton aria-label="edit" onClick={() => this.setState({showAddIdDialog: this.state.selectedId})}>
+                            <IconButton aria-label="edit" onClick={() => {
+                                Router.doNavigate(null, 'addId', this.state.selectedId);
+                                this.setState({showAddIdDialog: this.state.selectedId})
+                            }}>
                                 <IconEdit />
                             </IconButton>
                         </Tooltip>
@@ -417,7 +432,10 @@ class List extends Component {
                 :
                 <>
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Add state to event list')} className={this.props.classes.toolbarButton}>
-                        <Fab variant="extended" size="small" aria-label="add" color="secondary" classes={{root: this.props.classes.buttonAddState}} onClick={() => this.setState({selectStateShow: true})}>
+                        <Fab variant="extended" size="small" aria-label="add" color="secondary" classes={{root: this.props.classes.buttonAddState}} onClick={() => {
+                            Router.doNavigate(null, 'selectState', '');
+                            this.setState({showSelectState: true});
+                        }}>
                             <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                 <IconEdit style={{verticalAlign: 'middle', marginRight: 8}}/>
                                 {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('States')}</span>}
@@ -541,7 +559,7 @@ class List extends Component {
     }
 
     renderSelectState() {
-        if (!this.state.selectStateShow) {
+        if (!this.state.showSelectState) {
             return null;
         }
         return <SelectStateDialog
@@ -550,9 +568,11 @@ class List extends Component {
             instance={this.props.instance}
             onClose={id => {
                 if (id) {
-                    this.setState({showAddIdDialog: id, selectStateShow: false});
+                    Router.doNavigate(null, 'addId', id);
+                    this.setState({showAddIdDialog: id, showSelectState: false});
                 } else {
-                    this.setState({selectStateShow: false});
+                    Router.doNavigate(null, '', '');
+                    this.setState({showSelectState: false});
                 }
             }}
             />;
@@ -587,11 +607,16 @@ class List extends Component {
                                             inputProps={{ 'aria-labelledby': labelId }}
                                         />
                                     </TableCell>}
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                     {this.props.native.icons ?
                                         <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
-                                            {row.icon ? <img src={row.icon} width={28} height={28} alt=""/> : null}</TableCell>
+                                            {row.icon ? <Image
+                                                src={row.icon}
+                                                className={this.props.classes.icon}
+                                                color={(row._style && row._style.color) || ''}
+                                            /> : null}
+                                        </TableCell>
                                         : null}
-                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
                                     {this.props.native.duration ?
@@ -603,7 +628,8 @@ class List extends Component {
                                         <Tooltip title={I18n.t('Edit settings for state')} className={this.props.classes.toolbarButton}>
                                             <IconButton className={this.props.classes.editButton} onClick={e => {
                                                 e.stopPropagation();
-                                                this.setState({showAddIdDialog: row.stateId})
+                                                Router.doNavigate(null, 'addId', row.stateId);
+                                                this.setState({showAddIdDialog: row.stateId});
                                             }}><IconEdit/></IconButton>
                                         </Tooltip>: null}
                                     </TableCell>}
@@ -657,6 +683,7 @@ class List extends Component {
                 native={this.props.native}
                 id={typeof this.state.showAddIdDialog === 'string' ? this.state.showAddIdDialog : ''}
                 onClose={event => {
+                    Router.doNavigate(null, '', '');
                     this.setState({showAddIdDialog: false}, () =>
                         event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))
                 }}

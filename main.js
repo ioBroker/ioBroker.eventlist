@@ -362,13 +362,13 @@ function formatEvent(state, allowRelative) {
         color = color || (typeof icon === 'object' ? icon.color : '');
         icon = typeof icon === 'object' ? icon.icon : icon;
 
-        if (!icon.startsWith('data:')) {
+        /*if (!icon.startsWith('data:')) {
             if (icon.includes('.')) {
                 icon = '/adapter/' + (event.id || '').split('.').shift() + '/' + icon;
             } else {
                 icon = '';
             }
-        }
+        }*/
     }
 
     const durationText = state.duration !== undefined ? duration2text(state.duration) : '';
@@ -585,6 +585,14 @@ function updateStateSettings(id, obj) {
                 states[id].event = settings.event;
                 changed = true;
             }
+            if (states[id].color !== settings.color) {
+                states[id].color = settings.color;
+                changed = true;
+            }
+            if (states[id].icon !== settings.icon) {
+                states[id].icon = settings.icon;
+                changed = true;
+            }
             if (states[id].changesOnly !== settings.changesOnly) {
                 states[id].changesOnly = settings.changesOnly;
                 changed = true;
@@ -645,6 +653,7 @@ function updateStateSettings(id, obj) {
             states[id].max = obj.common.max;
             changed = true;
         }
+
         const name = getName(obj);
         if (states[id].name !== name) {
             states[id].name = name;
@@ -671,12 +680,18 @@ function updateStateSettings(id, obj) {
             changed = true;
         }
 
-        if (adapter.config.icons) {
+        if (adapter.config.icons && (!states[id].color || !states[id].icon)) {
             promises.push(getIconAndColor(id, obj)
-                .then(icon => {
-                    if (icon !== states[id].icon) {
+                .then(result => {
+                    if (result && !states[id].icon && result.icon !== states[id].icon) {
                         changed = true;
-                        states[id].icon = icon;
+                        // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
+                        // or                                                  /hm-rpc.admin/icons/113_hmip-psm_thumb.png
+                        states[id].icon = `/adapter/${id.split('.')[0]}${result.icon}`;
+                    }
+                    if (result && !states[id].color && result.color !== states[id].color) {
+                        changed = true;
+                        states[id].result.color = result.color;
                     }
                 }));
         }
