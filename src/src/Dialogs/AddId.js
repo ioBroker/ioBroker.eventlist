@@ -549,7 +549,7 @@ class AddIdDialog extends Component {
             stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
             const item = this.state.states.find(item => item.val === stateVal);
 
-            if (item.defIcon) {
+            if (item && item.defIcon) {
                 icon = (stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse) || this.state.ownIcon || '';
             } else if (item && item.icon) {
                 icon = item.icon;

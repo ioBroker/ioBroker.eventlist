@@ -66,7 +66,7 @@ The PDF file could be accesses via:
 -->
 
 ## Changelog
-### 0.2.0 (2020-09-21)
+### 0.2.1 (2020-09-21)
 * (bluefox) Vis-widget was corrected 
 
 ### 0.1.3 (2020-09-15)
