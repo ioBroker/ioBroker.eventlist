@@ -197,8 +197,20 @@ function renameWWW() {
         if (fs.existsSync(__dirname + '/www/tab_m.html')) {
             fs.unlinkSync(__dirname + '/www/tab_m.html');
         }
-        const code = fs.readFileSync(__dirname + '/www/index_m.html').toString('utf8');
-        fs.writeFileSync(__dirname + '/www/index.html', code);
+        if (fs.existsSync(__dirname + '/www/index_m.html')) {
+            let code = fs.readFileSync(__dirname + '/www/index_m.html').toString('utf8');
+            if (!code.includes('_socket/info.js')) {
+                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../../_socket/info.js"></script>');
+            }
+            fs.writeFileSync(__dirname + '/www/index.html', code);
+        }
+        if (fs.existsSync(__dirname + '/www/index.html')) {
+            let code = fs.readFileSync(__dirname + '/www/index.html').toString('utf8');
+            if (!code.includes('_socket/info.js')) {
+                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../../_socket/info.js"></script>');
+            }
+            fs.writeFileSync(__dirname + '/www/index.html', code);
+        }
 
         if (fs.existsSync(__dirname + '/www/index_m.html')) {
             fs.unlinkSync(__dirname + '/www/index_m.html');

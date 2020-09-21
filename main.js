@@ -92,7 +92,7 @@ function startAdapter(options) {
     adapter.on('stateChange', (id, state) => {
         if (id === adapter.namespace + '.triggerPDF' && state && !state.ack && state.val) {
             reformatJsonTable(false)
-                .then(table => list2pdf(adapter, 'report.pdf', table))
+                .then(table => list2pdf(adapter, moment, 'report.pdf', table))
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
         } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
             adapter.log.info('Switch ALRM state to ' + state.val);
@@ -174,7 +174,7 @@ function startAdapter(options) {
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'event inserted'}, obj.callback));
             } else if (obj.command === 'pdf') {
                 reformatJsonTable(false)
-                    .then(table => list2pdf(adapter, 'report.pdf', table, obj.message))
+                    .then(table => list2pdf(adapter, moment, 'report.pdf', table, obj.message))
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'rendered'}, obj.callback));
             }
         }

@@ -30,11 +30,35 @@ Additionally the messages to messengers could be sent only if alarm mode is ON.
 Use case:
 - E.g. door sensor can send the messages only if nobody is home. Elsewise the events about door opening will be only collected in the event list.  
 
+## Possible presentations
+
+### In Admin as tab
+You can enable the event list as a tab in admin.
+
+### Web
+Event list could be shown under `http://<IP>:8082/eventlist/index.html`
+
+### Vis Widget
+Event list can be displayed as vis widget. 
+
+### PDF generation
+There is a possibility to generate a PDF document with all events.
+
+Document title can consist the generation date if you place the pattern into it: `Event list on {{YYYY MM DD}}`. 
+The exactly description of time format could be found here: https://momentjs.com/docs/#/displaying/format/
+
+The generation of PDF can be triggered by writing a `true` into `eventlist.0.triggerPDF`. 
+
+The PDF file could be accesses via:
+- web: `http://<IP>:8082/eventlist/eventlist/report.pdf`
+- admin: `http://<IP>:8081/files/eventlist/report.pdf`
+
+**The icons could not be shown in PDF.**
+
 ## Todo
-- Show with icons
+- Icons dialog
 - Material widget
 - Send messages to syslog (may be splunk) https://www.npmjs.com/package/splunk-logging
-- Show PDF button in widget
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
@@ -42,6 +66,9 @@ Use case:
 -->
 
 ## Changelog
+### 0.2.0 (2020-09-21)
+* (bluefox) Vis-widget was corrected 
+
 ### 0.1.3 (2020-09-15)
 * (bluefox) Implemented the alarm mode and messengers 
 

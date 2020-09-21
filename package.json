@@ -1,6 +1,6 @@
 {
   "name": "iobroker.eventlist",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Builds and shows the event list from desired states in admin, web and as widget",
   "author": {
     "name": "bluefox",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^2.4.0",
-    "moment": "^2.27.0",
+    "moment": "^2.28.0",
     "pdfkit": "^0.11.0"
   },
   "devDependencies": {
@@ -39,8 +39,8 @@
     "proxyquire": "^2.1.3",
     "sinon": "^9.0.3",
     "sinon-chai": "^3.5.0",
-    "@alcalzone/release-script": "^1.7.0",
-    "@types/iobroker": "^3.0.12",
+    "@alcalzone/release-script": "^1.8.1",
+    "@types/iobroker": "^3.2.3",
     "del": "^5.1.0",
     "axios": "^0.20.0",
     "request": "^2.88.2"

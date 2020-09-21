@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.1.3",
+        "version": "0.2.0",
         "news": {
+            "0.2.0": {
+                "en": "Vis-widget was corrected",
+                "de": "Vis-Widget wurde korrigiert",
+                "ru": "Исправлен виджет Vis-widget",
+                "pt": "Vis-widget foi corrigido",
+                "nl": "Vis-widget is gecorrigeerd",
+                "fr": "Vis-widget a été corrigé",
+                "it": "Il widget Vis è stato corretto",
+                "es": "Vis-widget fue corregido",
+                "pl": "Widżet Vis został poprawiony",
+                "zh-cn": "Vis-widget已更正"
+            },
             "0.1.3": {
                 "en": "Implemented the alarm mode and messengers",
                 "de": "Alarmmodus und Messenger implementiert",
@@ -166,7 +178,7 @@
             "enabledEvent": true,
             "enabledValue": true,
             "enabledDuration": true,
-            "widthTime": 130,
+            "widthTime": 105,
             "widthEvent": 200,
             "widthValue": 110,
             "widthDuration": 100,
@@ -188,7 +200,7 @@
             "colorHeaderBackground": "#888888",
             "colorHeader": "#FFFFFF",
             "titleColor": "#000000",
-            "titleText": "Event list",
+            "titleText": "Event list on {{YYYY MM DD H:mm:ss}}",
             "titleFontSize": 18,
             "lineHeight": 18,
             "pageNumberOffsetX": 50,
