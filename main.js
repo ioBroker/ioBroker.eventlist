@@ -686,8 +686,8 @@ function updateStateSettings(id, obj) {
                     if (result && !states[id].icon && result.icon !== states[id].icon) {
                         changed = true;
                         // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
-                        // or                                                  /hm-rpc.admin/icons/113_hmip-psm_thumb.png
-                        states[id].icon = `/adapter/${id.split('.')[0]}${result.icon}`;
+                        // or                                                  hm-rpc.admin/icons/113_hmip-psm_thumb.png
+                        states[id].icon = `${id.split('.')[0]}.admin${result.icon}`;
                     }
                     if (result && !states[id].color && result.color !== states[id].color) {
                         changed = true;

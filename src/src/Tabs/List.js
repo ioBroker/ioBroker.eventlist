@@ -36,7 +36,7 @@ import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
 import SelectStateDialog from '../Dialogs/SelectState';
 import Router from '@iobroker/adapter-react/Components/Router';
-import Image from '../Components/Image';
+import Image from '@iobroker/adapter-react/Components/Image';
 
 const styles = theme => ({
     tab: {
@@ -175,10 +175,11 @@ class List extends Component {
             pdfInGeneration: false,
         };
 
-        this.aliveId = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
-        this.eventListId = `${this.props.adapterName}.${this.props.instance}.eventJSONList`;
+        this.imagePrefix    = this.props.imagePrefix || 'files/'; // by default is admin
+        this.aliveId        = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
+        this.eventListId    = `${this.props.adapterName}.${this.props.instance}.eventJSONList`;
         this.eventRawListId = `${this.props.adapterName}.${this.props.instance}.eventListRaw`;
-        this.triggerPDFId = `${this.props.adapterName}.${this.props.instance}.triggerPDF`;
+        this.triggerPDFId   = `${this.props.adapterName}.${this.props.instance}.triggerPDF`;
 
         this.headCells = [
             { id: 'ts',    label: I18n.t('Time'),  align: 'right' },
@@ -611,6 +612,7 @@ class List extends Component {
                                     {this.props.native.icons ?
                                         <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
                                             {row.icon ? <Image
+                                                imagePrefix={this.imagePrefix}
                                                 src={row.icon}
                                                 className={this.props.classes.icon}
                                                 color={(row._style && row._style.color) || ''}
@@ -675,6 +677,7 @@ class List extends Component {
             return null;
         } else {
             return <AddIdDialog
+                imagePrefix={this.imagePrefix}
                 instance={this.props.instance}
                 adapterName={this.props.adapterName}
                 themeName={this.props.themeName}
@@ -716,6 +719,7 @@ List.propTypes = {
     themeName: PropTypes.string,
     themeType: PropTypes.string,
     native: PropTypes.object.isRequired,
+    imagePrefix: PropTypes.string,
 };
 
 export default withWidth()(withStyles(styles)(List));

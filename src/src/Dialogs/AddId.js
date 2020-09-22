@@ -36,6 +36,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -46,13 +47,14 @@ import {FaWhatsapp as WhatsappIcon} from 'react-icons/fa';
 import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
+import IconPicker from '@iobroker/adapter-react/Dialogs/IconPicker';
+
 import MessengerSelect from '../Components/MessengerSelect';
 import I18n from '@iobroker/adapter-react/i18n';
 import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
 import ColorPicker from '../Components/ColorPicker';
-import IconPicker from '../Components/IconPicker';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
-import Image from '../Components/Image';
+import Image from '@iobroker/adapter-react/Components/Image';
 
 const styles = theme => ({
     textField: {
@@ -156,6 +158,7 @@ class AddIdDialog extends Component {
             confirmRemove: false,
         };
 
+        this.imagePrefix = this.props.imagePrefix || './files';
         this.language = this.props.native.language || I18n.getLanguage();
         moment.locale(this.language === 'en' ? 'en-gb' : this.language);
 
@@ -172,7 +175,7 @@ class AddIdDialog extends Component {
             .then(systemConfig => {
                 this.isFloatComma = systemConfig.common.isFloatComma;
                 if (this.state.id) {
-                    this.readSettings();
+                    this.readSettings(null, true);
                 } else {
                     this.setState({showSelectId: true});
                 }
@@ -383,11 +386,12 @@ class AddIdDialog extends Component {
             });
     }
 
-    readSettings(id) {
+    readSettings(id, noWait) {
         id = id || this.state.id;
         if (this.readTypeTimer) {
             clearTimeout(this.readTypeTimer);
         }
+        this.setState({reading: true});
         this.readTypeTimer = setTimeout(() =>
             this.props.socket.getObject(id)
                 .then(obj => {
@@ -404,6 +408,7 @@ class AddIdDialog extends Component {
                         color:       '',
                         alarmsOnly:  false,
                         messagesInAlarmsOnly: false,
+                        reading: false,
                     };
 
                     if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
@@ -464,12 +469,12 @@ class AddIdDialog extends Component {
                             this.setState(newState, () => this.originalSettings = this.getSettings());
                         });
                 })
-                .catch(e => this.setState({type: '', unknownId: true, name: '', unit: ''}))
+                .catch(e => this.setState({type: '', unknownId: true, name: '', unit: '', reading: false}))
                 .then(() => {
                     this.readTypeTimer = null;
                     this.subscribe();
                 })
-        ,500);
+        ,noWait ? 0 : 500);
     }
 
     getName(obj) {
@@ -926,6 +931,8 @@ class AddIdDialog extends Component {
                         label={I18n.t('Use default icon', state.val.toUpperCase())}
                     /> : null}
                     {!isBoolean || !state.defIcon ? <IconPicker
+                        imagePrefix={this.imagePrefix}
+                        key={this.state.id + this.state.type + state.original}
                         color={color}
                         label={I18n.t('Icon')}
                         socket={this.props.socket}
@@ -990,6 +997,8 @@ class AddIdDialog extends Component {
                     />
                     <br/>
                     <IconPicker
+                        imagePrefix={this.imagePrefix}
+                        key={this.state.id + this.state.type}
                         color={this.state.color}
                         socket={this.props.socket}
                         label={I18n.t('Event icon')}
@@ -1109,13 +1118,18 @@ class AddIdDialog extends Component {
                     />
                     <Button style={{marginTop: 8}} variant="contained" color="secondary" onClick={() => this.setState({showSelectId: true})}>...</Button>
                 </div>
+                {this.state.reading ? <LinearProgress/> : <div style={{height: 2, width: '100%'}}/>}
 
                 {this.state.id && this.state.type ?
                     <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
-
                         <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
                         <span className={this.props.classes.exampleText} style={{color: exampleColor}}>
-                            {this.props.native.icons ? <Image src={this.getExampleIcon()} className={this.props.classes.exampleIcon} color={exampleColor}/>: null}
+                            {this.props.native.icons ? <Image
+                                src={this.getExampleIcon()}
+                                className={this.props.classes.exampleIcon}
+                                color={exampleColor}
+                                imagePrefix={this.imagePrefix}
+                            />: null}
                             {this.buildExample()}
                         </span>
                         {this.state.type === 'boolean' ?
@@ -1205,6 +1219,7 @@ AddIdDialog.propTypes = {
     socket: PropTypes.object.isRequired,
     native: PropTypes.object.isRequired,
     id: PropTypes.string,
+    imagePrefix: PropTypes.string,
 };
 
 export default withWidth()(withStyles(styles)(AddIdDialog));
