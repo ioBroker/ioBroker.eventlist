@@ -136,7 +136,7 @@ function startAdapter(options) {
                         states[id].ts = state.ts;
 
                         if (states[id].type === 'number' && states[id].val !== null && states[id].val !== undefined && state.val !== null && state.val !== undefined) {
-                            state.diff = state.val - state[id].val;
+                            state.diff = state.val - states[id].val;
                         }
                     }
                     states[id].val = state.val;
@@ -152,7 +152,7 @@ function startAdapter(options) {
                 states[id].ts = state.ts;
 
                 if (states[id].type === 'number' && states[id].val !== null && states[id].val !== undefined && state.val !== null && state.val !== undefined) {
-                    state.diff = state.val - state[id].val;
+                    state.diff = state.val - states[id].val;
                 }
                 states[id].val = state.val;
             }
