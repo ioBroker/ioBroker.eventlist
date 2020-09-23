@@ -138,5 +138,7 @@
   "seconds": "seconden",
   "selected": "geselecteerd",
   "sorted ascending": "oplopend gesorteerd",
-  "sorted descending": "aflopend gesorteerd"
+  "sorted descending": "aflopend gesorteerd",
+  "Use default color": "Gebruik de standaardkleur",
+  "Use default icon": "Gebruik het standaardpictogram"
 }

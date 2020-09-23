@@ -56,7 +56,7 @@ The PDF file could be accesses via:
 **The icons could not be shown in PDF.**
 
 ## Todo
-- Icons dialog
+- Many predefined icons (minimum 100)
 - Material widget
 - Send messages to syslog (may be splunk) https://www.npmjs.com/package/splunk-logging
 
@@ -66,7 +66,7 @@ The PDF file could be accesses via:
 -->
 
 ## Changelog
-### 0.2.2 (2020-09-22)
+### 0.2.3 (2020-09-23)
 * (bluefox) Extended icon selector 
  
 ### 0.2.1 (2020-09-21)

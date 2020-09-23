@@ -137,5 +137,7 @@
   "seconds": "с",
   "selected": "выбранный",
   "sorted ascending": "отсортировано по возрастанию",
-  "sorted descending": "отсортировано по убыванию"
+  "sorted descending": "отсортировано по убыванию",
+  "Use default color": "Использовать цвет по умолчанию",
+  "Use default icon": "Использовать значок по умолчанию"
 }

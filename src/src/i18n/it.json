@@ -138,5 +138,7 @@
   "seconds": "secondi",
   "selected": "selezionato",
   "sorted ascending": "ordinato crescente",
-  "sorted descending": "ordinato decrescente"
+  "sorted descending": "ordinato decrescente",
+  "Use default color": "Usa il colore predefinito",
+  "Use default icon": "Usa icona predefinita"
 }

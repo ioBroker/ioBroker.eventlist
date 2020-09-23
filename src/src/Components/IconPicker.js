@@ -103,7 +103,7 @@ class IconPicker extends React.Component {
             value: this.props.value || '',
             dialogValue: '',
             showDialog: false,
-            selectedTab: this.props.value && !this.props.value.startsWith(PRESET_PREFIX) ? 1 : 0,
+            selectedTab: this.props.value && !this.props.value.startsWith('data:image/') ? 1 : 0,
             imgError: false,
         };
         this.imagePrefix = this.props.imagePrefix || './files/';
@@ -128,12 +128,12 @@ class IconPicker extends React.Component {
 
     renderOneIcon(item, i) {
         return <Grid
-             item
-             xs
-             key={item.name || i}
-             className={clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith(PRESET_PREFIX) && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
-             onClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name})}
-             onDoubleClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name}, () => this.onDialogClose(this.state.dialogValue))}
+            item
+            xs
+            key={item.name || i}
+            className={clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith(PRESET_PREFIX) && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
+            onClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name})}
+            onDoubleClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name}, () => this.onDialogClose(this.state.dialogValue))}
         >
             <img className={this.props.classes.icon} src={item.icon} alt={item.name} style={item.color ? {color: item.color} : {}}/>
         </Grid>;
@@ -180,7 +180,7 @@ class IconPicker extends React.Component {
             allowCreateFolder={true}
             allowDelete={false}
             allowView={true}
-            showViewTypeButton={false}
+            showViewTypeButton={true}
             filterFiles={['png', 'svg', 'bmp', 'jpg', 'jpeg']}
             onSelect={(path, isDoubleClick) =>
                 this.setState({dialogValue: path}, () =>
@@ -254,6 +254,7 @@ class IconPicker extends React.Component {
 
     render() {
         return <div
+            key={this.props.key}
             style={this.props.style || {}}
             className={ clsx(this.props.classes.div, this.props.className)}
         >
@@ -268,6 +269,7 @@ class IconPicker extends React.Component {
                 />
             </div>
             <TextField
+                disabled={!!this.props.disabled}
                 margin="dense"
                 label={this.props.label || I18n.t('Icon')}
                 value={this.state.value}
@@ -289,6 +291,7 @@ class IconPicker extends React.Component {
                 className={this.props.classes.textFieldWithButton}
             />
             <IconButton
+                disabled={!!this.props.disabled}
                 className={this.props.classes.selectButton}
                 onClick={() => {
                     let id = this.getIdFromSrc(this.state.value);
@@ -308,9 +311,11 @@ class IconPicker extends React.Component {
 }
 
 IconPicker.propTypes = {
+    key: PropTypes.string,
     color: PropTypes.string,
     value: PropTypes.string,
     label: PropTypes.string,
+    disabled: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
     socket: PropTypes.object.isRequired,
     imagePrefix: PropTypes.string,

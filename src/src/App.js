@@ -1,18 +1,20 @@
 import React from 'react';
 import {withStyles} from '@material-ui/core/styles';
+import { MuiThemeProvider } from '@material-ui/core/styles';
+
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+
+import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
+import Router from '@iobroker/adapter-react/Components/Router';
 import GenericApp from '@iobroker/adapter-react/GenericApp';
 import Loader from '@iobroker/adapter-react/Components/Loader'
-import { MuiThemeProvider } from '@material-ui/core/styles';
-
 import I18n from '@iobroker/adapter-react/i18n';
+
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
 import TabPDF from './Tabs/PdfSettings';
-import ColorPicker from './Components/ColorPicker';
-import Router from '@iobroker/adapter-react/Components/Router';
 
 const styles = theme => ({
     root: {},

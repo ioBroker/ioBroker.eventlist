@@ -11,19 +11,19 @@ import Grid from '@material-ui/core/Grid';
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ColorPicker from '../Components/ColorPicker';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import IconButton from '@material-ui/core/IconButton';
-
-import I18n from '@iobroker/adapter-react/i18n';
 import Button from '@material-ui/core/Button';
 
 import {MdHelp as IconHelp} from 'react-icons/md';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+
+import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
+import I18n from '@iobroker/adapter-react/i18n';
 
 const styles = theme => ({
     tab: {

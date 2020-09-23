@@ -138,5 +138,7 @@
   "seconds": "sekundy",
   "selected": "wybrany",
   "sorted ascending": "posortowane rosnąco",
-  "sorted descending": "posortowane malejąco"
+  "sorted descending": "posortowane malejąco",
+  "Use default color": "Użyj domyślnego koloru",
+  "Use default icon": "Użyj domyślnej ikony"
 }

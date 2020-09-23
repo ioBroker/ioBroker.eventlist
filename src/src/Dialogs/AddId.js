@@ -37,8 +37,10 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import IconButton from '@material-ui/core/IconButton';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import CancelIcon from '@material-ui/icons/Cancel';
 import SaveIcon from '@material-ui/icons/Save';
 import {FaEraser as RemoveIcon} from 'react-icons/fa';
@@ -47,14 +49,15 @@ import {FaWhatsapp as WhatsappIcon} from 'react-icons/fa';
 import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
-import IconPicker from '@iobroker/adapter-react/Dialogs/IconPicker';
-
-import MessengerSelect from '../Components/MessengerSelect';
+//import IconPicker from '../Components/IconPicker';
+import IconPicker from '@iobroker/adapter-react/Components/IconPicker';
 import I18n from '@iobroker/adapter-react/i18n';
 import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
-import ColorPicker from '../Components/ColorPicker';
+import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
 import Image from '@iobroker/adapter-react/Components/Image';
+
+import MessengerSelect from '../Components/MessengerSelect';
 
 const styles = theme => ({
     textField: {
@@ -88,7 +91,7 @@ const styles = theme => ({
     paper: {
         marginBottom: theme.spacing(1),
         padding: theme.spacing(1),
-        width: '100%'
+        width: 'calc(100% - ' + theme.spacing(2) + 'px)',
     },
     buttonIcon: {
         marginRight: theme.spacing(1)
@@ -110,6 +113,19 @@ const styles = theme => ({
     },
     whatsAppIcon: {
         color: '#45c655'
+    },
+    width100: {
+        width: '100%',
+    },
+    width100minus32: {
+        width: 'calc(100% - 32px)',
+    },
+    iconOpenAll: {
+        float: 'right',
+        marginRight: 4,
+    },
+    iconCloseAll: {
+        float: 'right'
     }
 });
 
@@ -787,15 +803,25 @@ class AddIdDialog extends Component {
     }
 
     onToggle(id) {
-        const expanded = [...this.state.expanded];
-        const pos = expanded.indexOf(id);
-        if (pos !== -1)  {
-            expanded.splice(pos, 1);
+        let expanded;
+        if (id === false) {
+            expanded = [];
+        } else if (id === true) {
+            expanded = ['state_settings', 'state_messengers'];
+            this.state.states && this.state.states.forEach(state => expanded.push('state_' + state.val));
         } else {
-            expanded.push(id);
-            expanded.sort();
+            expanded = [...this.state.expanded];
+            const pos = expanded.indexOf(id);
+            if (pos !== -1)  {
+                expanded.splice(pos, 1);
+            } else {
+                expanded.push(id);
+                expanded.sort();
+            }
         }
+
         window.localStorage.setItem('eventlist.addid.expanded', JSON.stringify(expanded));
+
         this.setState({expanded});
     }
 
@@ -857,6 +883,7 @@ class AddIdDialog extends Component {
                 }</span></Typography>
                 <div className={this.props.classes.flex}/>
                 <FormControlLabel
+                    disabled={this.state.reading}
                     control={<Checkbox
                         checked={!!state.disabled}
                         onChange={e => {
@@ -871,6 +898,7 @@ class AddIdDialog extends Component {
             {!state.disabled && <AccordionDetails>
                 <Paper className={this.props.classes.paper}>
                     {isBoolean ? <FormControlLabel
+                        disabled={this.state.reading}
                         control={<Checkbox
                             checked={state.defText}
                             onChange={e => {
@@ -882,6 +910,7 @@ class AddIdDialog extends Component {
                         label={I18n.t('Use default text')}
                     /> : null}
                     {!isBoolean || !state.defText ? <TextField
+                        disabled={this.state.reading}
                         margin="dense"
                         label={I18n.t('Text')}
                         value={state.text}
@@ -896,6 +925,7 @@ class AddIdDialog extends Component {
                     /> : null}
                     {narrowWidth ? <br/> : null}
                     {isBoolean ? <FormControlLabel
+                        disabled={this.state.reading}
                         control={<Checkbox
                             checked={state.defColor}
                             onChange={e => {
@@ -908,6 +938,7 @@ class AddIdDialog extends Component {
                     /> : null}
                     {!isBoolean || !state.defColor ?
                         <ColorPicker
+                            disabled={this.state.reading}
                             openAbove={true}
                             color={state.color}
                             style={{width: 250, display: 'inline-block'}}
@@ -920,6 +951,7 @@ class AddIdDialog extends Component {
                         /> : null}
                     {narrowWidth ? <br/> : null}
                     {isBoolean ? <FormControlLabel
+                        disabled={this.state.reading}
                         control={<Checkbox
                             checked={state.defIcon}
                             onChange={e => {
@@ -931,6 +963,7 @@ class AddIdDialog extends Component {
                         label={I18n.t('Use default icon', state.val.toUpperCase())}
                     /> : null}
                     {!isBoolean || !state.defIcon ? <IconPicker
+                        disabled={this.state.reading}
                         imagePrefix={this.imagePrefix}
                         key={this.state.id + this.state.type + state.original}
                         color={color}
@@ -957,7 +990,7 @@ class AddIdDialog extends Component {
             expanded={this.state.expanded.includes('state_settings')}
             onChange={() => this.onToggle('state_settings')}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{root: this.props.classes.width100minus32}}>
                 <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}
                     {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
                 </Typography>
@@ -965,6 +998,7 @@ class AddIdDialog extends Component {
             <AccordionDetails>
                 <Paper className={this.props.classes.paper}>
                     <FormControlLabel
+                        disabled={this.state.reading}
                         control={<Checkbox
                             checked={this.state.eventDefault}
                             onChange={e => this.setState({eventDefault: e.target.checked})} />
@@ -975,6 +1009,7 @@ class AddIdDialog extends Component {
                     />
                     {narrowWidth ? <br/> : null}
                     {!this.state.eventDefault ? <TextField
+                        disabled={this.state.reading}
                         margin="dense"
                         label={I18n.t('Event text')}
                         value={this.state.event}
@@ -989,6 +1024,7 @@ class AddIdDialog extends Component {
                     /> : null}
                     <br/>
                     <ColorPicker
+                        disabled={this.state.reading}
                         color={this.state.color}
                         style={{width: 250, display: 'inline-block'}}
                         name={I18n.t('Event color')}
@@ -997,6 +1033,7 @@ class AddIdDialog extends Component {
                     />
                     <br/>
                     <IconPicker
+                        disabled={this.state.reading}
                         imagePrefix={this.imagePrefix}
                         key={this.state.id + this.state.type}
                         color={this.state.color}
@@ -1032,15 +1069,17 @@ class AddIdDialog extends Component {
             </AccordionSummary>
             <AccordionDetails style={{display: 'block'}}>
                 <FormControlLabel
+                    disabled={this.state.reading}
                     control={<Checkbox
-                        disabled={this.state.alarmsOnly}
-                        checked={this.state.messagesInAlarmsOnly || this.state.alarmsOnly}
+                        disabled={!!this.state.alarmsOnly}
+                        checked={!!(this.state.messagesInAlarmsOnly || this.state.alarmsOnly)}
                         onChange={e => this.setState({messagesInAlarmsOnly: e.target.checked})} />
                     }
                     label={I18n.t('Only in alarm state')}
                 />
                 {narrowWidth && <br/>}
                 <FormControlLabel
+                    disabled={this.state.reading}
                     control={<Checkbox
                         checked={this.state.defaultMessengers}
                         onChange={e => this.setState({defaultMessengers: e.target.checked})} />
@@ -1118,7 +1157,7 @@ class AddIdDialog extends Component {
                     />
                     <Button style={{marginTop: 8}} variant="contained" color="secondary" onClick={() => this.setState({showSelectId: true})}>...</Button>
                 </div>
-                {this.state.reading ? <LinearProgress/> : <div style={{height: 2, width: '100%'}}/>}
+                {this.state.reading ? <LinearProgress/> : <div style={{height: 4, width: '100%'}}/>}
 
                 {this.state.id && this.state.type ?
                     <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
@@ -1136,6 +1175,7 @@ class AddIdDialog extends Component {
                             <>
                                 <br/>
                                 <FormControlLabel
+                                    disabled={this.state.reading}
                                     control={<Switch
                                         checked={!!this.state.simulateState}
                                         onChange={e => this.setState({simulateState: e.target.checked})}/>
@@ -1148,7 +1188,7 @@ class AddIdDialog extends Component {
                         {this.state.type === 'number' && this.state.states ?
                             <>
                                 <br/>
-                                <FormControl className={this.props.classes.formControl}>
+                                <FormControl className={this.props.classes.formControl} disabled={this.state.reading}>
                                     <InputLabel>{I18n.t('Simulate value')}</InputLabel>
                                     <Select
                                         value={this.state.simulateState === null ? '_current_' : this.state.simulateState}
@@ -1166,9 +1206,9 @@ class AddIdDialog extends Component {
                     : null }
 
                 {this.state.id && this.state.type ?
-                    <>
-                        <br/>
+                    <div className={this.props.classes.width100}>
                         <FormControlLabel
+                            disabled={this.state.reading}
                             control={<Checkbox
                                 checked={this.state.changesOnly}
                                 onChange={e => this.setState({changesOnly: e.target.checked})} />
@@ -1177,13 +1217,16 @@ class AddIdDialog extends Component {
                         />
                         {narrowWidth && <br/>}
                         <FormControlLabel
+                            disabled={this.state.reading}
                             control={<Checkbox
                                 checked={!!this.state.alarmsOnly}
                                 onChange={e => this.setState({alarmsOnly: e.target.checked})} />
                             }
                             label={I18n.t('Only in alarm state')}
                         />
-                    </> : null}
+                        <IconButton disabled={this.state.expanded.length === (this.state.states ? this.state.states.length : 0 ) + 2} className={this.props.classes.iconOpenAll} onClick={() => this.onToggle(true)}><ExpandMoreIcon/></IconButton>
+                        <IconButton disabled={!this.state.expanded.length} className={this.props.classes.iconCloseAll} onClick={() => this.onToggle(false)}> <ExpandLessIcon/></IconButton>
+                    </div> : null}
                 {this.state.id     ? this.renderStateSettings() : null }
                 {this.state.states ? this.state.states.map((item, i) => this.renderState(i, narrowWidth)) : null }
                 {this.state.id     ? this.renderMessengers(narrowWidth) : null}

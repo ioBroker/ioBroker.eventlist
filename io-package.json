@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.2.2",
+        "version": "0.2.3",
         "news": {
-            "0.2.2": {
+            "0.2.3": {
                 "en": "Extended icon selector ",
                 "de": "Erweiterte Symbolauswahl",
                 "ru": "Расширенный селектор значков",

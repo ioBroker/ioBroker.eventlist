@@ -23,9 +23,9 @@ import {MdHelp as IconHelp} from 'react-icons/md';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import Logo from '@iobroker/adapter-react/Components/Logo';
-import ColorPicker from '../Components/ColorPicker';
+import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
+
 import MessengerSelect from  '../Components/MessengerSelect';
-//import IconPicker from '../Components/IconPicker';
 
 const styles = theme => ({
     tab: {
