@@ -66,7 +66,7 @@ The PDF file could be accesses via:
 -->
 
 ## Changelog
-### 0.2.3 (2020-09-23)
+### 0.2.5 (2020-09-24)
 * (bluefox) Extended icon selector 
  
 ### 0.2.1 (2020-09-21)

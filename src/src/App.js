@@ -56,7 +56,7 @@ class App extends GenericApp {
         super(props, extendedProps);
 
         this.isTab = !extendedProps.bottomButtons;
-        this.isWeb = false;
+        this.isWeb = window.socketUrl !== undefined;
     }
 
     getSelectedTab() {
@@ -142,7 +142,7 @@ class App extends GenericApp {
     renderEventList() {
         return <TabList
             key="enums"
-            imagePrefix={this.isWeb ? './' : '../../files/'}
+            imagePrefix={this.isWeb ? '../' : '../../files/'}
             editEnabled={!this.isTab}
             showEditButton={this.isTab}
             themeName={this.state.themeName}
