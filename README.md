@@ -99,10 +99,10 @@ In the event texts and in the state texts the following patterns could be used:
 - %u - unit (`State changed to %s%u` => `State changed to 5%`), 
 - %n - name (`%n changed state to %s` => `Device A changed state to 5`), 
 - %t - time (`State changed state on %t` => `State changed state on Sep Fr, 16:32:00`), 
-- %r - relative time (`State changed state %r` => `State changed state 5 seconds ago`), **todo**
+- %r - relative time (`State changed state %r` => `State changed state 5 seconds ago`),
 - %d - duration (`State was in previous state for %d` => `State was in previous state for 5s`), 
 - %g - value difference (`State was changed on %g%` => `State was changed on 1%`),
-- %o - value difference (`State changed value from %o to %` => `State was changed on 1%`) **todo**
+- %o - value difference (`State changed value from %o to %` => `State was changed on 1%`)
 
 ## Todo
 - Many predefined icons (minimum 100)

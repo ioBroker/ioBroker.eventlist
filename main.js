@@ -122,6 +122,11 @@ function startAdapter(options) {
                 adapter.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
                 return;
             }
+
+            if (states[id].oldValueUsed) {
+                state.oldVal = states[id].val;
+            }
+
             // ignore non changed states
             if (states[id].changesOnly) {
                 if (state && states[id].val === state.val) {
@@ -159,6 +164,7 @@ function startAdapter(options) {
             }
 
             state.id = id;
+
             addEvent(state)
                 .then(event =>
                     adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
@@ -403,8 +409,13 @@ function formatEvent(state, allowRelative) {
     if (eventTemplate.includes('%d')) {
         eventTemplate = eventTemplate.replace(/%d/g, durationText);
     }
+
     if (eventTemplate.includes('%g')) {
         eventTemplate = eventTemplate.replace(/%g/g, isFloatComma ? state.diff.toString().replace('.', ',') : state.diff);
+    }
+
+    if (eventTemplate.includes('%o')) {
+        eventTemplate = eventTemplate.replace(/%o/g, isFloatComma ? (state.oldVal === undefined || state.oldVal === null ? '_' : state.oldVal).toString().replace('.', ',') : (state.oldVal === undefined || state.oldVal === null ? '_' : state.oldVal));
     }
 
     if (eventTemplate.includes('%s')) {
@@ -412,7 +423,13 @@ function formatEvent(state, allowRelative) {
         valWithUnit = '';
     }
 
-    eventTemplate = eventTemplate.replace(/%t/g, moment(new Date(state.ts)).format(adapter.config.dateFormat));
+    if (eventTemplate.includes('%t')) {
+        eventTemplate = eventTemplate.replace(/%t/g, moment(new Date(state.ts)).format(adapter.config.dateFormat));
+    }
+
+    if (eventTemplate.includes('%r')) {
+        eventTemplate = eventTemplate.replace(/%r/g, moment(new Date(state.ts)).fromNow());
+    }
 
     event.event = eventTemplate;
     event.ts = time;
@@ -545,12 +562,17 @@ function addEvent(event) {
             if (event.event) {
                 _event.event = event.event;
             }
+
             if (event.id || event._id) {
                 _event.id = event.id || event._id;
             }
 
             if (event.val !== undefined) {
                 _event.val = event.val;
+            }
+
+            if (event.oldVal !== undefined) {
+                _event.oldVal = event.oldVal;
             }
 
             if (event.duration !== undefined && event.duration !== null) {
@@ -707,17 +729,63 @@ function updateStateSettings(id, obj) {
 
         let durationUsed = adapter.config.duration;
 
-        if (!durationUsed && states[id].type === 'boolean') {
-            durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d');
-            if (!durationUsed) {
-                durationUsed = (states[id].trueText || adapter.config.defaultBooleanTextTrue).includes('%d');
-            }
-            if (!durationUsed) {
-                durationUsed = (states[id].falseText || adapter.config.defaultBooleanTextFalse).includes('%d');
+        if (!durationUsed && states[id].states) {
+            if (states[id].type === 'boolean') {
+                durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d') ||
+                               (states[id].event || adapter.config.defaultBooleanText).includes('%g');
+
+                if (!durationUsed) {
+                    let item = states[id].states.find(item => item.val === 'true');
+
+                    durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d') ||
+                                   ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d');
+                }
+                if (!durationUsed) {
+                    let item = states[id].states.find(item => item.val === 'false');
+
+                    durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%d') ||
+                                   ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%g');
+                }
+            } else {
+                durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
+                               (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
+
+                if (!durationUsed) {
+                    durationUsed = !!states[id].states.find(item => item.text.includes('%d') || item.text.includes('%g'));
+                }
             }
         } else if (!durationUsed) {
             durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
-                (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
+                           (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
+        }
+
+        let oldValueUsed = false;
+
+        if (states[id].states) {
+            if (states[id].type === 'boolean') {
+                oldValueUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%o');
+
+                if (!oldValueUsed) {
+                    let item = states[id].states.find(item => item.val === 'true');
+
+                    oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%o');
+                }
+                if (!oldValueUsed) {
+                    let item = states[id].states.find(item => item.val === 'false');
+
+                    oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%o');
+                }
+            } else {
+                oldValueUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
+                oldValueUsed = oldValueUsed || !!states[id].states.find(item => item.text.includes('%o'));
+            }
+        } else {
+            oldValueUsed = oldValueUsed || (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
+        }
+
+        if (states[id].oldValueUsed !== oldValueUsed) {
+            states[id].oldValueUsed = oldValueUsed;
+            changed = true;
         }
 
         if (states[id].durationUsed !== durationUsed) {
