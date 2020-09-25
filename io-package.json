@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.2.5",
+        "version": "0.2.6",
         "news": {
+            "0.2.6": {
+                "en": "Corrected error in pdf creation",
+                "de": "Fehler bei der PDF-Erstellung behoben",
+                "ru": "Исправлена ошибка при создании pdf.",
+                "pt": "Erro corrigido na criação de PDF",
+                "nl": "Fout bij het maken van pdf's gecorrigeerd",
+                "fr": "Erreur corrigée dans la création de pdf",
+                "it": "Errore corretto nella creazione del pdf",
+                "es": "Error corregido en la creación de pdf",
+                "pl": "Poprawiony błąd podczas tworzenia pliku PDF",
+                "zh-cn": "纠正了pdf创建中的错误"
+            },
             "0.2.5": {
                 "en": "Extended icon selector ",
                 "de": "Erweiterte Symbolauswahl",

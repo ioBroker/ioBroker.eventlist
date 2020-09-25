@@ -115,7 +115,7 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.2.6 (2020-09-25)
 * (bluefox) Corrected error in pdf creation  
 
 ### 0.2.5 (2020-09-24)
