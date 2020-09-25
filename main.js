@@ -95,12 +95,13 @@ function startAdapter(options) {
                 .then(table => list2pdf(adapter, moment, 'report.pdf', table))
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
         } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
-            adapter.log.info('Switch ALRM state to ' + state.val);
+            adapter.log.info('Switch ALARM state to ' + state.val);
             alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
         } else if (id === adapter.namespace + '.eventListRaw' && state && !state.ack && state.val) {
             eventListRaw = state2json(state);
-            reformatJsonTable(true).then(table =>
-                adapter.setState('eventJSONList', JSON.stringify(table), true));
+            reformatJsonTable(true)
+                .then(table =>
+                    adapter.setState('eventJSONList', JSON.stringify(table), true));
         } else if (id === adapter.namespace + '.insert' && state && !state.ack && state.val) {
             if (state.val.startsWith('{')) {
                 try {
@@ -176,6 +177,32 @@ function startAdapter(options) {
                 reformatJsonTable(false)
                     .then(table => list2pdf(adapter, moment, 'report.pdf', table, obj.message))
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'rendered'}, obj.callback));
+            } else if (obj.command === 'list') {
+                getRawEventList()
+                    .then(table => {
+                        table = table || [];
+                        // filter items
+                        if (obj.message && (typeof obj.message === 'string' || typeof obj.message.id === 'string' || typeof obj.message.ids === 'object')) {
+                            let ids = typeof obj.message === 'string' ? obj.message : null;
+                            if (!ids && typeof obj.message.id === 'string') {
+                                ids = typeof obj.message.id;
+                            }
+                            if (!ids && typeof obj.message.ids === 'object') {
+                                ids = [...obj.message.ids];
+                            }
+                            if (typeof ids === 'string') {
+                                ids = [ids];
+                            }
+
+                            // filter table
+                            table = table.filter(item => (!item.id && ids.includes('custom')) || ids.includes(item.id));
+                        }
+                        if (obj.message && obj.message.count && parseInt(obj.message.count, 10) && parseInt(obj.message.count, 10) < table.length) {
+                            table = table.splice(obj.message.count)
+                        }
+                        reformatJsonTable(true, table)
+                            .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, table, obj.callback));
+                    });
             }
         }
     });
@@ -473,81 +500,99 @@ function sendPushover(event) {
     return Promise.resolve();
 }
 
-function addEvent(event) {
+function getRawEventList() {
     return new Promise(resolve => {
-        const _event = {};
-
-        if (!event.event && !event.id) {
-            adapter.log.warn('Cannot add empty event to the list');
-            return;
-        }
-
-        if (!alarmMode && states[event.id] && states[event.id].alarmsOnly) {
-            return adapter.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
-        }
-
-        _event.ts = event.ts || Date.now();
-
-        if (typeof _event.ts !== 'number') {
-            _event.ts = new Date(_event.ts).getTime();
+        if (!eventListRaw) {
+            adapter.getState('eventListRaw', (err, state) => {
+                eventListRaw = state2json(state);
+                resolve(eventListRaw);
+            });
         } else {
-            if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
-                adapter.log.warn('Invalid date provided in event: ' + new Date(_event.ts).toISOString());
-                _event.ts = new Date(_event.ts).getTime();
-            }
-        }
-
-        if (event.event) {
-            _event.event = event.event;
-        }
-        if (event.id || event._id) {
-            _event.id = event.id || event._id;
-        }
-
-        if (event.val !== undefined) {
-            _event.val = event.val;
-        }
-
-        if (event.duration !== undefined && event.duration !== null) {
-            _event.duration = event.duration;
-        }
-
-        // time must be unique
-        while (eventListRaw.find(item => item.ts === _event.ts)) {
-            _event.ts++;
-        }
-
-        eventListRaw.unshift(_event);
-        eventListRaw.sort((a, b) => a.ts > b.ts ? -1 : (a.ts < b.ts ? 1 : 0));
-
-        adapter.log.debug('Add ' + JSON.stringify(_event));
-
-        if (eventListRaw.length > adapter.config.maxLength) {
-            eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
-        }
-
-        const ev = formatEvent(_event, true);
-
-        if (ev) {
-            adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-                .then(() => reformatJsonTable(true))
-                .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
-                .then(() => Promise.all([
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
-                    adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
-                ]))
-                .then(() => sendTelegram(_event))
-                .then(() => sendWhatsApp(_event))
-                .then(() => sendPushover(_event))
-                .then(() => resolve(_event));
-        } else {
-            resolve(_event);
+            return resolve(eventListRaw);
         }
     });
+}
+
+function addEvent(event) {
+    return getRawEventList()
+        .then(() => new Promise(resolve => {
+            const _event = {};
+
+            if (typeof event === 'string') {
+                event = {event};
+            }
+
+            if (!event.event && !event.id) {
+                adapter.log.warn('Cannot add empty event to the list');
+                return;
+            }
+
+            if (!alarmMode && states[event.id] && states[event.id].alarmsOnly) {
+                return adapter.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
+            }
+
+            _event.ts = event.ts || Date.now();
+
+            if (typeof _event.ts !== 'number') {
+                _event.ts = new Date(_event.ts).getTime();
+            } else {
+                if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
+                    adapter.log.warn('Invalid date provided in event: ' + new Date(_event.ts).toISOString());
+                    _event.ts = new Date(_event.ts).getTime();
+                }
+            }
+
+            if (event.event) {
+                _event.event = event.event;
+            }
+            if (event.id || event._id) {
+                _event.id = event.id || event._id;
+            }
+
+            if (event.val !== undefined) {
+                _event.val = event.val;
+            }
+
+            if (event.duration !== undefined && event.duration !== null) {
+                _event.duration = event.duration;
+            }
+
+            // time must be unique
+            while (eventListRaw.find(item => item.ts === _event.ts)) {
+                _event.ts++;
+            }
+
+            eventListRaw.unshift(_event);
+            eventListRaw.sort((a, b) => a.ts > b.ts ? -1 : (a.ts < b.ts ? 1 : 0));
+
+            adapter.log.debug('Add ' + JSON.stringify(_event));
+
+            if (eventListRaw.length > adapter.config.maxLength) {
+                eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
+            }
+
+            const ev = formatEvent(_event, true);
+
+            if (ev) {
+                adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                    .then(() => reformatJsonTable(true))
+                    .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
+                    .then(() => Promise.all([
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
+                    ]))
+                    .then(() => sendTelegram(_event))
+                    .then(() => sendWhatsApp(_event))
+                    .then(() => sendPushover(_event))
+                    .then(() => resolve(_event));
+            } else {
+                resolve(_event);
+            }
+        }));
 }
 
 function getName(obj) {
@@ -752,10 +797,8 @@ function readStates() {
 function reformatJsonTable(allowRelative, table) {
     return new Promise(resolve => {
         if (!table && !eventListRaw) {
-            adapter.getState('eventListRaw', (err, state) => {
-                eventListRaw = state2json(state);
-                resolve(eventListRaw);
-            });
+            return getRawEventList()
+                .then(eventListRaw => resolve(eventListRaw))
         } else {
             table = table || eventListRaw;
             return resolve(table);
