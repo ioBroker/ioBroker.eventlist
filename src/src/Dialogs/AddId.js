@@ -686,7 +686,17 @@ class AddIdDialog extends Component {
             valWithUnit = '';
         }
 
-        eventTemplate = eventTemplate.replace(/%t/g, this.state.state ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat);
+        if (eventTemplate.includes('%t')) {
+            eventTemplate = eventTemplate.replace(/%t/g, this.state.state ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat);
+        }
+
+        if (eventTemplate.includes('%r')) {
+            eventTemplate = eventTemplate.replace(/%r/g, this.state.state ? moment(new Date(this.state.state.ts)).fromNow() : moment(new Date()).fromNow());
+        }
+
+        if (eventTemplate.includes('%o')) {
+            eventTemplate = eventTemplate.replace(/%o/g, '_');
+        }
 
         return `${time} | ${eventTemplate} | ${valWithUnit}`;
     }
