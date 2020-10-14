@@ -597,7 +597,7 @@ class PdfSettings extends Component {
                     type="text"
                     className={this.props.classes.field}
                     label={I18n.t('Header text')}
-                    value={settings.textTime}
+                    value={settings.textValue}
                     onChange={e => this.onChange('textValue', e.target.value, e)}
                 />}
             </AccordionDetails>}

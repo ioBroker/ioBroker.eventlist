@@ -30,6 +30,8 @@ const MAX_VALID_DATE = new Date(2050, 0, 1).getTime();
 let adapter;
 const states = {};
 let alarmMode = false;
+let momentInterval = null;
+let relativeCounter = 0;
 
 let systemLang;
 let isFloatComma;
@@ -99,9 +101,8 @@ function startAdapter(options) {
             alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
         } else if (id === adapter.namespace + '.eventListRaw' && state && !state.ack && state.val) {
             eventListRaw = state2json(state);
-            reformatJsonTable(true)
-                .then(table =>
-                    adapter.setState('eventJSONList', JSON.stringify(table), true));
+            updateMomentTimes()
+                .then(() => {});
         } else if (id === adapter.namespace + '.insert' && state && !state.ack && state.val) {
             if (state.val.startsWith('{')) {
                 try {
@@ -204,21 +205,25 @@ function startAdapter(options) {
                             table = table.filter(item => (!item.id && ids.includes('custom')) || ids.includes(item.id));
                         }
                         if (obj.message && obj.message.count && parseInt(obj.message.count, 10) && parseInt(obj.message.count, 10) < table.length) {
-                            table = table.splice(obj.message.count)
+                            table = table.splice(obj.message.count);
                         }
-                        reformatJsonTable(true, table)
+
+                        reformatJsonTable(obj.message.allowRelative === undefined ? true : obj.message.allowRelative, table)
                             .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, table, obj.callback));
                     });
             }
         }
     });
 
-    adapter.on('objectChange', (id, obj) => {
+    adapter.on('objectChange', (id, obj) =>
         updateStateSettings(id, obj)
             .then(changed =>
-                changed ? reformatJsonTable(true) : Promise.resolve())
-            .then(table =>
-                table && adapter.setState('eventJSONList', JSON.stringify(table), true));
+                changed && updateMomentTimes()));
+
+    adapter.on('unload', cb => {
+        momentInterval && clearInterval(momentInterval);
+        momentInterval = null;
+        cb && cb();
     });
 
     return adapter;
@@ -248,7 +253,17 @@ function formatEvent(state, allowRelative) {
     let icon = '';
 
     const date = new Date(state.ts);
-    const time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
+    let time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
+
+    if (allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000) {
+        relativeCounter++;
+        if (!momentInterval) {
+            momentInterval = setInterval(() => updateMomentTimes(), 10000);
+        }
+        time = moment(date).fromNow();
+    } else {
+        time = moment(date).format(adapter.config.dateFormat);
+    }
 
     event._id = date.getTime();
 
@@ -597,8 +612,7 @@ function addEvent(event) {
 
             if (ev) {
                 adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-                    .then(() => reformatJsonTable(true))
-                    .then(table => adapter.setStateAsync('eventJSONList', JSON.stringify(table), true))
+                    .then(() => updateMomentTimes())
                     .then(() => Promise.all([
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
@@ -921,6 +935,18 @@ function getIconAndColor(id, obj) {
         });
 }
 
+function updateMomentTimes(table) {
+    relativeCounter = 0;
+    return reformatJsonTable(true, table)
+        .then(json => {
+            if (!relativeCounter && momentInterval) {
+                clearInterval(momentInterval);
+                momentInterval = null;
+            }
+            return adapter.setStateAsync('eventJSONList', JSON.stringify(json), true);
+        });
+}
+
 function main() {
     textSwitchedOn          = words['switched on'][systemLang]               || words['switched on'].en;
     textSwitchedOff         = words['switched off'][systemLang]              || words['switched off'].en;
@@ -951,9 +977,8 @@ function main() {
 
             return readStates();
         })
-        .then(() => reformatJsonTable(true)) // Update table according to new settings
-        .then(json => Promise.all([
-            adapter.setStateAsync('eventJSONList', JSON.stringify(json), true),
+        .then(() => updateMomentTimes()) // Update table according to new settings
+        .then(() => Promise.all([
             adapter.subscribeStatesAsync('insert'),
             adapter.subscribeStatesAsync('eventListRaw'),
             adapter.subscribeStatesAsync('triggerPDF'),
