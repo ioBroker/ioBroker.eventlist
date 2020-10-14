@@ -116,7 +116,7 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.2.8 (2020-10-14)
 * (bluefox) Corrected error in pdf settings  
 * (bluefox) Implemented the recalculation of the relative time every 10 seconds  
 

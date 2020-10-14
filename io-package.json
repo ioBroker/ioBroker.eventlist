@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.2.6",
+        "version": "0.2.8",
         "news": {
+            "0.2.8": {
+                "en": "Corrected error in pdf settings  \nImplemented the recalculation of the relative time every 10 seconds",
+                "de": "Fehler in den PDF-Einstellungen behoben\nImplementierte die Neuberechnung der relativen Zeit alle 10 Sekunden",
+                "ru": "Исправлена ошибка в настройках pdf\nРеализован пересчет относительного времени каждые 10 секунд.",
+                "pt": "Erro corrigido nas configurações de pdf\nImplementado o recálculo do tempo relativo a cada 10 segundos",
+                "nl": "Fout gecorrigeerd in pdf-instellingen\nImplementeerde de herberekening van de relatieve tijd elke 10 seconden",
+                "fr": "Erreur corrigée dans les paramètres PDF\nImplémentation du recalcul du temps relatif toutes les 10 secondes",
+                "it": "Errore corretto nelle impostazioni del pdf\nImplementato il ricalcolo del tempo relativo ogni 10 secondi",
+                "es": "Error corregido en la configuración de PDF\nImplementó el recálculo del tiempo relativo cada 10 segundos.",
+                "pl": "Poprawiony błąd w ustawieniach pdf\nZaimplementowano przeliczanie względnego czasu co 10 sekund",
+                "zh-cn": "纠正了pdf设置中的错误\n每10秒重新计算一次相对时间"
+            },
             "0.2.6": {
                 "en": "Corrected error in pdf creation",
                 "de": "Fehler bei der PDF-Erstellung behoben",
