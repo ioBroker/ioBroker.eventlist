@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.2.8",
+        "version": "0.2.9",
         "news": {
+            "0.2.9": {
+                "en": "Corrected error in GUI by disabling of state\nImplemented the deletion of events from the event list",
+                "de": "Fehler in der GUI durch Deaktivieren des Status behoben\nDas Löschen von Ereignissen aus der Ereignisliste wurde implementiert",
+                "ru": "Исправлена ошибка в графическом интерфейсе путем отключения состояния\nРеализовано удаление событий из списка событий",
+                "pt": "Erro corrigido na GUI desativando o estado\nImplementou a exclusão de eventos da lista de eventos",
+                "nl": "Fout in GUI gecorrigeerd door status uit te schakelen\nImplementatie van het verwijderen van evenementen uit de evenementenlijst",
+                "fr": "Correction d'une erreur dans l'interface graphique en désactivant l'état\nImplémentation de la suppression des événements de la liste des événements",
+                "it": "Corretto errore nella GUI disabilitando lo stato\nImplementata la cancellazione degli eventi dalla lista degli eventi",
+                "es": "Error corregido en GUI al deshabilitar el estado\nImplementó la eliminación de eventos de la lista de eventos.",
+                "pl": "Poprawiony błąd w GUI poprzez wyłączenie stanu\nZaimplementowano usuwanie wydarzeń z listy zdarzeń",
+                "zh-cn": "通过禁用状态更正了GUI中的错误\n实现了从事件列表中删除事件"
+            },
             "0.2.8": {
                 "en": "Corrected error in pdf settings  \nImplemented the recalculation of the relative time every 10 seconds",
                 "de": "Fehler in den PDF-Einstellungen behoben\nImplementierte die Neuberechnung der relativen Zeit alle 10 Sekunden",

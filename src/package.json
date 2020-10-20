@@ -1,6 +1,6 @@
 {
   "name": "eventlist-admin",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "private": true,
   "dependencies": {
     "@iobroker/adapter-react": "^1.4.1",

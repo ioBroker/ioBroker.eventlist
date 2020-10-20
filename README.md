@@ -135,7 +135,7 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.2.9 (2020-10-20)
 * (bluefox) Corrected error in GUI by disabling of state
 * (bluefox) Implemented the deletion of events from the event list
 
