@@ -140,5 +140,6 @@
   "sorted ascending": "trié par ordre croissant",
   "sorted descending": "trié par ordre décroissant",
   "Use default color": "Utiliser la couleur par défaut",
-  "Use default icon": "Utiliser l'icône par défaut"
+  "Use default icon": "Utiliser l'icône par défaut",
+  "Remove alarm events from list by the alarm mode deactivating": "Supprimer les événements d'alarme de la liste en désactivant le mode d'alarme"
 }

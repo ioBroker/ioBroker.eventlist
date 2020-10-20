@@ -94,6 +94,25 @@ sendTo('eventlist.0', 'list', 'my.0.state.id1', result => {
 });
 ```
 
+User can delete some or all of events from the event list.
+```
+// delete all events
+sendTo('eventlist.0', 'delete', '*', result => {
+    console.log(`Deleted ${result.count} events`);
+});
+
+// delete all events for specific state ID
+sendTo('eventlist.0', 'delete', 'hm-rpc.0.AEOI99389408.1.STATE', result => {
+    console.log(`Deleted ${result.count} events`);
+});
+
+// delete one event by timestamp
+sendTo('eventlist.0', 'delete', '2020-10-20T21:00:12.000Z', result => {
+    console.log(`Deleted ${result.count} events`);
+});
+```
+
+
 ## Patterns
 In the event texts and in the state texts the following patterns could be used:
 - %s - value (`State changed to %s` => `State changed to 5`), 
@@ -116,6 +135,10 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Corrected error in GUI by disabling of state
+* (bluefox) Implemented the deletion of events from the event list
+
 ### 0.2.8 (2020-10-14)
 * (bluefox) Corrected error in pdf settings  
 * (bluefox) Implemented the recalculation of the relative time every 10 seconds  

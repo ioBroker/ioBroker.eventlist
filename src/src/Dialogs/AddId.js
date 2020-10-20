@@ -736,6 +736,7 @@ class AddIdDialog extends Component {
 
             if (item.disabled)  {
                 it.disabled = true;
+                settings.states.push(it);
                 return;
             }
 
@@ -1239,7 +1240,7 @@ class AddIdDialog extends Component {
                         <IconButton disabled={!this.state.expanded.length} className={this.props.classes.iconCloseAll} onClick={() => this.onToggle(false)}> <ExpandLessIcon/></IconButton>
                     </div> : null}
                 {this.state.id     ? this.renderStateSettings() : null }
-                {this.state.states ? this.state.states.map((item, i) => this.renderState(i, narrowWidth)) : null }
+                {this.state.states ? this.state.states.sort((a, b) => a.val > b.val ? 1 : (a.val < b.val ? -1 : 0)).map((item, i) => this.renderState(i, narrowWidth)) : null }
                 {this.state.id     ? this.renderMessengers(narrowWidth) : null}
             </DialogContent>
             <DialogActions>

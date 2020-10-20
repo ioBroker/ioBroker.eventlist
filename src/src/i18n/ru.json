@@ -139,5 +139,6 @@
   "sorted ascending": "отсортировано по возрастанию",
   "sorted descending": "отсортировано по убыванию",
   "Use default color": "Использовать цвет по умолчанию",
-  "Use default icon": "Использовать значок по умолчанию"
+  "Use default icon": "Использовать значок по умолчанию",
+  "Remove alarm events from list by the alarm mode deactivating": "Удалять тревожные события из списка после деактивации тревожного режима"
 }

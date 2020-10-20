@@ -227,6 +227,13 @@ class Options extends Component {
                     control={<Checkbox checked={this.props.native.duration || false} onChange={e => this.props.onChange('duration', e.target.checked)} />}
                     label={I18n.t('Show duration in the list')}
                 />
+                <br/>
+                <FormControlLabel
+                    classes={{label: this.props.classes.checkBoxLabel}}
+                    control={<Checkbox checked={this.props.native.deleteAlarmsByDisable || false} onChange={e => this.props.onChange('deleteAlarmsByDisable', e.target.checked)} />}
+                    label={I18n.t('Remove alarm events from list by the alarm mode deactivating')}
+                />
+
                 <Accordion
                     expanded={this.state.expanded.includes('state_boolean')}
                     onChange={() => this.onToggle('state_boolean')}

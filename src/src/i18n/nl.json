@@ -140,5 +140,6 @@
   "sorted ascending": "oplopend gesorteerd",
   "sorted descending": "aflopend gesorteerd",
   "Use default color": "Gebruik de standaardkleur",
-  "Use default icon": "Gebruik het standaardpictogram"
+  "Use default icon": "Gebruik het standaardpictogram",
+  "Remove alarm events from list by the alarm mode deactivating": "Verwijder alarmgebeurtenissen uit de lijst door de alarmmodus te deactiveren"
 }

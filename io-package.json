@@ -253,7 +253,8 @@
         },
         "defaultWhatsAppCMB": [],
         "defaultTelegram": [],
-        "defaultPushover": []
+        "defaultPushover": [],
+        "deleteAlarmsByDisable": false
     },
     "objects": [
         {
@@ -275,6 +276,18 @@
                 "read": false,
                 "type": "json",
                 "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "delete",
+            "common": {
+                "name": "Delete event from table",
+                "write": true,
+                "read": false,
+                "type": "json",
+                "desc": "* - delete all, ID - delete events from list for specific object, timestamp - delete one event from list by timestamp (number or ISO string)"
             },
             "type": "state",
             "native": {}

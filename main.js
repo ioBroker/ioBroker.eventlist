@@ -98,7 +98,22 @@ function startAdapter(options) {
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
         } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
             adapter.log.info('Switch ALARM state to ' + state.val);
+
             alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
+            if (adapter.config.deleteAlarmsByDisable && !alarmMode) {
+                return getRawEventList()
+                    .then(eventList => {
+                        const alarmIds = Object.keys(states).filter(id => states[id].alarmsOnly);
+                        const count = eventList.length;
+                        eventListRaw = eventList.filter(item => !alarmIds.includes(item.id));
+
+                        if (eventListRaw.length !== count) {
+                            adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                                .then(count =>
+                                    adapter.log.debug(`Removed ${count} from the list after the alarm is deactivated`));
+                        }
+                    });
+            }
         } else if (id === adapter.namespace + '.eventListRaw' && state && !state.ack && state.val) {
             eventListRaw = state2json(state);
             updateMomentTimes()
@@ -118,6 +133,10 @@ function startAdapter(options) {
                     .then(event =>
                         adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
             }
+        } else if (id === adapter.namespace + '.delete' && state && !state.ack && state.val) {
+            deleteEvents(state.val)
+                .then(count =>
+                    adapter.log.debug(`${count} events were deleted from the list`));
         } else if (states[id] && state) {
             if (states[id].states && state.val !== null && state.val !== undefined && states[id].states[state.val.toString()] && states[id].states[state.val.toString()].disabled) {
                 adapter.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
@@ -211,6 +230,9 @@ function startAdapter(options) {
                         reformatJsonTable(obj.message.allowRelative === undefined ? true : obj.message.allowRelative, table)
                             .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, table, obj.callback));
                     });
+            } else if (obj.command === 'delete') {
+                deleteEvents(obj.message)
+                    .then(count => obj.callback && adapter.sendTo(obj.from, obj.command, {deleted: count}, obj.callback));
             }
         }
     });
@@ -227,6 +249,38 @@ function startAdapter(options) {
     });
 
     return adapter;
+}
+
+function deleteEvents(filter) {
+    return getRawEventList()
+        .then(eventList => {
+            const count = eventList.length;
+            if (!filter || filter === '*') { // delete all
+                eventListRaw = [];
+                return adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                    .then(() => count);
+            } else
+            // Delete by timestamp
+            if (typeof filter === 'number' || (filter[0] === '2' && filter.length === new Date().toISOString())) { // Attention: this will stop to work in 3000.01.01 :)
+                const ts = new Date(filter).getTime();
+                eventListRaw = eventList.filter(item => item.ts !== ts);
+                if (eventListRaw.length !== count) {
+                    return adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                        .then(() => count);
+                } else {
+                    return Promise.resolve(0);
+                }
+            } else {
+                // Delete by State ID
+                eventListRaw = eventList.filter(item => item.id !== filter);
+                if (eventListRaw.length !== count) {
+                    return adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
+                        .then(() => count);
+                } else {
+                    return Promise.resolve(0);
+                }
+            }
+        });
 }
 
 function duration2text(ms, withSpaces) {
@@ -958,6 +1012,7 @@ function main() {
 
     adapter.config.maxLength = parseInt(adapter.config.maxLength, 10);
     adapter.config.maxLength = adapter.config.maxLength || 100;
+    adapter.config.deleteAlarmsByDisable = adapter.config.deleteAlarmsByDisable === true || adapter.config.deleteAlarmsByDisable === 'true';
     if (adapter.config.maxLength > 10000) {
         adapter.config.maxLength = 10000;
     }

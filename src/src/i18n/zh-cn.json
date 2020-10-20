@@ -140,5 +140,6 @@
   "sorted ascending": "升序排序",
   "sorted descending": "降序排列",
   "Use default color": "使用默认颜色",
-  "Use default icon": "使用默认图标"
+  "Use default icon": "使用默认图标",
+  "Remove alarm events from list by the alarm mode deactivating": "通过禁用警报模式从列表中删除警报事件"
 }

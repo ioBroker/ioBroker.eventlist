@@ -140,5 +140,6 @@
   "sorted ascending": "ordenado ascendente",
   "sorted descending": "ordenado descendente",
   "Use default color": "Usar color predeterminado",
-  "Use default icon": "Usar icono predeterminado"
+  "Use default icon": "Usar icono predeterminado",
+  "Remove alarm events from list by the alarm mode deactivating": "Eliminar eventos de alarma de la lista mediante la desactivación del modo de alarma"
 }
