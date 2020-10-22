@@ -128,6 +128,7 @@ In the event texts and in the state texts the following patterns could be used:
 - Many predefined icons (minimum 100)
 - Material widget
 - Send messages to syslog (may be splunk) https://www.npmjs.com/package/splunk-logging
+- Filter by ID in Admin or Widget
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
