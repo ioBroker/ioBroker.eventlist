@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.2.9",
+        "version": "0.4.0",
         "news": {
+            "0.4.0": {
+                "en": "Added setting of even/odd background for widget\nAdded filter",
+                "de": "Einstellung des geraden / ungeraden Hintergrunds für das Widget hinzugefügt\nFilter hinzugefügt",
+                "ru": "Добавлена настройка четного / нечетного фона для виджета\nДобавлен фильтр",
+                "pt": "Adicionada configuração de fundo par / ímpar para o widget\nFiltro adicionado",
+                "nl": "Instelling van even / oneven achtergrond toegevoegd voor widget\nFilter toegevoegd",
+                "fr": "Ajout du paramètre d'arrière-plan pair / impair pour le widget\nFiltre ajouté",
+                "it": "Aggiunta l'impostazione dello sfondo pari / dispari per il widget\nAggiunto filtro",
+                "es": "Configuración agregada de fondo par / impar para el widget\nFiltro agregado",
+                "pl": "Dodano ustawienie parzystego / nieparzystego tła dla widżetu\nDodano filtr",
+                "zh-cn": "为小部件添加了偶数/奇数背景设置\n添加了过滤器"
+            },
             "0.2.9": {
                 "en": "Corrected error in GUI by disabling of state\nImplemented the deletion of events from the event list",
                 "de": "Fehler in der GUI durch Deaktivieren des Status behoben\nDas Löschen von Ereignissen aus der Ereignisliste wurde implementiert",

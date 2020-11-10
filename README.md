@@ -136,7 +136,7 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.4.0 (2020-11-10)
 * (bluefox) Added setting of even/odd background for widget
 * (bluefox) Added filter
 
