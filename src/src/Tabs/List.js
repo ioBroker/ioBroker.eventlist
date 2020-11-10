@@ -21,6 +21,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import Snackbar from '@material-ui/core/Snackbar';
 import LinearProgress  from '@material-ui/core/LinearProgress';
+import CircularProgress  from '@material-ui/core/CircularProgress';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Select from '@material-ui/core/Select';
 
 import {MdRefresh as IconReload} from 'react-icons/md';
 import {MdClose as IconClose} from 'react-icons/md';
@@ -32,11 +36,37 @@ import DeleteIcon from '@material-ui/icons/Delete';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
+import Router from '@iobroker/adapter-react/Components/Router';
+import Image from '@iobroker/adapter-react/Components/Image';
+import Utils from '@iobroker/adapter-react/Components/Utils';
+
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
 import SelectStateDialog from '../Dialogs/SelectState';
-import Router from '@iobroker/adapter-react/Components/Router';
-import Image from '@iobroker/adapter-react/Components/Image';
+
+// Copyright Apache 2.0 https://raw.githubusercontent.com/material-icons/material-icons/master/svg/filter_alt/baseline.svg
+// https://github.com/material-icons/material-icons/blob/master/LICENSE
+class IconFilter extends React.Component {
+    render() {
+        return <svg viewBox="0 0 24 24" width={24} height={24} xmlns="http://www.w3.org/2000/svg" className={ this.props.className }>
+            <path fill="currentColor" stroke="currentColor" d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04c-.83 0-1.3.95-.79 1.61z"/>
+        </svg>;
+    }
+}
+
+function serialPromises(promises, _resolve, _results) {
+    if (!_resolve) {
+        return new Promise(resolve => serialPromises(promises, resolve, []));
+    } else if (!promises || !promises.length) {
+        _resolve(_results);
+    } else {
+        const prom = promises.shift();
+        prom.then(result => {
+            _results.push(result);
+            setTimeout(() => serialPromises(promises, _resolve, _results), 0);
+        });
+    }
+}
 
 const styles = theme => ({
     tab: {
@@ -135,6 +165,38 @@ const styles = theme => ({
         width: 28,
         height: 28,
         verticalAlign: 'middle',
+    },
+    filterControl: {
+        minWidth: 200,
+        marginRight: theme.spacing(1),
+        marginLeft: 3,
+    },
+    filterDiv: {
+        position: 'relative',
+        display: 'inline-block',
+        cursor: 'pointer',
+    },
+    filterIcon: {
+
+    },
+    filterClearIcon: {
+        color: '#FF0000',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: 24,
+        height: 24,
+        opacity: 0.5,
+    },
+    filterCounts: {
+        fontSize: 10,
+        opacity: 0.7,
+        float: 'right',
+        marginTop: 16,
+    },
+    filterSecondary: {
+        opacity: 0.7,
+        fontSize: 'smaller',
     }
 });
 
@@ -144,6 +206,13 @@ class List extends Component {
 
         let editEnabled   = window.localStorage.getItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.editEnabled`) || null;
         let editAvailable = props.editAvailable !== undefined ? props.editAvailable : true;
+
+        let filterStates   = window.localStorage.getItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.filterStates`) || null;
+        try {
+            filterStates = filterStates ? JSON.parse(filterStates) : [];
+        } catch (e) {
+            filterStates = [];
+        }
 
         if (!editAvailable) {
             editEnabled = false;
@@ -164,6 +233,7 @@ class List extends Component {
             eventRawList: false,
             order: 'desc',
             orderBy: 'ts',
+            filterStates,
             selected: [],
             showDeleteConfirm: false,
             showSelectState: location.dialog === 'selectState',
@@ -173,6 +243,7 @@ class List extends Component {
             editEnabled,
             editAvailable,
             pdfInGeneration: false,
+            stateIds: null,
         };
 
         this.imagePrefix    = this.props.imagePrefix || 'files/'; // by default is admin
@@ -398,9 +469,90 @@ class List extends Component {
         }
     }
 
+    readIds() {
+        return new Promise((resolve, reject) => {
+            this.props.socket.getRawSocket().emit('getObjectView', 'custom', 'state', {startkey: '', endkey: '\u9999'}, (err, res) => {
+                if (!err) {
+                    const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
+                    const ids = [];
+                    const promises = [];
+                    if (res && res.rows) {
+                        for (let i = 0; i < res.rows.length; i++) {
+                            const obj = res.rows[i].value;
+                            if (obj[namespace]) {
+                                (id => promises.push(this.props.socket.getObject(id)
+                                    .then(obj => {
+                                        if (obj) {
+                                            let count = 0;
+                                            // count states
+                                            this.state.eventList.forEach(item => item.id === obj._id && count++);
+                                            ids.push({id: obj._id, name: Utils.getObjectNameFromObj(obj, I18n.getLanguage()), count});
+                                        }
+                                    })
+                                    .catch(e => ids.push({id}))
+                                ))(res.rows[i].id);
+                            }
+                        }
+                    }
+
+                    serialPromises(promises)
+                        .then(() => {
+                            ids.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0));
+                            resolve(ids);
+                        });
+                } else {
+                    reject(err);
+                }
+            });
+        });
+    }
+
+    renderFilter() {
+        return <>
+            <div className={this.props.classes.filterDiv}
+                 title={I18n.t('Clear filter')}
+                 onClick={() => {
+                     window.localStorage.setItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.filterStates`, '');
+                     this.setState({filterStates: []});
+                 }}
+            >
+                <IconFilter className={this.props.classes.filterIcon}/>
+                {this.state.filterStates.length ? <IconClose className={this.props.classes.filterClearIcon}/> : null}
+            </div>
+            <Select
+                className={this.props.classes.filterControl}
+                multiple
+                label={I18n.t('Filter by ID')}
+                value={this.state.filterStates}
+                onChange={event => {
+                    window.localStorage.setItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.filterStates`, JSON.stringify(event.target.value));
+                    this.setState({filterStates: event.target.value});
+                }}
+                //input={<Input placeholder={I18n.t('Filter by ID')}/>}
+                onOpen={() => this.readIds().then(ids => this.setState({stateIds: ids}))}
+                renderValue={selected => selected.length === 1 ? selected[0] : selected.length}
+            >
+                {!this.state.stateIds ?
+                    <MenuItem><CircularProgress /></MenuItem>
+                    :
+                    this.state.stateIds.map(item =>
+                        <MenuItem key={item.id} value={item.id}>
+                            <Checkbox checked={this.state.filterStates.includes(item.id)} />
+                            <ListItemText
+                                primary={<span>{item.name} <span className={this.props.classes.filterCounts}>{item.count}</span></span>}
+                                secondary={item.id}
+                                classes={{secondary: this.props.classes.filterSecondary}}
+                            />
+                        </MenuItem>)
+                }
+            </Select>
+        </>;
+    }
+
     renderToolbar() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm';
         return <Toolbar className={clsx(this.props.classes.toolbarRoot, this.state.selected.length && this.props.classes.toolbarHighlight)}>
+
             {this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled && this.state.selected.length ?
                 <Typography className={this.props.classes.toolbarTitle} color="inherit" variant="subtitle1" component="div">
                     {this.state.selected.length} {I18n.t('selected')}
@@ -411,6 +563,8 @@ class List extends Component {
                     <span className={this.props.classes.instanceNotOnline}>{!this.state.isInstanceAlive ? I18n.t('(Instance not running)') : ''}</span>
                 </Typography>
             }
+
+            {!this.state.selected.length ? this.renderFilter() : null}
 
             {this.state.editAvailable && this.state.editEnabled && this.state.selected.length ?
                 <>
@@ -489,7 +643,11 @@ class List extends Component {
     }
 
     stableSort(array, comparator) {
+        if (this.state.filterStates && this.state.filterStates.length) {
+            array = array.filter(item => this.state.filterStates.includes(item.id));
+        }
         const stabilizedThis = array.map((el, index) => [el, index]);
+
         stabilizedThis.sort((a, b) => {
             const order = comparator(a[0], b[0]);
             if (order !== 0) {
@@ -695,17 +853,15 @@ class List extends Component {
     }
 
     render() {
-        return (
-            <Paper className={ clsx(this.props.classes.tab, !(this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled) && this.props.classes.tabMargins) }>
-                {this.renderToolbar()}
-                {this.state.eventList ? this.renderList() : <LinearProgress />}
-                {this.renderToast()}
-                {this.renderConfirmDialog()}
-                {this.renderAddEventDialog()}
-                {this.renderAddIdDialog()}
-                {this.renderSelectState()}
-            </Paper>
-        );
+        return <Paper className={ clsx(this.props.classes.tab, !(this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled) && this.props.classes.tabMargins) }>
+            {this.renderToolbar()}
+            {this.state.eventList ? this.renderList() : <LinearProgress />}
+            {this.renderToast()}
+            {this.renderConfirmDialog()}
+            {this.renderAddEventDialog()}
+            {this.renderAddIdDialog()}
+            {this.renderSelectState()}
+        </Paper>;
     }
 }
 

@@ -1,7 +1,7 @@
 <!--
     ioBroker.vis eventlist Widget-Set
 
-    version: "0.2.9"
+    version: "0.3.0"
 
     Copyright 2020 ioBroker dogafox@gmail.com
 -->
@@ -291,7 +291,7 @@
                 "pl": "środek",
                 "zh-cn": "中央"
             },
-            tooltip_defaultStyle: {
+            defaultStyle_tooltip: {
                 "en": "You can overload following classes: event-table for table, event-table-header for header",
                 "de": "Sie können folgende Klassen überladen: event-table für table, event-table-header für header",
                 "ru": "Вы можете перегрузить следующие классы: event-table для таблицы, event-table-header для заголовка.",
@@ -302,6 +302,54 @@
                 "es": "Puede sobrecargar las siguientes clases: event-table para la tabla, event-table-header` para el encabezado",
                 "pl": "Możesz przeciążać następujące klasy: event-table dla tabeli, event-table-header` dla nagłówka",
                 "zh-cn": "您可以重载以下类：表的“事件表”，标头的“事件表头”"
+            },
+            "oddBackground": {
+                "en": "Odd line background",
+                "de": "Ungerader Hintergrund",
+                "ru": "Фон нечетной линии",
+                "pt": "Fundo de linha ímpar",
+                "nl": "Oneven lijn achtergrond",
+                "fr": "Arrière-plan de ligne impaire",
+                "it": "Sfondo di linea dispari",
+                "es": "Fondo de línea impar",
+                "pl": "Dziwna linia tła",
+                "zh-cn": "奇数线背景"
+            },
+            "evenBackground": {
+                "en": "Even line background",
+                "de": "Gerade Hintergrund",
+                "ru": "Фон четной линии",
+                "pt": "Plano de fundo de linha uniforme",
+                "nl": "Zelfs lijnachtergrond",
+                "fr": "Fond de ligne uniforme",
+                "it": "Anche lo sfondo della linea",
+                "es": "Fondo de línea uniforme",
+                "pl": "Równe tło linii",
+                "zh-cn": "偶数线背景"
+            },
+            "filterById": {
+                "en": "Filter IDs",
+                "de": "Filter-IDs",
+                "ru": "Идентификаторы фильтра",
+                "pt": "IDs de filtro",
+                "nl": "Filter-ID's",
+                "fr": "ID de filtre",
+                "it": "ID filtro",
+                "es": "ID de filtro",
+                "pl": "Filtruj identyfikatory",
+                "zh-cn": "过滤器ID"
+            },
+            filterById_tooltip: {
+                "en": "You can provide multiple IDs divided by comma.",
+                "de": "Sie können mehrere durch Komma getrennte IDs angeben.",
+                "ru": "Вы можете указать несколько идентификаторов, разделенных запятыми.",
+                "pt": "Você pode fornecer vários IDs divididos por vírgula.",
+                "nl": "U kunt meerdere ID's opgeven, gescheiden door komma's.",
+                "fr": "Vous pouvez fournir plusieurs ID séparés par une virgule.",
+                "it": "Puoi fornire più ID divisi da virgole.",
+                "es": "Puede proporcionar varios ID divididos por comas.",
+                "pl": "Możesz podać wiele identyfikatorów rozdzielonych przecinkami.",
+                "zh-cn": "您可以提供多个ID，以逗号分隔。"
             }
         });
     }
@@ -358,7 +406,7 @@
     });
 
     vis.binds.eventlist = {
-        version: "0.2.9",
+        version: "0.3.0",
         showVersion: function () {
             if (vis.binds.eventlist.version) {
                 console.log('Version eventlist: ' + vis.binds.eventlist.version);
@@ -389,6 +437,12 @@
                     style.push(attrs[t] + ': ' + item._style[attrs[t]]);
                 }
             }
+            if ((i % 2) && data.oddBackground) {
+                style.push('background: ' + data.oddBackground);
+            } else if (!(i % 2) && data.evenBackground) {
+                style.push('background: ' + data.evenBackground);
+            }
+
             var line = '<tr style="' + style.join('; ') + '">';
             if (data.showEventTime) {
                 line += '<td style="text-align: ' + data.alignEventTime + '">' + item.ts + '</td>';
@@ -420,12 +474,14 @@
 
             return table;
         },
-        renderTable(el, wid, view, data, style, json) {
+        renderTable(el, wid, view, data, style, json, filterById) {
             var table = '<table style="width: 100%;" class="' + (data.defaultStyle || data.defaultStyle === undefined ? 'event-table' : '') + '"><tbody style="width: 100%;">'
             table += vis.binds.eventlist.renderHeader(el, wid, view, data);
             for (var i = 0; i < json.length; i++) {
                 if (!data.max_rows || i < data.max_rows) {
-                    table += vis.binds.eventlist.renderRow(el, wid, view, data, json, i);
+                    if (!filterById || filterById.indexOf(json[i].id) !== -1) {
+                        table += vis.binds.eventlist.renderRow(el, wid, view, data, json, i);
+                    }
                 } else {
                     break;
                 }
@@ -460,6 +516,21 @@
             vis.conn.getStates(jsonID, (err, state) => {
                 var json = vis.binds.eventlist.state2json(state[jsonID]);
 
+                var filterById = (data.filterById || '').trim();
+                if (filterById) {
+                    var parts = filterById.split(',');
+                    filterById = [];
+                    for (var p = 0; p < parts.length; p++) {
+                        if (parts[p].trim() && filterById.indexOf(parts[p].trim()) === -1) {
+                            filterById.push(parts[p]);
+                        }
+                    }
+                    if (!filterById.length) {
+                        filterById = null;
+                    }
+                }
+
+
                 if (vis.editMode && !json.length) {
                     json.push({
                         ts: new Date().toLocaleTimeString(),
@@ -469,13 +540,13 @@
                     });
                 }
 
-                var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json);
+                var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json, filterById);
                 $div.html(text);
 
                 function onChange(wid, id, newVal) {
                     if (id === jsonID) {
                         var json = vis.binds.eventlist.state2json({val: newVal});
-                        var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json);
+                        var text = vis.binds.eventlist.renderTable(el, wid, view, data, style, json, filterById);
                         $div.html(text);
                     }
                 }
@@ -549,7 +620,7 @@
         data-vis-name="Events"
         data-vis-prev='<img src="widgets/eventlist/img/Prev_Eventlist.png"></img>'
         data-vis-attrs="eventlistInstance[0]/instance,eventlist;"
-        data-vis-attrs0="max_rows/number;defaultStyle[true]/checkbox;defaultStyle[true]/checkbox;"
+        data-vis-attrs0="max_rows/number;defaultStyle[true]/checkbox;defaultStyle[true]/checkbox;filterById/id;oddBackground/color;evenBackground/color;"
         data-vis-attrs1="group.header;showEventTime[true]/checkbox;showEventValue[true]/checkbox;showEventDuration[false]/checkbox;"
         data-vis-attrs2="group.headerTitle;textEventTime[_];textEventEvent[_];textEventValue[_];textEventDuration[_];"
         data-vis-attrs3="group.headerWidths;widthEventTime;widthEventEvent;widthEventValue;widthEventDuration;"

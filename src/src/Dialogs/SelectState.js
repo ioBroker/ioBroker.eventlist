@@ -35,11 +35,17 @@ const styles = theme => ({
     emptyIcon: {
         marginRight: theme.spacing(1)
     },
+    listItem: {
+        padding: 3,
+        '&:hover': {
+            background: theme.palette.type === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+        }
+    },
     listPrimary: {
 
     },
     listSecondary: {
-        opacity: 0.8,
+        opacity: 0.7,
         fontStyle: 'italic',
         fontSize: 'smaller',
     },
@@ -128,7 +134,7 @@ class SelectStateDialog extends Component {
             }
 
             const icon = getSelectIdIcon(obj);
-            return <ListItem button onClick={() => this.props.onClose(id)} key={id}>
+            return <ListItem button onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
                 <ListItemIcon>
                     {icon ? <img src={icon} className={this.props.classes.icon} alt="state"/> : <div className={this.props.classes.emptyIcon}>&nbsp;</div>}
                 </ListItemIcon>
@@ -139,7 +145,7 @@ class SelectStateDialog extends Component {
             if (filter && !id.toLowerCase().includes(filter)) {
                 return null;
             }
-            return <ListItem button onClick={() => this.props.onClose(id)} key={id}>
+            return <ListItem button onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
                 <ListItemIcon>
                     <div className={this.props.classes.emptyIcon}>&nbsp;</div>
                 </ListItemIcon>
@@ -175,8 +181,7 @@ class SelectStateDialog extends Component {
             <DialogContent className={this.props.classes.dialogContent}>
                 <List dense={true}>
                     {!filter && <ListItem button onClick={() => this.props.onClose(true)}>
-                        <ListItemIcon><AddIcon /></ListItemIcon>
-                        <ListItemText primary={I18n.t('Add new state')} classes={{primary: this.props.classes.newState}}/>
+                        <Button variant="contained"><AddIcon />{I18n.t('Add new state')}</Button>
                     </ListItem>}
                     {this.state.ids.map(item => this.renderListItem(item, filter))}
                 </List>

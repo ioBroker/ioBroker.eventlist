@@ -431,7 +431,7 @@ function formatEvent(state, allowRelative) {
             }
 
             if (val !== '' && states[id].unit) {
-                valWithUnit += states[id].unit;
+                valWithUnit = val + states[id].unit;
             } else {
                 valWithUnit = val;
             }
@@ -515,6 +515,10 @@ function formatEvent(state, allowRelative) {
 
     if (valWithUnit !== '') {
         event.val = valWithUnit;
+    }
+    // because of filter add event.id
+    if (state.id) {
+        event.id = state.id;
     }
 
     return event;

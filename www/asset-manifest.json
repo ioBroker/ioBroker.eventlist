@@ -1,30 +1,30 @@
 {
   "files": {
-    "main.css": "./static/css/main.6d584cc1.chunk.css",
-    "main.js": "./static/js/main.16f3c648.chunk.js",
-    "main.js.map": "./static/js/main.16f3c648.chunk.js.map",
+    "main.css": "./static/css/main.d4bed9c6.chunk.css",
+    "main.js": "./static/js/main.f65576ae.chunk.js",
+    "main.js.map": "./static/js/main.f65576ae.chunk.js.map",
     "runtime-main.js": "./static/js/runtime-main.2db515fd.js",
     "runtime-main.js.map": "./static/js/runtime-main.2db515fd.js.map",
-    "static/css/2.4ea622dc.chunk.css": "./static/css/2.4ea622dc.chunk.css",
-    "static/js/2.dae40311.chunk.js": "./static/js/2.dae40311.chunk.js",
-    "static/js/2.dae40311.chunk.js.map": "./static/js/2.dae40311.chunk.js.map",
+    "static/css/2.2a9d5057.chunk.css": "./static/css/2.2a9d5057.chunk.css",
+    "static/js/2.ae49aeab.chunk.js": "./static/js/2.ae49aeab.chunk.js",
+    "static/js/2.ae49aeab.chunk.js.map": "./static/js/2.ae49aeab.chunk.js.map",
     "index.html": "./index.html",
-    "precache-manifest.8480be5f714d27db8ad3e91da8449f2f.js": "./precache-manifest.8480be5f714d27db8ad3e91da8449f2f.js",
+    "precache-manifest.ea9dd5a0c3aaf5beba5165f27a8c415f.js": "./precache-manifest.ea9dd5a0c3aaf5beba5165f27a8c415f.js",
     "service-worker.js": "./service-worker.js",
-    "static/css/2.4ea622dc.chunk.css.map": "./static/css/2.4ea622dc.chunk.css.map",
-    "static/css/main.6d584cc1.chunk.css.map": "./static/css/main.6d584cc1.chunk.css.map",
-    "static/js/2.dae40311.chunk.js.LICENSE.txt": "./static/js/2.dae40311.chunk.js.LICENSE.txt",
+    "static/css/2.2a9d5057.chunk.css.map": "./static/css/2.2a9d5057.chunk.css.map",
+    "static/css/main.d4bed9c6.chunk.css.map": "./static/css/main.d4bed9c6.chunk.css.map",
+    "static/js/2.ae49aeab.chunk.js.LICENSE.txt": "./static/js/2.ae49aeab.chunk.js.LICENSE.txt",
     "static/media/lamp_ceiling.svg": "./static/media/lamp_ceiling.47b96a91.svg",
     "static/media/lamp_table.svg": "./static/media/lamp_table.68480ce1.svg",
     "static/media/no_icon.svg": "./static/media/no_icon.e1916869.svg",
-    "static/media/pushover.svg": "./static/media/pushover.f4e27e9f.svg",
+    "static/media/pushover.svg": "./static/media/pushover.e000ae58.svg",
     "static/media/telegram.svg": "./static/media/telegram.629c958a.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.2db515fd.js",
-    "static/css/2.4ea622dc.chunk.css",
-    "static/js/2.dae40311.chunk.js",
-    "static/css/main.6d584cc1.chunk.css",
-    "static/js/main.16f3c648.chunk.js"
+    "static/css/2.2a9d5057.chunk.css",
+    "static/js/2.ae49aeab.chunk.js",
+    "static/css/main.d4bed9c6.chunk.css",
+    "static/js/main.f65576ae.chunk.js"
   ]
 }
