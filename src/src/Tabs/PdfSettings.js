@@ -729,7 +729,7 @@ class PdfSettings extends Component {
 
     renderPdfFile() {
         return <Grid item xs={12} md={12} lg={6}>
-            <iframe title="pdf" className={this.props.classes.iframePdfLandscape} src={'/files/eventlist/report.pdf?q=' + this.state.random} />
+            <iframe title="pdf" className={this.props.classes.iframePdfLandscape} src={`/files/eventlist/report${this.props.instance ? '-' + this.props.instance : ''}.pdf?q=${this.state.random}`} />
         </Grid>
     }
 

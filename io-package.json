@@ -240,6 +240,7 @@
         "defaultBooleanIconFalse": "",
         "defaultNonBooleanText": "",
         "language": "",
+        "stateId": true,
         "icons": true,
         "duration": true,
         "license": "",

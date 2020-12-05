@@ -94,7 +94,7 @@ function startAdapter(options) {
     adapter.on('stateChange', (id, state) => {
         if (id === adapter.namespace + '.triggerPDF' && state && !state.ack && state.val) {
             reformatJsonTable(false)
-                .then(table => list2pdf(adapter, moment, 'report.pdf', table))
+                .then(table => list2pdf(adapter, moment, adapter.instance ? `report-${adapter.instance}.pdf` : 'report.pdf', table))
                 .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
         } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
             adapter.log.info('Switch ALARM state to ' + state.val);
@@ -202,7 +202,7 @@ function startAdapter(options) {
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'event inserted'}, obj.callback));
             } else if (obj.command === 'pdf') {
                 reformatJsonTable(false)
-                    .then(table => list2pdf(adapter, moment, 'report.pdf', table, obj.message))
+                    .then(table => list2pdf(adapter, moment, adapter.instance ? `report-${adapter.instance}.pdf` : 'report.pdf', table, obj.message))
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'rendered'}, obj.callback));
             } else if (obj.command === 'list') {
                 getRawEventList()
@@ -262,12 +262,12 @@ function deleteEvents(filter) {
                     .then(() => count);
             } else
             // Delete by timestamp
-            if (typeof filter === 'number' || (filter[0] === '2' && filter.length === new Date().toISOString())) { // Attention: this will stop to work in 3000.01.01 :)
+            if (typeof filter === 'number' || (filter.toString()[0] === '2' && filter.length === new Date().toISOString())) { // Attention: this will stop to work in 3000.01.01 :)
                 const ts = new Date(filter).getTime();
                 eventListRaw = eventList.filter(item => item.ts !== ts);
                 if (eventListRaw.length !== count) {
                     return adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-                        .then(() => count);
+                        .then(() => count - eventListRaw.length);
                 } else {
                     return Promise.resolve(0);
                 }
@@ -276,7 +276,7 @@ function deleteEvents(filter) {
                 eventListRaw = eventList.filter(item => item.id !== filter);
                 if (eventListRaw.length !== count) {
                     return adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-                        .then(() => count);
+                        .then(() => count - eventListRaw.length);
                 } else {
                     return Promise.resolve(0);
                 }

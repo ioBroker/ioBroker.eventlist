@@ -138,9 +138,7 @@ class Options extends Component {
                 open={true}
                 autoHideDuration={6000}
                 onClose={() => this.setState({toast: ''})}
-                ContentProps={{
-                    'aria-describedby': 'message-id',
-                }}
+                ContentProps={{'aria-describedby': 'message-id'}}
                 message={<span id="message-id">{this.state.toast}</span>}
                 action={[
                     <IconButton
@@ -214,6 +212,12 @@ class Options extends Component {
                     onChange={ e => this.props.onChange('relativeTime', e.target.value) }
                     helperText={I18n.t('All older entries will be shown with absolute time, newer with relative time')}
                     margin="normal"
+                />
+                {narrowWidth && <br/>}
+                <FormControlLabel
+                    classes={{label: this.props.classes.checkBoxLabel}}
+                    control={<Checkbox checked={this.props.native.stateId === undefined ? true : this.props.native.stateId} onChange={e => this.props.onChange('stateId', e.target.checked)} />}
+                    label={I18n.t('Show state ID in the list')}
                 />
                 {narrowWidth && <br/>}
                 <FormControlLabel
