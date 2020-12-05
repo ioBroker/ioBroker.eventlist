@@ -287,8 +287,10 @@ function deleteEvents(filter) {
 function duration2text(ms, withSpaces) {
     if (ms < 1000) {
         return `${ms}${withSpaces ? ' ' : ''}${textMs}`;
+    } else if (ms < 10000) {
+        return `${isFloatComma ? (Math.round(ms / 100) / 10).toString().replace('.', ',') : (Math.round(ms / 100) / 10).toString()}${withSpaces ? ' ' : ''}${textSeconds}`;
     } else if (ms < 90000) {
-        return `${isFloatComma ? (Math.round((ms / 100)) / 10).toString().replace('.', ',') : (Math.round((ms / 100)) / 10).toString()}${withSpaces ? ' ' : ''}${textSeconds}`;
+        return `${isFloatComma ? Math.round(ms / 1000).toString().replace('.', ',') : Math.round(ms / 1000).toString()}${withSpaces ? ' ' : ''}${textSeconds}`;
     } else if (ms < 3600000) {
         return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${textMinutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${textSeconds}`;
     } else {
