@@ -2,7 +2,6 @@
   "(Instance not running)": "(Instanz läuft nicht)",
   "Add": "Hinzufügen",
   "Add event": "Ereignis hinzufügen",
-  "Add new state": "Neuen Status hinzufügen",
   "Add state to event list": "Status zur Ereignisliste hinzufügen",
   "All changes will be lost. Exit?": "Alle Änderungen gehen verloren.",
   "All older entries will be shown with absolute time, newer with relative time": "Alle älteren Einträge werden mit absoluter Zeit angezeigt, neuere mit relativer Zeit",
@@ -135,7 +134,10 @@
   "selected": "ausgewählt",
   "sorted ascending": "aufsteigend sortiert",
   "sorted descending": "absteigend sortiert",
-  "Use default color": "Verwenden Sie die Standardfarbe",
-  "Use default icon": "Verwenden Sie das Standardsymbol",
-  "Remove alarm events from list by the alarm mode deactivating": "Alarmereignisse aus der Liste löschen, nachdem der Alarmmodus deaktiviert wurde"
+  "Use default color": "Standardfarbe",
+  "Use default icon": "Standardsymbol",
+  "Remove alarm events from list by the alarm mode deactivating": "Alarmereignisse aus der Liste löschen, nachdem der Alarmmodus deaktiviert wurde",
+  "Filter by ID": "Nach ID filtern",
+  "Edit event": "Ereignis bearbeiten",
+  "Add new states": "Neue Zustände hinzufügen"
 }

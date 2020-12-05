@@ -181,7 +181,7 @@ class SelectStateDialog extends Component {
             <DialogContent className={this.props.classes.dialogContent}>
                 <List dense={true}>
                     {!filter && <ListItem button onClick={() => this.props.onClose(true)}>
-                        <Button variant="contained"><AddIcon />{I18n.t('Add new state')}</Button>
+                        <Button variant="contained"><AddIcon />{I18n.t('Add new states')}</Button>
                     </ListItem>}
                     {this.state.ids.map(item => this.renderListItem(item, filter))}
                 </List>

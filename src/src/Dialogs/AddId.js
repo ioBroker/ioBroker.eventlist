@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import moment from 'moment'
-import clsx from 'clsx'
-import withWidth from "@material-ui/core/withWidth";
 
 import 'moment/locale/fr';
 import 'moment/locale/de';
@@ -24,781 +21,81 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Switch from '@material-ui/core/Switch';
-import Paper from '@material-ui/core/Paper';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import Typography from '@material-ui/core/Typography';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import IconButton from '@material-ui/core/IconButton';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import CancelIcon from '@material-ui/icons/Cancel';
 import SaveIcon from '@material-ui/icons/Save';
 import {FaEraser as RemoveIcon} from 'react-icons/fa';
-import {FaMinus as EmptyIcon} from 'react-icons/fa';
-import {FaWhatsapp as WhatsappIcon} from 'react-icons/fa';
-import Telegram from '../assets/telegram.svg';
-import Pushover from '../assets/pushover.svg';
 
-//import IconPicker from '../Components/IconPicker';
-import IconPicker from '@iobroker/adapter-react/Components/IconPicker';
 import I18n from '@iobroker/adapter-react/i18n';
-import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
-import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
-import Image from '@iobroker/adapter-react/Components/Image';
+import EditState from '../Components/EditState';
+import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
-import MessengerSelect from '../Components/MessengerSelect';
+const DEFAULT_TEMPLATE = 'default';
 
 const styles = theme => ({
-    textField: {
-        width: 250,
-        marginRight: theme.spacing(1),
-    },
     textFieldWithButton: {
         width: 'calc(100% - 70px)'
-    },
-    examplePaper: {
-        marginBottom: theme.spacing(2),
-        background: theme.palette.type === 'dark' ? '#5f5f5f' : '#d8d8d8'
-    },
-    exampleTitle: {
-        fontWeight: 'bold',
-    },
-    exampleText: {
-        marginLeft: theme.spacing(1),
-        fontStyle: 'italic',
-        fontSize: 20,
-    },
-    exampleIcon: {
-        maxWidth: 32,
-        maxHeight: 32,
-        marginRight: theme.spacing(1)
-    },
-    textDense: {
-        marginTop: 0,
-        marginBottom: 0,
-    },
-    paper: {
-        marginBottom: theme.spacing(1),
-        padding: theme.spacing(1),
-        width: 'calc(100% - ' + theme.spacing(2) + 'px)',
     },
     buttonIcon: {
         marginRight: theme.spacing(1)
     },
-    formControl: {
-        width: 200
-    },
-    inputMessengers: {
-        minWidth: 200,
-        marginRight: theme.spacing(2),
-        marginBottom: theme.spacing(2),
-    },
-    flex: {
-        flexGrow: 1,
-    },
-    messengersIcon: {
-        width: 24,
-        height: 24,
-    },
-    whatsAppIcon: {
-        color: '#45c655'
-    },
-    width100: {
-        width: '100%',
-    },
-    width100minus32: {
-        width: 'calc(100% - 32px)',
-    },
-    iconOpenAll: {
-        float: 'right',
-        marginRight: 4,
-    },
-    iconCloseAll: {
-        float: 'right'
-    }
 });
-
-const DEFAULT_TEMPLATE = 'default';
-const DISABLED_TEXT = '-------------';
 
 class AddIdDialog extends Component {
     constructor(props) {
         super(props);
 
-        let expanded = window.localStorage.getItem('eventlist.addid.expanded') || '[]';
-        try {
-            expanded = JSON.parse(expanded);
-        } catch (e) {
-            expanded = [];
-        }
+        this.propsId = this.props.id !== 'true' ? this.props.id : '';
 
         this.state = {
-            id: this.props.id || '',
-            type: '',
-            unit: '',
-            name: '',
-
-            event: '',
-            eventDefault: true,
-            alarmsOnly: false,
-
-            defaultMessengers: true,
-            messagesInAlarmsOnly: false,
-            whatsAppCMB: [],
-            pushover: [],
-            telegram: [],
-
-            states: null,
-            color: '',
-            icon: '',
-
-            changesOnly: true,
-            showSelectId: false,
-            unknownId: true,
-            expanded,
-
-            simulateState: '',
-            exists: false,
+            ids: [],
+            currentId: this.propsId || '',
+            showSelectId: !this.propsId,
+            exists: {},
+            settings: {},
             confirmExit: false,
             confirmRemove: false,
+            unknownIds: {},
         };
-
-        this.imagePrefix = this.props.imagePrefix || './files';
-        this.language = this.props.native.language || I18n.getLanguage();
-        moment.locale(this.language === 'en' ? 'en-gb' : this.language);
-
-        this.textSwitchedOn = this.translate('switched on', this.language);
-        this.textSwitchedOff = this.translate('switched off', this.language);
-        this.textDeviceChangedStatus = this.translate('Device %n changed status:', this.language);
 
         this.namespace = `${this.props.adapterName}.${this.props.instance}`;
 
-        this.subscribed = '';
         this.originalSettings = {};
-
-        this.props.socket.getSystemConfig()
-            .then(systemConfig => {
-                this.isFloatComma = systemConfig.common.isFloatComma;
-                if (this.state.id) {
-                    this.readSettings(null, true);
-                } else {
-                    this.setState({showSelectId: true});
-                }
-            });
+        setTimeout(() => this.updateIds(this.propsId, true), 100);
     }
 
-    addBooleanStates(newState) {
-        const states = JSON.parse(JSON.stringify(newState.states || []));
-        let changed;
-        let trueState = states.find(item => item.val === 'true');
-        if (!trueState) {
-            trueState = {val: 'true',  text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true', disabled: false};
-            states.push(trueState);
-            changed = true;
+    writeSettings(ids, cb) {
+        if (!ids || !ids.length) {
+            cb && cb();
         } else {
-            trueState.original = 'true';
-        }
-        let falseState = states.find(item => item.val === 'false');
-        if (!falseState) {
-            falseState = {val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false', disabled: false};
-            states.push(falseState);
-            changed = true;
-        } else {
-            falseState.original = 'false';
-        }
-
-        let newVal = trueState.text === DEFAULT_TEMPLATE;
-        if (newVal !== trueState.defText) {
-            changed = true;
-            trueState.defText = newVal;
-        }
-        newVal = trueState.text === DEFAULT_TEMPLATE ? '' : trueState.text;
-        if (newVal !== trueState.text) {
-            changed = true;
-            trueState.text = newVal;
-        }
-
-        newVal = trueState.color === DEFAULT_TEMPLATE;
-        if (newVal !== trueState.defColor) {
-            changed = true;
-            trueState.defColor = newVal;
-        }
-        newVal = trueState.color === DEFAULT_TEMPLATE ? '' : trueState.color;
-        if (newVal !== trueState.color) {
-            changed = true;
-            trueState.color = newVal;
-        }
-
-        newVal = trueState.icon === DEFAULT_TEMPLATE;
-        if (newVal !== trueState.defIcon) {
-            changed = true;
-            trueState.defIcon = newVal;
-        }
-        newVal = trueState.icon === DEFAULT_TEMPLATE ? '' : trueState.icon;
-        if (newVal !== trueState.icon) {
-            changed = true;
-            trueState.icon = newVal;
-        }
-
-        newVal = falseState.text === DEFAULT_TEMPLATE;
-        if (newVal !== falseState.defText) {
-            changed = true;
-            falseState.defText = newVal;
-        }
-        newVal = falseState.text === DEFAULT_TEMPLATE ? '' : falseState.text;
-        if (newVal !== falseState.text) {
-            changed = true;
-            falseState.text = newVal;
-        }
-
-        newVal = falseState.color === DEFAULT_TEMPLATE;
-        if (newVal !== falseState.defColor) {
-            changed = true;
-            falseState.defColor = newVal;
-        }
-        newVal = falseState.color === DEFAULT_TEMPLATE ? '' : falseState.color;
-        if (newVal !== falseState.color) {
-            changed = true;
-            falseState.color = newVal;
-        }
-
-        newVal = falseState.icon === DEFAULT_TEMPLATE;
-        if (newVal !== falseState.defIcon) {
-            changed = true;
-            falseState.defIcon = newVal;
-        }
-        newVal = falseState.icon === DEFAULT_TEMPLATE ? '' : falseState.icon;
-        if (newVal !== falseState.icon) {
-            changed = true;
-            falseState.icon = newVal;
-        }
-
-        if (changed) {
-            newState.states = states;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    parseStates(states) {
-        // convert ['zero', 'one', two'] => {'0': 'zero', '1': 'one', '2': 'two']
-        if (states instanceof Array) {
-            const nState = {};
-            states.forEach((val, i) => nState[i] = val);
-            return nState;
-        } else if (typeof states !== 'object') {
-            return null;
-        } else {
-            return states;
-        }
-    }
-
-    addNumericStates(newState, objStates) {
-        const states = JSON.parse(JSON.stringify(newState.states || []));
-        let changed;
-        objStates = this.parseStates(objStates);
-        if (objStates) {
-            // {'value': 'valueName', 'value2': 'valueName2', 0: 'OFF', 1: 'ON'}
-            Object.keys(objStates).forEach(attr => {
-                let _st = states.find(item => item.val === attr);
-                if (!_st) {
-                    _st = {val: attr,  text: objStates[attr], color: '', icon: '', disabled: false};
-                    states.push(_st);
-                    changed = true;
-                }
-            });
-
-            states.forEach(item => {
-                if (item.original !== objStates[item.val]) {
-                    item.original = objStates[item.val];
-                    changed = true;
-                }
-            });
-
-            if (changed) {
-                newState.states = states;
-                return true;
-            } else {
-                return false;
-            }
-        } else if (newState.states) {
-            newState.states = null;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    subscribe() {
-        if (this.state.id !== this.subscribed) {
-            this.subscribed && this.props.socket.unsubscribeState(this.subscribed, this.onStateChanged);
-            if (this.state.type) {
-                this.state.id && this.props.socket.subscribeState(this.state.id, this.onStateChanged);
-                this.subscribed = this.state.id;
-            } else {
-                this.subscribed = '';
-            }
-        }
-    }
-
-    onStateChanged = (id, state) => {
-        this.setState({state: state || null});
-    };
-
-    readIconAndColor(id, obj) {
-        return new Promise(resolve => {
-            if (obj) {
-                resolve(obj);
-            } else {
-                return this.props.socket.getObject(id);
-            }
-        })
-            .then(obj => {
-                if (obj && obj.common && obj.common.icon) {
-                    return {icon: obj.common.icon, color: obj.common.color};
-                } else {
-                    const parts = id.split('.');
-                    parts.pop();
-                    return this.props.socket.getObject(parts.join('.'))
-                        .then(obj => {
-                            if (obj && obj.type === 'channel') {
-                                if (obj.common && obj.common.icon) {
-                                    return {icon: obj.common.icon, color: obj.common.color};
-                                } else {
-                                    const parts = obj._id.split('.');
-                                    parts.pop();
-                                    return this.props.socket.getObject(parts.join('.'))
-                                        .then(obj => {
-                                            if (obj && (obj.type === 'channel' || obj.type === 'device')) {
-                                                if (obj.common && obj.common.icon) {
-                                                    return {icon: obj.common.icon, color: obj.common.color};
-                                                } else {
-                                                    return null;
-                                                }
-                                            } else {
-                                                return null;
-                                            }
-                                        });
-                                }
-                            } else if (obj && obj.type === 'device' && obj.common) {
-                                return {icon: obj.common.icon, color: obj.common.color};
-                            } else {
-                                return null;
-                            }
-                        });
-                }
-            });
-    }
-
-    readSettings(id, noWait) {
-        id = id || this.state.id;
-        if (this.readTypeTimer) {
-            clearTimeout(this.readTypeTimer);
-        }
-        this.setState({reading: true});
-        this.readTypeTimer = setTimeout(() =>
+            const id = ids.shift();
             this.props.socket.getObject(id)
                 .then(obj => {
-                    const newState = {
-                        type:        (obj && obj.common && obj.common.type) || '',
-                        unknownId:   !obj || !obj.common || !obj.common.type,
-                        name:        this.getName(obj),
-                        unit:        (obj && obj.common && obj.common.unit) || '',
-                        whatsAppCMB: [],
-                        pushover:    [],
-                        telegram:    [],
-                        event:       '',
-                        icon:        '',
-                        color:       '',
-                        alarmsOnly:  false,
-                        messagesInAlarmsOnly: false,
-                        reading: false,
-                    };
-
-                    if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
-                        const newSettings = obj.common.custom[this.namespace];
-                        newState.exists = true;
-
-                        newState.event        = newSettings.event === DEFAULT_TEMPLATE ? '' : newSettings.event;
-                        newState.eventDefault = newSettings.event === DEFAULT_TEMPLATE;
-                        newState.icon         = newSettings.icon;
-                        newState.color        = newSettings.color;
-                        newState.states       = newSettings.states;
-                        newState.alarmsOnly   = newSettings.alarmsOnly;
-                        newState.messagesInAlarmsOnly = newSettings.messagesInAlarmsOnly;
-                        newState.whatsAppCMB  = newSettings.whatsAppCMB || [];
-                        newState.pushover     = newSettings.pushover || [];
-                        newState.telegram     = newSettings.telegram || [];
-                        newState.defaultMessengers = newSettings.defaultMessengers === undefined ? true : newSettings.defaultMessengers;
-
-                        if (newState.type === 'boolean') {
-                            this.addBooleanStates(newState);
-                            newState.simulateState = false;
-                        } else if (newState.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
-                            this.addNumericStates(newState, obj.common.states);
-                            newState.simulateState = null;
-                        } else {
-                            newState.states = null;
-                            newState.simulateState = null;
-                        }
-                    } else {
-                        newState.defaultMessengers = true;
-                        newState.whatsAppCMB = this.props.native.defaultWhatsAppCMB || [];
-                        newState.pushover    = this.props.native.defaultPushover    || [];
-                        newState.telegram    = this.props.native.defaultTelegram    || [];
-
-                        newState.exists = false;
-                        if (newState.type === 'boolean') {
-                            this.addBooleanStates(newState);
-                            newState.simulateState = false;
-                        } else if (newState.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
-                            this.addNumericStates(newState, obj.common.states);
-                            newState.simulateState = null;
-                        } else {
-                            newState.states = null;
-                            newState.simulateState = null;
+                    if (obj && obj.common) {
+                        obj.common.custom = obj.common.custom || {};
+                        const newSettings = EditState.getSettings(this.state.settings[id] || {enabled: true, event: DEFAULT_TEMPLATE, changesOnly: true, defaultMessengers: true});
+                        // if changed
+                        if (JSON.stringify(newSettings) !== JSON.stringify(obj.common.custom[this.namespace])) {
+                            obj.common.custom[this.namespace] = newSettings;
+                            return this.props.socket.setObject(obj._id, obj)
+                                .then(() => setTimeout(() => this.writeSettings(ids, cb), 0));
                         }
                     }
-
-                    return this.readIconAndColor(id, obj)
-                        .then(result => {
-                            if (result && result.icon) {
-                                // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
-                                // or                                                  /hm-rpc.admin/icons/113_hmip-psm_thumb.png
-                                newState.ownIcon = `/adapter/${id.split('.')[0]}${result.icon}`;
-                            }
-                            if (result && result.color) {
-                                newState.ownColor = result.color;
-                            }
-                            this.setState(newState, () => this.originalSettings = this.getSettings());
-                        });
-                })
-                .catch(e => this.setState({type: '', unknownId: true, name: '', unit: '', reading: false}))
-                .then(() => {
-                    this.readTypeTimer = null;
-                    this.subscribe();
-                })
-        ,noWait ? 0 : 500);
-    }
-
-    getName(obj) {
-        let name = obj.common.name;
-        if (typeof name === 'object') {
-            name = name[this.props.native.language] || name.en;
+                    setTimeout(() => this.writeSettings(ids, cb), 0);
+                });
         }
-        return name || obj._id;
-    }
-
-    renderSelectId() {
-        if (!this.state.showSelectId) {
-            return null;
-        }
-
-        return <SelectIDDialog
-            statesOnly={true}
-            imagePrefix={'../..'}
-            showExpertButton={true}
-            multiSelect={false}
-            notEditable={true}
-            dialogName={I18n.t('Define state ID for event list')}
-            socket={this.props.socket}
-            selected={this.state.id}
-            themeName={this.props.themeName}
-            themeType={this.props.themeType}
-            onOk={id => this.setState({id}, () => this.readSettings(id))}
-            onClose={() => this.setState({showSelectId: false})}
-        />;
-    }
-
-    translate(word, lang) {
-        lang = lang || I18n.lang;
-        if (I18n.translations[lang]) {
-            const w = I18n.translations[lang][word] || I18n.translations.en[word];
-            if (w) {
-                word = w;
-            }
-        }
-        return word;
-    }
-
-    getExampleColor() {
-        let color = this.state.ownColor || '';
-        if (this.state.states) {
-            let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.type === 'boolean' && this.state.simulateState) {
-                stateVal = !stateVal;
-            } else
-            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
-                stateVal = this.state.simulateState;
-            }
-            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
-            const item = this.state.states.find(item => item.val === stateVal);
-
-            if (item && item.defColor) {
-                color = stateVal === 'true' ? ColorPicker.getColor(this.props.native.defaultBooleanColorTrue) : ColorPicker.getColor(this.props.native.defaultBooleanColorFalse);
-            } else if (item && item.color && ColorPicker.getColor(item.color)) {
-                color = ColorPicker.getColor(item.color);
-            }
-        }
-        color = color || (this.state.color && ColorPicker.getColor(this.state.color)) || '';
-
-        return color;
-    }
-
-    getExampleIcon() {
-        const defIcon = this.state.icon || this.state.ownIcon;
-        let icon = defIcon || '';
-        if (this.state.states) {
-            let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.type === 'boolean' && this.state.simulateState) {
-                stateVal = !stateVal;
-            } else
-            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
-                stateVal = this.state.simulateState;
-            }
-            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
-            const item = this.state.states.find(item => item.val === stateVal);
-
-            if (item && item.defIcon) {
-                icon = (stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse) || this.state.ownIcon || '';
-            } else if (item && item.icon) {
-                icon = item.icon;
-            }
-        }
-
-        return icon;
-    }
-
-    getExampleText() {
-        let text = '';
-        let stateVal = this.state.state ? this.state.state.val : (this.state.type === 'boolean' ? false : null);
-        if (this.state.states) {
-            if (this.state.type === 'boolean' && this.state.simulateState) {
-                stateVal = !stateVal;
-            } else
-            if (this.state.type !== 'boolean' && this.state.simulateState !== null) {
-                stateVal = this.state.simulateState;
-            }
-            stateVal = stateVal === undefined || stateVal === null ? '' : stateVal.toString();
-            const item = this.state.states.find(item => item.val === stateVal);
-
-            if (item && item.disabled) {
-                return DISABLED_TEXT;
-            }
-
-            if (stateVal === 'true' && item) {
-                text = item.defText ? this.props.native.defaultBooleanTextTrue || this.textSwitchedOn : item.text || this.textSwitchedOn;
-            } else if (stateVal === 'false' && item) {
-                text = item.defText ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : item.text || this.textSwitchedOff;
-            } else {
-                if (item && item.defText) {
-                    text = stateVal === 'true' ? this.props.native.defaultBooleanTextTrue : this.props.native.defaultBooleanTextFalse;
-                } else if (item && item.text) {
-                    text = item.text;
-                } else {
-                    text = stateVal;
-                }
-            }
-        } else {
-            if (stateVal === null || stateVal === undefined) {
-                text = 'null';
-            } else if (typeof stateVal === 'number') {
-                text = stateVal.toString();
-                if (this.isFloatComma) {
-                    text = text.replace('.', ',');
-                }
-            } else {
-                text = stateVal.toString();
-            }
-        }
-
-        return text || '';
-    }
-
-    buildExample() {
-        let eventTemplate = '';
-        let valWithUnit = '';
-        let time = this.state.state && this.state.state.ts ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat;
-
-        let valText = this.getExampleText();
-
-        if (valText === DISABLED_TEXT) {
-            return I18n.t('DISABLED');
-        }
-
-        if (this.state.type === 'boolean') {
-            let stateVal = !!(this.state.state && this.state.state.val);
-            if (this.state.simulateState) {
-                stateVal = !stateVal;
-            }
-
-            if (!this.state.eventDefault && !this.state.event && stateVal && valText) {
-                eventTemplate = valText;
-            } else if (!this.state.eventDefault && !this.state.event && !stateVal && valText) {
-                eventTemplate = valText;
-            } else {
-                if (this.state.event === DEFAULT_TEMPLATE || this.state.eventDefault) {
-                    eventTemplate = this.props.native.defaultBooleanText || this.textDeviceChangedStatus;
-                } else {
-                    eventTemplate = this.state.event;
-                }
-                eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
-                eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
-                valWithUnit = valText || (stateVal ? this.textSwitchedOn : this.textSwitchedOff);
-            }
-        } else {
-            eventTemplate = this.state.event === DEFAULT_TEMPLATE ? this.props.native.defaultNonBooleanText || this.textDeviceChangedStatus : this.state.event || this.textDeviceChangedStatus;
-
-            valWithUnit = valText;
-            if (valWithUnit !== '' && this.state.unit) {
-                valWithUnit += this.state.unit;
-            }
-            if (this.state.states) {
-                if (!this.state.eventDefault && !this.state.event) {
-                    eventTemplate = valWithUnit;
-                    valWithUnit = '';
-                }
-            }
-            eventTemplate = eventTemplate.replace(/%u/g, this.state.unit || '');
-            eventTemplate = eventTemplate.replace(/%n/g, this.state.name || this.state.id);
-        }
-
-        if (eventTemplate.includes('%d')) {
-            let text;
-            text = this.duration2text(5000);
-            eventTemplate = eventTemplate.replace(/%d/g, text);
-        }
-
-        if (eventTemplate.includes('%s')) {
-            eventTemplate = eventTemplate.replace(/%s/g, valText);
-            valWithUnit = '';
-        }
-
-        if (eventTemplate.includes('%t')) {
-            eventTemplate = eventTemplate.replace(/%t/g, this.state.state ? moment(new Date(this.state.state.ts)).format(this.props.native.dateFormat) : this.props.native.dateFormat);
-        }
-
-        if (eventTemplate.includes('%r')) {
-            eventTemplate = eventTemplate.replace(/%r/g, this.state.state ? moment(new Date(this.state.state.ts)).fromNow() : moment(new Date()).fromNow());
-        }
-
-        if (eventTemplate.includes('%o')) {
-            eventTemplate = eventTemplate.replace(/%o/g, '_');
-        }
-
-        return `${time} | ${eventTemplate} | ${valWithUnit}`;
-    }
-
-    getSettings() {
-        const settings = {
-            enabled: true,
-            event: this.state.eventDefault ? DEFAULT_TEMPLATE : this.state.event,
-            changesOnly: !!this.state.changesOnly,
-            defaultMessengers: !!this.state.defaultMessengers
-        };
-        if (this.state.color && ColorPicker.getColor(this.state.color)) {
-            settings.color = ColorPicker.getColor(this.state.color);
-        }
-        if (this.state.icon) {
-            settings.icon = this.state.icon;
-        }
-        if (this.state.alarmsOnly) {
-            settings.alarmsOnly = true;
-        }
-        if (this.state.messagesInAlarmsOnly) {
-            settings.messagesInAlarmsOnly = true;
-        }
-        if (this.state.pushover && this.state.pushover.length && !this.state.defaultMessengers) {
-            settings.pushover = this.state.pushover;
-        }
-        if (this.state.telegram && this.state.telegram.length && !this.state.defaultMessengers) {
-            settings.telegram = this.state.telegram;
-        }
-        if (this.state.whatsAppCMB && this.state.whatsAppCMB.length && !this.state.defaultMessengers) {
-            settings.whatsAppCMB = this.state.whatsAppCMB;
-        }
-
-        this.state.states && this.state.states.forEach(item => {
-            settings.states = settings.states || [];
-            const it = {val: item.val};
-
-            if (item.disabled)  {
-                it.disabled = true;
-                settings.states.push(it);
-                return;
-            }
-
-            if (item.val === 'true' || item.val === 'false') {
-                it.text  = item.defText  ? DEFAULT_TEMPLATE : item.text || '';
-                if (item.defColor || (item.color && ColorPicker.getColor(item.color))) {
-                    it.color = item.defColor ? DEFAULT_TEMPLATE : ColorPicker.getColor(item.color);
-                }
-                if (item.defIcon || item.icon) {
-                    it.icon = item.defIcon  ? DEFAULT_TEMPLATE : item.icon;
-                }
-            } else {
-                it.text  = item.text || '';
-                if (item.color && ColorPicker.getColor(item.color))  {
-                    it.color = ColorPicker.getColor(item.color);
-                }
-                if (item.icon)  {
-                    it.icon = item.icon;
-                }
-            }
-
-            settings.states.push(it);
-        });
-
-        return settings;
-    }
-
-    duration2text(ms, withSpaces) {
-        if (ms < 1000) {
-            return `${ms}${withSpaces ? ' ' : ''}${I18n.t('ms')}`;
-        } else if (ms < 90000) {
-            return `${this.isFloatComma ? (Math.round((ms / 100)) / 10).toString().replace('.', ',') : (Math.round((ms / 100)) / 10).toString()}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
-        } else if (ms < 3600000) {
-            return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
-        } else {
-            const hours = Math.floor(ms / 3600000);
-            const minutes = Math.floor(ms / 60000) % 60;
-            const seconds = Math.round(Math.floor(ms % 60000) / 1000);
-            return `${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${seconds}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
-        }
-    }
-
-    writeSettings(cb) {
-        this.props.socket.getObject(this.state.id)
-            .then(obj => {
-                if (obj && obj.common) {
-                    obj.common.custom = obj.common.custom || {};
-                    obj.common.custom[this.namespace] = this.getSettings();
-                    this.props.socket.setObject(this.state.id, obj)
-                        .then(() => cb && cb());
-                } else {
-                    cb && cb();
-                }
-            });
     }
 
     removeSettings(cb) {
-        this.props.socket.getObject(this.state.id)
+        this.props.socket.getObject(this.state.ids[0])
             .then(obj => {
                 if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
                     obj.common.custom[this.namespace] = null;
-                    this.props.socket.setObject(this.state.id, obj)
+                    this.props.socket.setObject(this.state.ids[0], obj)
                         .then(() => cb && cb());
                 } else {
                     cb && cb();
@@ -807,34 +104,11 @@ class AddIdDialog extends Component {
     }
 
     onClose() {
-        if (this.state.id && JSON.stringify(this.originalSettings) !== JSON.stringify(this.getSettings())) {
+        if (this.state.ids.find(id => JSON.stringify(this.originalSettings[id]) !== JSON.stringify(this.state.settings[id]))) {
             this.setState({confirmExit: true});
         } else {
             this.props.onClose();
         }
-    }
-
-    onToggle(id) {
-        let expanded;
-        if (id === false) {
-            expanded = [];
-        } else if (id === true) {
-            expanded = ['state_settings', 'state_messengers'];
-            this.state.states && this.state.states.forEach(state => expanded.push('state_' + state.val));
-        } else {
-            expanded = [...this.state.expanded];
-            const pos = expanded.indexOf(id);
-            if (pos !== -1)  {
-                expanded.splice(pos, 1);
-            } else {
-                expanded.push(id);
-                expanded.sort();
-            }
-        }
-
-        window.localStorage.setItem('eventlist.addid.expanded', JSON.stringify(expanded));
-
-        this.setState({expanded});
     }
 
     renderConfirmExit() {
@@ -874,274 +148,106 @@ class AddIdDialog extends Component {
         }
     }
 
-    renderState(i, narrowWidth) {
-        const state = this.state.states[i];
-        const isBoolean = state.val === 'true' || state.val === 'false';
+    renderSelectId() {
+        if (!this.state.showSelectId) {
+            return null;
+        }
 
-        let color = state.defColor ? (state.val === 'true' ? this.props.native.defaultBooleanColorTrue : this.props.native.defaultBooleanColorFalse) : state.color;
-        color = !state.disabled && color ? ColorPicker.getColor(color) : '';
-
-        return <Accordion
-            key={state.val}
-            expanded={this.state.expanded.includes('state_' + state.val) && !state.disabled}
-            onChange={() => this.onToggle('state_' + state.val)}
-        >
-            <AccordionSummary expandIcon={!state.disabled ? <ExpandMoreIcon /> : <EmptyIcon/>}>
-                <Typography className={this.props.classes.heading}>{I18n.t('State')} <span style={{color: color || undefined, fontWeight: 'bold'}}>{
-                    state.original === 'true' || state.original === 'false' ?
-                        `${state.original.toUpperCase()}${state.text ? ' - ' + state.text : ''}`
-                        :
-                        `${state.original}(${state.val})${state.text ? ' - ' + state.text : ''}`
-                }</span></Typography>
-                <div className={this.props.classes.flex}/>
-                <FormControlLabel
-                    disabled={this.state.reading}
-                    control={<Checkbox
-                        checked={!!state.disabled}
-                        onChange={e => {
-                            const states = JSON.parse(JSON.stringify(this.state.states));
-                            states[i].disabled = e.target.checked;
-                            this.setState({states});
-                        }} />
-                    }
-                    label={I18n.t('Disable logging')}
-                />
-            </AccordionSummary>
-            {!state.disabled && <AccordionDetails>
-                <Paper className={this.props.classes.paper}>
-                    {isBoolean ? <FormControlLabel
-                        disabled={this.state.reading}
-                        control={<Checkbox
-                            checked={state.defText}
-                            onChange={e => {
-                                const states = JSON.parse(JSON.stringify(this.state.states));
-                                states[i].defText = e.target.checked;
-                                this.setState({states});
-                            }} />
-                        }
-                        label={I18n.t('Use default text')}
-                    /> : null}
-                    {!isBoolean || !state.defText ? <TextField
-                        disabled={this.state.reading}
-                        margin="dense"
-                        label={I18n.t('Text')}
-                        value={state.text}
-                        classes={{root: this.props.classes.textDense}}
-                        onChange={e => {
-                            const states = JSON.parse(JSON.stringify(this.state.states));
-                            states[i].text = e.target.value;
-                            this.setState({states});
-                        }}
-                        type="text"
-                        className={this.props.classes.textField}
-                    /> : null}
-                    {narrowWidth ? <br/> : null}
-                    {isBoolean ? <FormControlLabel
-                        disabled={this.state.reading}
-                        control={<Checkbox
-                            checked={state.defColor}
-                            onChange={e => {
-                                const states = JSON.parse(JSON.stringify(this.state.states));
-                                states[i].defColor = e.target.checked;
-                                this.setState({states});
-                            }} />
-                        }
-                        label={I18n.t('Use default color', state.val.toUpperCase())}
-                    /> : null}
-                    {!isBoolean || !state.defColor ?
-                        <ColorPicker
-                            disabled={this.state.reading}
-                            openAbove={true}
-                            color={state.color}
-                            style={{width: 250, display: 'inline-block'}}
-                            name={I18n.t('Color')}
-                            onChange={color => {
-                                const states = JSON.parse(JSON.stringify(this.state.states));
-                                states[i].color = color;
-                                this.setState({states});
-                            }}
-                        /> : null}
-                    {narrowWidth ? <br/> : null}
-                    {isBoolean ? <FormControlLabel
-                        disabled={this.state.reading}
-                        control={<Checkbox
-                            checked={state.defIcon}
-                            onChange={e => {
-                                const states = JSON.parse(JSON.stringify(this.state.states));
-                                states[i].defIcon = e.target.checked;
-                                this.setState({states});
-                            }} />
-                        }
-                        label={I18n.t('Use default icon', state.val.toUpperCase())}
-                    /> : null}
-                    {!isBoolean || !state.defIcon ? <IconPicker
-                        disabled={this.state.reading}
-                        imagePrefix={this.imagePrefix}
-                        key={this.state.id + this.state.type + state.original}
-                        color={color}
-                        label={I18n.t('Icon')}
-                        socket={this.props.socket}
-                        value={state.icon}
-                        onChange={icon => {
-                            const states = JSON.parse(JSON.stringify(this.state.states));
-                            states[i].icon = icon;
-                            this.setState({states});
-                        }}
-                    /> : null}
-                    {narrowWidth ? <br/> : null}
-                </Paper>
-            </AccordionDetails>}
-        </Accordion>;
+        return <SelectIDDialog
+            statesOnly={true}
+            imagePrefix={'../..'}
+            showExpertButton={true}
+            multiSelect={true}
+            notEditable={true}
+            dialogName={I18n.t('Define state ID for event list')}
+            socket={this.props.socket}
+            selected={this.state.ids}
+            themeName={this.props.themeName}
+            themeType={this.props.themeType}
+            onOk={ids => this.updateIds(ids, true)}
+            onClose={() => this.setState({showSelectId: false})}
+        />;
     }
 
-    renderStateSettings(narrowWidth) {
-        const color = ColorPicker.getColor(this.state.color);
-        const text = this.state.eventDefault ? (this.state.type === 'boolean' ? this.props.native.defaultBooleanText : this.props.native.defaultNonBooleanText) : this.state.event || I18n.t('Use the specific state texts');
-
-        return <Accordion
-            expanded={this.state.expanded.includes('state_settings')}
-            onChange={() => this.onToggle('state_settings')}
-        >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{root: this.props.classes.width100minus32}}>
-                <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}
-                    {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <Paper className={this.props.classes.paper}>
-                    <FormControlLabel
-                        disabled={this.state.reading}
-                        control={<Checkbox
-                            checked={this.state.eventDefault}
-                            onChange={e => this.setState({eventDefault: e.target.checked})} />
-                        }
-                        label={<span>
-                            <span>{I18n.t('Default text')}</span>
-                        </span>}
-                    />
-                    {narrowWidth ? <br/> : null}
-                    {!this.state.eventDefault ? <TextField
-                        disabled={this.state.reading}
-                        margin="dense"
-                        label={I18n.t('Event text')}
-                        value={this.state.event}
-                        onChange={e => this.setState({event: e.target.value})}
-                        type="text"
-                        className={this.props.classes.textField}
-                        helperText={ this.state.type === 'number' ?
-                            I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference')
-                            :
-                            I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
-                        fullWidth
-                    /> : null}
-                    <br/>
-                    <ColorPicker
-                        disabled={this.state.reading}
-                        color={this.state.color}
-                        style={{width: 250, display: 'inline-block'}}
-                        name={I18n.t('Event color')}
-                        openAbove={true}
-                        onChange={color => this.setState({color})}
-                    />
-                    <br/>
-                    <IconPicker
-                        disabled={this.state.reading}
-                        imagePrefix={this.imagePrefix}
-                        key={this.state.id + this.state.type}
-                        color={this.state.color}
-                        socket={this.props.socket}
-                        label={I18n.t('Event icon')}
-                        value={this.state.icon}
-                        onChange={icon => this.setState({icon: icon})}
-                    />
-                </Paper>
-            </AccordionDetails>
-        </Accordion>;
+    onChange(id, newSettings) {
+        const settings = JSON.parse(JSON.stringify(this.state.settings));
+        settings[id] = JSON.parse(JSON.stringify(newSettings));
+        this.setState({settings});
     }
 
-    renderMessengers(narrowWidth) {
-        const count = (this.state.telegram ? this.state.telegram.length : 0) +
-            (this.state.whatsAppCMB ? this.state.whatsAppCMB.length : 0) +
-            (this.state.pushover ? this.state.pushover.length : 0);
+    updateIds(ids, noWait) {
+        const newState = {
+            ids: ids && typeof ids === 'object' ? ids.filter(id => id && id !== 'true') : (ids || '').split(',').map(id => id.trim()),
+        };
 
-        const messengers = [
-            this.state.telegram    && this.state.telegram.length    ? [<img src={Telegram} key="icon" alt="telegram" className={this.props.classes.messengersIcon}/>, <span key="text">{'(' + this.state.telegram.join(', ')    + ')'}</span>] : null,
-            this.state.whatsAppCMB && this.state.whatsAppCMB.length ? [<WhatsappIcon key="icon" className={clsx(this.props.classes.messengersIcon, this.props.classes.whatsAppIcon)}/>, <span key="text">{'(' + this.state.whatsAppCMB.join(', ') + ')'}</span>] : null,
-            this.state.pushover    && this.state.pushover.length    ? [<img src={Pushover} key="icon" alt="pushover" className={this.props.classes.messengersIcon}/>, <span key="text">{'('    + this.state.pushover.join(', ')    + ')'}</span>] : null,
-        ];
+        if (!this.state.currentId || !newState.ids.includes(this.state.currentId)) {
+            newState.currentId = newState.ids[0] || '';
+        }
 
-        return <Accordion
-            expanded={this.state.expanded.includes('state_messengers')}
-            onChange={() => this.onToggle('state_messengers')}
-        >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography className={this.props.classes.heading}>{I18n.t('Messengers') + (count ? ' - ' : '')}
-                    {messengers}
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails style={{display: 'block'}}>
-                <FormControlLabel
-                    disabled={this.state.reading}
-                    control={<Checkbox
-                        disabled={!!this.state.alarmsOnly}
-                        checked={!!(this.state.messagesInAlarmsOnly || this.state.alarmsOnly)}
-                        onChange={e => this.setState({messagesInAlarmsOnly: e.target.checked})} />
+        this.setState(newState, () => {
+            if (this.state.ids.find(id => !this.state.settings[id])) {
+                this.readTypeTimer && clearTimeout(this.readTypeTimer);
+                this.setState({reading: true});
+
+                this.readTypeTimer = setTimeout(async () => {
+                    this.readTypeTimer = null;
+
+                    const newState = {
+                        settings: JSON.parse(JSON.stringify(this.state.settings)),
+                        exists:   JSON.parse(JSON.stringify(this.state.exists)),
+                        reading:  false,
                     }
-                    label={I18n.t('Only in alarm state')}
-                />
-                {narrowWidth && <br/>}
-                <FormControlLabel
-                    disabled={this.state.reading}
-                    control={<Checkbox
-                        checked={this.state.defaultMessengers}
-                        onChange={e => this.setState({defaultMessengers: e.target.checked})} />
+
+                    // read all settings of all IDs
+                    for (let i = 0; i < this.state.ids.length; i++) {
+                        const id = this.state.ids[i];
+                        if (!newState.settings[id]) {
+                            try {
+                                const result = await EditState.readSettingsFromServer(
+                                    this.props.socket,
+                                    this.props.native.language || I18n.getLanguage(),
+                                    this.props.native, this.namespace,
+                                    id
+                                );
+
+                                this.originalSettings[id] = JSON.parse(JSON.stringify(result.settings));
+                                newState.settings[id]     = result.settings;
+                                newState.exists[id]       = result.exists;
+                            } catch (e) {
+                                console.error(e);
+                                this.originalSettings[id] = {type: '', name: '', unit: ''};
+                                newState.settings[id]     = {type: '', name: '', unit: ''};
+                                newState.exists[id]       = false;
+                            }
+                        }
                     }
-                    label={I18n.t('Default messengers')}
-                />
-                <br/>
-                {this.state.defaultMessengers ? null : <MessengerSelect
-                    label={ I18n.t('Telegram') }
-                    adapterName={'telegram'}
-                    className={ this.props.classes.inputMessengers }
-                    onChange={value => this.setState({telegram: value})}
-                    selected={ this.state.telegram }
-                    socket={this.props.socket}
-                />}
-                {narrowWidth && !this.state.defaultMessengers && <br/>}
-                {this.state.defaultMessengers ? null : <MessengerSelect
-                    label={ I18n.t('WhatsApp-CMB') }
-                    adapterName={'whatsapp-cmb'}
-                    className={ this.props.classes.inputMessengers }
-                    onChange={value => this.setState({whatsAppCMB: value})}
-                    selected={ this.state.whatsAppCMB}
-                    socket={this.props.socket}
-                />}
-                {narrowWidth && !this.state.defaultMessengers && <br/>}
-                {this.state.defaultMessengers ? null : <MessengerSelect
-                    label={ I18n.t('Pushover') }
-                    adapterName={'pushover'}
-                    className={ this.props.classes.inputMessengers }
-                    onChange={value => this.setState({pushover: value})}
-                    selected={ this.state.pushover}
-                    socket={this.props.socket}
-                />}
-            </AccordionDetails>
-        </Accordion>;
+
+                    this.setState(newState);
+                }, noWait ? 0 : 500);
+            }
+        });
     }
 
     render() {
-        const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
-        let val = '';
-        if (this.state.state && this.state.state.val) {
-            if (this.state.state.val === null || this.state.state.val === undefined) {
-                val = ' - --';
-            } else {
-                val = ' - ' + this.state.state.val.toString();
-            }
-        }
+        const changed = this.state.ids.find(id =>
+                !this.state.exists[id] || JSON.stringify(this.originalSettings[id]) !== JSON.stringify(this.state.settings[id]));
 
-        const changed = !this.state.exists || JSON.stringify(this.originalSettings) !== JSON.stringify(this.getSettings());
-        const exampleColor = this.getExampleColor() || undefined;
+        const exists = this.state.ids.find(id => this.state.exists[id]);
+
+        let tabs = null;
+        if (this.state.ids.length > 1) {
+            tabs =
+                <Tabs
+                    value={this.state.ids.indexOf(this.state.currentId)}
+                    onChange={(event, newValue) => this.setState({currentId: this.state.ids[newValue]})}
+                    indicatorColor="primary"
+                    textColor="primary"
+                    variant="scrollable"
+                    scrollButtons="auto"
+                >
+                    {this.state.ids.map(id => <Tab label={id} />)}
+                </Tabs>
+        }
 
         return <Dialog
             open={true}
@@ -1150,7 +256,7 @@ class AddIdDialog extends Component {
             fullWidth={true}
             maxWidth="lg"
         >
-            <DialogTitle id="form-dialog-title">{I18n.t('Add event')}</DialogTitle>
+            <DialogTitle id="form-dialog-title">{this.propsId ? I18n.t('Edit event') : I18n.t('Add event')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     {I18n.t('You can add state to the event list, so the changes will be monitored.')}
@@ -1158,109 +264,57 @@ class AddIdDialog extends Component {
                 <div className={this.props.classes.field}>
                     <TextField
                         autoFocus
+                        disabled={!!this.propsId}
                         margin="dense"
                         label={I18n.t('State ID')}
-                        error={!!(this.state.id && this.state.unknownId)}
+                        error={!!(this.state.ids && this.state.unknownId)}
                         className={this.props.classes.textFieldWithButton}
-                        value={this.state.id}
-                        onChange={e => this.setState({id: e.target.value}, () => this.readSettings())}
+                        value={this.state.ids.join(', ')}
+                        onChange={e => this.updateIds(e.target.value)}
                         type="text"
                         fullWidth
                     />
-                    <Button style={{marginTop: 8}} variant="contained" color="secondary" onClick={() => this.setState({showSelectId: true})}>...</Button>
+                    {!this.propsId ? <Button
+                        style={{marginTop: 8}}
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => this.setState({showSelectId: true})}
+                    >...</Button> : null}
                 </div>
                 {this.state.reading ? <LinearProgress/> : <div style={{height: 4, width: '100%'}}/>}
-
-                {this.state.id && this.state.type ?
-                    <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
-                        <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
-                        <span className={this.props.classes.exampleText} style={{color: exampleColor}}>
-                            {this.props.native.icons ? <Image
-                                src={this.getExampleIcon()}
-                                className={this.props.classes.exampleIcon}
-                                color={exampleColor}
-                                imagePrefix={this.imagePrefix}
-                            />: null}
-                            {this.buildExample()}
-                        </span>
-                        {this.state.type === 'boolean' ?
-                            <>
-                                <br/>
-                                <FormControlLabel
-                                    disabled={this.state.reading}
-                                    control={<Switch
-                                        checked={!!this.state.simulateState}
-                                        onChange={e => this.setState({simulateState: e.target.checked})}/>
-                                    }
-                                    label={I18n.t('Toggle state to simulate')}
-                                />
-                            </>
-                            : null
-                        }
-                        {this.state.type === 'number' && this.state.states ?
-                            <>
-                                <br/>
-                                <FormControl className={this.props.classes.formControl} disabled={this.state.reading}>
-                                    <InputLabel>{I18n.t('Simulate value')}</InputLabel>
-                                    <Select
-                                        value={this.state.simulateState === null ? '_current_' : this.state.simulateState}
-                                        onChange={e => this.setState({simulateState: e.target.value === '_current_' ? null : e.target.value})}
-                                    >
-                                    <MenuItem value={'_current_'}>{I18n.t('current') + val}</MenuItem>
-                                    {this.state.states.map(item =>
-                                        <MenuItem value={item.val}>{item.original}({item.val})</MenuItem>)}
-                                </Select>
-                                </FormControl>
-                            </>
-                            : null
-                        }
-                    </Paper>
-                    : null }
-
-                {this.state.id && this.state.type ?
-                    <div className={this.props.classes.width100}>
-                        <FormControlLabel
-                            disabled={this.state.reading}
-                            control={<Checkbox
-                                checked={this.state.changesOnly}
-                                onChange={e => this.setState({changesOnly: e.target.checked})} />
-                            }
-                            label={I18n.t('Only changes')}
-                        />
-                        {narrowWidth && <br/>}
-                        <FormControlLabel
-                            disabled={this.state.reading}
-                            control={<Checkbox
-                                checked={!!this.state.alarmsOnly}
-                                onChange={e => this.setState({alarmsOnly: e.target.checked})} />
-                            }
-                            label={I18n.t('Only in alarm state')}
-                        />
-                        <IconButton disabled={this.state.expanded.length === (this.state.states ? this.state.states.length : 0 ) + 2} className={this.props.classes.iconOpenAll} onClick={() => this.onToggle(true)}><ExpandMoreIcon/></IconButton>
-                        <IconButton disabled={!this.state.expanded.length} className={this.props.classes.iconCloseAll} onClick={() => this.onToggle(false)}> <ExpandLessIcon/></IconButton>
-                    </div> : null}
-                {this.state.id     ? this.renderStateSettings() : null }
-                {this.state.states ? this.state.states.sort((a, b) => a.val > b.val ? 1 : (a.val < b.val ? -1 : 0)).map((item, i) => this.renderState(i, narrowWidth)) : null }
-                {this.state.id     ? this.renderMessengers(narrowWidth) : null}
+                {tabs}
+                {this.state.settings[this.state.currentId] ? <EditState
+                    key={this.state.currentId}
+                    id={this.state.currentId}
+                    onChange={(id, settings) => this.onChange(id, settings)}
+                    instance={this.props.instance}
+                    reading={this.state.reading}
+                    adapterName={this.props.adapterName}
+                    themeName={this.props.themeName}
+                    themeType={this.props.themeType}
+                    socket={this.props.socket}
+                    imagePrefix={this.props.imagePrefix}
+                    native={this.props.native}
+                    settings={this.state.settings[this.state.currentId]}
+                /> : null}
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{!changed ? I18n.t('Close') : I18n.t('Cancel')}</Button>
-                {this.state.exists ? <Button
-                    disabled={!this.state.id || !this.state.type}
+                {this.state.exists[this.state.currentId] && this.state.ids.length === 1 ? <Button
                     onClick={() => this.setState({confirmRemove: true})}
                 ><RemoveIcon className={this.props.classes.buttonIcon}/>{I18n.t('Remove')}</Button> : null}
                 <Button
-                    disabled={!this.state.id || !this.state.type || !changed}
+                    disabled={!this.state.ids.length || !changed}
                     onClick={() =>
-                        this.writeSettings(() =>
+                        this.writeSettings([...this.state.ids], () =>
                             this.props.onClose())
                     }
                     color="primary"
-                ><SaveIcon className={this.props.classes.buttonIcon}/>{this.state.exists ? I18n.t('Update') : I18n.t('Add')}</Button>
+                ><SaveIcon className={this.props.classes.buttonIcon}/>{exists ? I18n.t('Update') : I18n.t('Add')}</Button>
             </DialogActions>
-            {this.renderSelectId()}
             {this.renderConfirmExit()}
             {this.renderConfirmRemove()}
+            {this.renderSelectId()}
         </Dialog>;
     }
 }
@@ -1277,4 +331,4 @@ AddIdDialog.propTypes = {
     imagePrefix: PropTypes.string,
 };
 
-export default withWidth()(withStyles(styles)(AddIdDialog));
+export default withStyles(styles)(AddIdDialog);

@@ -136,6 +136,10 @@ In the event texts and in the state texts the following patterns could be used:
 -->
 
 ## Changelog
+### 0.4.2 (2020-12-05)
+* (bluefox) Added possibility to add multiple states
+* (bluefox) Moved the duration to previous state
+
 ### 0.4.0 (2020-11-10)
 * (bluefox) Added setting of even/odd background for widget
 * (bluefox) Added filter

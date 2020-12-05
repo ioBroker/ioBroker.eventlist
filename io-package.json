@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.4.0",
+        "version": "0.4.2",
         "news": {
+            "0.4.2": {
+                "en": "Added possibility to add multiple states\nMoved the duration to previous state",
+                "de": "Möglichkeit hinzugefügt, mehrere Zustände hinzuzufügen\nDie Dauer wurde in den vorherigen Status verschoben",
+                "ru": "Добавлена возможность добавлять несколько состояний\nПродолжительность перенесена в предыдущее состояние",
+                "pt": "Adicionada possibilidade de adicionar vários estados\nMoveu a duração para o estado anterior",
+                "nl": "Mogelijkheid toegevoegd om meerdere staten toe te voegen\nVerplaatst de duur naar de vorige staat",
+                "fr": "Ajout de la possibilité d'ajouter plusieurs états\nDéplacement de la durée à l'état précédent",
+                "it": "Aggiunta la possibilità di aggiungere più stati\nLa durata è stata spostata allo stato precedente",
+                "es": "Posibilidad agregada de agregar múltiples estados\nSe movió la duración al estado anterior.",
+                "pl": "Dodano możliwość dodawania wielu stanów\nPrzeniesiono czas trwania do poprzedniego stanu",
+                "zh-cn": "增加了添加多个状态的可能性\n将持续时间移至先前状态"
+            },
             "0.4.0": {
                 "en": "Added setting of even/odd background for widget\nAdded filter",
                 "de": "Einstellung des geraden / ungeraden Hintergrunds für das Widget hinzugefügt\nFilter hinzugefügt",

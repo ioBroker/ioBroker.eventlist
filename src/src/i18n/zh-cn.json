@@ -2,7 +2,6 @@
   "(Instance not running)": "（实例未运行）",
   "Add": "加",
   "Add event": "新增活动",
-  "Add new state": "新增状态",
   "Add state to event list": "将状态添加到事件列表",
   "All changes will be lost. Exit?": "所有更改都将丢失。出口？",
   "All older entries will be shown with absolute time, newer with relative time": "所有较旧的条目将显示绝对时间，较新的则显示相对时间",
@@ -133,7 +132,7 @@
   "hours": "小时",
   "license_hint": "license_hint",
   "minutes": "分钟",
-  "ms": "多发性硬化症",
+  "ms": "ms",
   "optional": "可选的",
   "seconds": "秒",
   "selected": "已选",
@@ -141,5 +140,8 @@
   "sorted descending": "降序排列",
   "Use default color": "使用默认颜色",
   "Use default icon": "使用默认图标",
-  "Remove alarm events from list by the alarm mode deactivating": "通过禁用警报模式从列表中删除警报事件"
+  "Remove alarm events from list by the alarm mode deactivating": "通过禁用警报模式从列表中删除警报事件",
+  "Filter by ID": "按编号过滤",
+  "Edit event": "编辑活动",
+  "Add new states": "添加新状态"
 }

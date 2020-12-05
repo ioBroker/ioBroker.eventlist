@@ -29,9 +29,9 @@ function build() {
     );
 }
 
-if (window.location.host !== 'localhost:3000' && false) {
+if (window.location.host !== 'localhost:3000') {
     Sentry.init({
-        dsn: 'https://5ad729dbed504d15aa8bde423cae9a8e@sentry.iobroker.net/57',
+        dsn: 'https://f41fcdf099e848c590da9b96d0ba67c8@sentry.iobroker.net/109',
         release: 'iobroker.' + window.adapterName + '@' + version,
         integrations: [
             new SentryIntegrations.Dedupe()

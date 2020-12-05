@@ -154,6 +154,7 @@ function startAdapter(options) {
                 } else {
                     // calculate duration
                     if (states[id].durationUsed) {
+                        // this event is only started and we must update the duration of previous event
                         if (states[id].ts && state.ts >= states[id].ts) {
                             state.duration = state.ts - states[id].ts;
                         } else {
@@ -307,7 +308,7 @@ function formatEvent(state, allowRelative) {
     let icon = '';
 
     const date = new Date(state.ts);
-    let time = allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000 ? moment(date).fromNow() : moment(date).format(adapter.config.dateFormat);
+    let time;
 
     if (allowRelative && Date.now() - date.getTime() < adapter.config.relativeTime * 1000) {
         relativeCounter++;
@@ -473,7 +474,17 @@ function formatEvent(state, allowRelative) {
         }*/
     }
 
-    const durationText = state.duration !== undefined ? duration2text(state.duration) : '';
+    let durationText;
+    if (state.duration !== undefined) {
+        durationText = duration2text(state.duration);
+    } else {
+        durationText = duration2text(Date.now() - state.ts);
+        event.dr = 1; // duration running
+        relativeCounter++;
+        if (!momentInterval) {
+            momentInterval = setInterval(() => updateMomentTimes(), 10000);
+        }
+    }
 
     if (eventTemplate.includes('%d')) {
         eventTemplate = eventTemplate.replace(/%d/g, durationText);
@@ -649,7 +660,11 @@ function addEvent(event) {
             }
 
             if (event.duration !== undefined && event.duration !== null) {
-                _event.duration = event.duration;
+                // This is duration of previous event
+                const prevEvent = eventListRaw.find(item => item.id === event.id);
+                if (prevEvent) {
+                    prevEvent.duration = event.duration;
+                }
             }
 
             // time must be unique
@@ -938,7 +953,7 @@ function reformatJsonTable(allowRelative, table) {
     return new Promise(resolve => {
         if (!table && !eventListRaw) {
             return getRawEventList()
-                .then(eventListRaw => resolve(eventListRaw))
+                .then(eventListRaw => resolve(eventListRaw));
         } else {
             table = table || eventListRaw;
             return resolve(table);

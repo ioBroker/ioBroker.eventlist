@@ -2,7 +2,6 @@
   "(Instance not running)": "(Инстанция не запущена)",
   "Add": "Добавить",
   "Add event": "Добавить мероприятие",
-  "Add new state": "Добавить новое состояние",
   "Add state to event list": "Добавить состояние в список событий",
   "All changes will be lost. Exit?": "Все изменения будут потеряны. Выход?",
   "All older entries will be shown with absolute time, newer with relative time": "Все старые записи будут показаны с абсолютным временем, новые - с относительным временем.",
@@ -140,5 +139,8 @@
   "sorted descending": "отсортировано по убыванию",
   "Use default color": "Использовать цвет по умолчанию",
   "Use default icon": "Использовать значок по умолчанию",
-  "Remove alarm events from list by the alarm mode deactivating": "Удалять тревожные события из списка после деактивации тревожного режима"
+  "Remove alarm events from list by the alarm mode deactivating": "Удалять тревожные события из списка после деактивации тревожного режима",
+  "Filter by ID": "Фильтр по ID",
+  "Edit event": "Изменить событие",
+  "Add new states": "Добавить новые состояния"
 }

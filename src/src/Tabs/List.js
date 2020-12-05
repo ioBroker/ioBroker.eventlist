@@ -33,6 +33,7 @@ import {MdAdd as IconAddEvent} from 'react-icons/md';
 import {MdEdit as IconEdit} from 'react-icons/md';
 import {FaFilePdf as IconPdf} from 'react-icons/fa';
 import DeleteIcon from '@material-ui/icons/Delete';
+import IconEvent from '@material-ui/icons/Event';
 
 import I18n from '@iobroker/adapter-react/i18n';
 import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
@@ -67,6 +68,8 @@ function serialPromises(promises, _resolve, _results) {
         });
     }
 }
+
+const COLOR_RUNNING_DURATION = '#59be78';
 
 const styles = theme => ({
     tab: {
@@ -134,6 +137,11 @@ const styles = theme => ({
     },
     tdDuration: {
         //paddingRight: theme.spacing(1),
+    },
+    tdDurationRunning: {
+        animationName: 'running',
+        animationDuration: '2s',
+        animationIterationCount: 'infinite'
     },
     tdID: {
         opacity: 0.3
@@ -244,6 +252,7 @@ class List extends Component {
             editAvailable,
             pdfInGeneration: false,
             stateIds: null,
+            isFloatComma: true,
         };
 
         this.imagePrefix    = this.props.imagePrefix || 'files/'; // by default is admin
@@ -739,65 +748,65 @@ class List extends Component {
 
     renderList() {
         return <TableContainer className={this.props.classes.tableContainer}>
-                <Table
-                    className={this.props.classes.table}
-                    size="small"
-                >
-                    {this.renderHeader()}
-                    <TableBody>
-                        {this.stableSort(this.state.eventList, this.getComparator(this.state.order, this.state.orderBy))
-                            .map((row, index) => {
-                                const isItemSelected = this.state.selected.includes(row._id);
-                                const labelId = `enhanced-table-checkbox-${index}`;
+            <Table
+                className={this.props.classes.table}
+                size="small"
+            >
+                {this.renderHeader()}
+                <TableBody>
+                    {this.stableSort(this.state.eventList, this.getComparator(this.state.order, this.state.orderBy))
+                        .map((row, index) => {
+                            const isItemSelected = this.state.selected.includes(row._id);
+                            const labelId = `enhanced-table-checkbox-${index}`;
 
-                                return <TableRow
-                                    hover
-                                    onClick={() => this.handleClick(row._id)}
-                                    style={row._style || undefined}
-                                    role="checkbox"
-                                    aria-checked={isItemSelected}
-                                    tabIndex={-1}
-                                    key={row._id}
-                                    selected={isItemSelected}
-                                >
-                                    {this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled && <TableCell padding="checkbox">
-                                        <Checkbox
-                                            checked={isItemSelected}
-                                            inputProps={{ 'aria-labelledby': labelId }}
-                                        />
-                                    </TableCell>}
-                                    <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
-                                    {this.props.native.icons ?
-                                        <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
-                                            {row.icon ? <Image
-                                                imagePrefix={this.imagePrefix}
-                                                src={row.icon}
-                                                className={this.props.classes.icon}
-                                                color={(row._style && row._style.color) || ''}
-                                            /> : null}
-                                        </TableCell>
-                                        : null}
-                                    <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
-                                    <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
-                                    {this.props.native.duration ?
-                                        <TableCell style={row._style || undefined } className={this.props.classes.tdDuration} component="td" padding="none" align="right">
-                                            {row.duration || ''}</TableCell>
-                                        : null}
-                                    {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdID} align="left">{row.stateId}</TableCell>}
-                                    {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdEdit} align="left">{row.stateId ?
-                                        <Tooltip title={I18n.t('Edit settings for state')} className={this.props.classes.toolbarButton}>
-                                            <IconButton className={this.props.classes.editButton} onClick={e => {
-                                                e.stopPropagation();
-                                                Router.doNavigate(null, 'addId', row.stateId);
-                                                this.setState({showAddIdDialog: row.stateId});
-                                            }}><IconEdit/></IconButton>
-                                        </Tooltip>: null}
-                                    </TableCell>}
-                                </TableRow>;
-                            })}
-                    </TableBody>
-                </Table>
-            </TableContainer>;
+                            return <TableRow
+                                hover
+                                onClick={() => this.handleClick(row._id)}
+                                style={row._style || undefined}
+                                role="checkbox"
+                                aria-checked={isItemSelected}
+                                tabIndex={-1}
+                                key={row._id}
+                                selected={isItemSelected}
+                            >
+                                {this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled && <TableCell padding="checkbox">
+                                    <Checkbox
+                                        checked={isItemSelected}
+                                        inputProps={{ 'aria-labelledby': labelId }}
+                                    />
+                                </TableCell>}
+                                <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
+                                {this.props.native.icons ?
+                                    <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
+                                        {row.icon ? (row.icon !== 'default' ? <IconEvent/> : <Image
+                                            imagePrefix={this.imagePrefix}
+                                            src={row.icon}
+                                            className={this.props.classes.icon}
+                                            color={(row._style && row._style.color) || ''}
+                                        />) : null}
+                                    </TableCell>
+                                    : null}
+                                <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
+                                <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
+                                {this.props.native.duration ?
+                                    <TableCell style={row.dr ? Object.assign({}, row._style || {}, {color: COLOR_RUNNING_DURATION}) : row._style || undefined } className={clsx(row.dr && this.props.classes.tdDurationRunning, this.props.classes.tdDuration)} component="td" padding="none" align="right">
+                                        {row.duration || ''}</TableCell>
+                                    : null}
+                                {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdID} align="left">{row.stateId}</TableCell>}
+                                {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdEdit} align="left">{row.stateId ?
+                                    <Tooltip title={I18n.t('Edit settings for state')} className={this.props.classes.toolbarButton}>
+                                        <IconButton className={this.props.classes.editButton} onClick={e => {
+                                            e.stopPropagation();
+                                            Router.doNavigate(null, 'addId', row.stateId);
+                                            this.setState({showAddIdDialog: row.stateId});
+                                        }}><IconEdit/></IconButton>
+                                    </Tooltip>: null}
+                                </TableCell>}
+                            </TableRow>;
+                        })}
+                </TableBody>
+            </Table>
+        </TableContainer>;
     }
 
     renderConfirmDialog() {
