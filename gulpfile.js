@@ -66,7 +66,7 @@ gulp.task('updateReadme', done => {
 });
 
 gulp.task('clean', () =>
-    del(['admin/*/**', 'admin/*', '!admin/actions.js', '!admin/alexalogo.png', '!admin/blockly.js', '!admin/iot.png', 'www/*/**', 'www/*']));
+    del(['admin/*/**', 'admin/*', '!admin/blockly.js', '!admin/jsonCustom.json', 'www/*/**', 'www/*']));
 
 function npmInstall() {
     return new Promise((resolve, reject) => {

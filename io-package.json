@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.4.2",
+        "version": "0.4.3",
         "news": {
+            "0.4.3": {
+                "en": "Added the support of Admin5",
+                "de": "Unterstützung von Admin5 hinzugefügt",
+                "ru": "Добавлена поддержка Admin5",
+                "pt": "Adicionado o suporte de Admin5",
+                "nl": "Ondersteuning toegevoegd van Admin5",
+                "fr": "Ajout du support d'Admin5",
+                "it": "Aggiunto il supporto di Admin5",
+                "es": "Se agregó el soporte de Admin5.",
+                "pl": "Dodano obsługę Admin5",
+                "zh-cn": "添加了对Admin5的支持"
+            },
             "0.4.2": {
                 "en": "Added possibility to add multiple states\nMoved the duration to previous state",
                 "de": "Möglichkeit hinzugefügt, mehrere Zustände hinzuzufügen\nDie Dauer wurde in den vorherigen Status verschoben",
@@ -136,7 +148,6 @@
                 "zh-cn": "首次出版"
             }
         },
-        "title": "Event list",
         "titleLang": {
             "en": "Event list",
             "de": "Ereignisliste",
@@ -170,7 +181,6 @@
         ],
         "license": "MIT",
         "platform": "Javascript/Node.js",
-        "main": "main.js",
         "icon": "eventlist.png",
         "enabled": true,
         "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
@@ -225,7 +235,8 @@
                 "js-controller": ">=1.4.2"
             },
             "vis"
-        ]
+        ],
+        "jsonCustom": true
     },
     "native": {
         "maxLength": 100,
