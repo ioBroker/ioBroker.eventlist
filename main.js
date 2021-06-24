@@ -690,7 +690,7 @@ function addEvent(event) {
                     .then(() => updateMomentTimes())
                     .then(() => Promise.all([
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.val, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.id, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),

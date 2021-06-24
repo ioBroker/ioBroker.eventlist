@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "eventlist",
-        "version": "0.4.3",
+        "version": "0.4.4",
         "news": {
+            "0.4.4": {
+                "en": "Corrected the warning for js-controller 3.x",
+                "de": "Die Warnung für js-controller 3.x wurde korrigiert",
+                "ru": "Исправлено предупреждение для js-controller 3.x",
+                "pt": "Corrigido o aviso para js-controller 3.x",
+                "nl": "De waarschuwing voor js-controller 3.x gecorrigeerd",
+                "fr": "Correction de l'avertissement pour js-controller 3.x",
+                "it": "Corretto l'avviso per js-controller 3.x",
+                "es": "Se corrigió la advertencia para js-controller 3.x",
+                "pl": "Poprawiono ostrzeżenie dla js-controller 3.x",
+                "zh-cn": "更正了 js-controller 3.x 的警告"
+            },
             "0.4.3": {
                 "en": "Added the support of Admin5",
                 "de": "Unterstützung von Admin5 hinzugefügt",

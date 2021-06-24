@@ -12,5 +12,5 @@
     "pl": "Do konfiguracji użyj ustawień adaptera",
     "zh-cn": "请使用适配器的设置进行配置"
   },
-  "hide": true
+  "hidden": true
 }
