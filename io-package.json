@@ -177,7 +177,8 @@
       "vis"
     ],
     "adminUI": {
-      "config": "json"
+      "config": "materialize",
+      "custom": "json"
     },
     "connectionType": "local",
     "dataSource": "push"

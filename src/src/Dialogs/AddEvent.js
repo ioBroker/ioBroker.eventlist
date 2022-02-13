@@ -133,7 +133,6 @@ class AddEventDialog extends Component {
                 </Button>
                 <Button
                     onClick={() => this.props.onClose()}
-                    color="primary"
                     variant="contained"
                     startIcon={<CancelIcon />}
                 >

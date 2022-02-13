@@ -778,7 +778,7 @@ class List extends Component {
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                 {this.props.native.icons ?
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
-                                        {row.icon ? (row.icon !== 'default' ? <IconEvent/> : <Image
+                                        {row.icon ? (row.icon.endsWith('default') ? <IconEvent/> : <Image
                                             imagePrefix={this.imagePrefix}
                                             src={row.icon}
                                             className={this.props.classes.icon}
