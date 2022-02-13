@@ -301,7 +301,7 @@ class EditState extends Component {
 
     static extractIconAndColor(socket, obj) {
         if (obj && obj.common && obj.common.icon) {
-            return {icon: obj.common.icon, color: obj.common.color};
+            return Promise.resolve({icon: obj.common.icon, color: obj.common.color});
         } else {
             const parts = obj._id.split('.');
             parts.pop();
