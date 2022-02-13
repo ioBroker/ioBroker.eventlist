@@ -1,495 +1,423 @@
 {
-    "common": {
-        "name": "eventlist",
-        "version": "0.4.4",
-        "news": {
-            "0.4.4": {
-                "en": "Corrected the warning for js-controller 3.x",
-                "de": "Die Warnung für js-controller 3.x wurde korrigiert",
-                "ru": "Исправлено предупреждение для js-controller 3.x",
-                "pt": "Corrigido o aviso para js-controller 3.x",
-                "nl": "De waarschuwing voor js-controller 3.x gecorrigeerd",
-                "fr": "Correction de l'avertissement pour js-controller 3.x",
-                "it": "Corretto l'avviso per js-controller 3.x",
-                "es": "Se corrigió la advertencia para js-controller 3.x",
-                "pl": "Poprawiono ostrzeżenie dla js-controller 3.x",
-                "zh-cn": "更正了 js-controller 3.x 的警告"
-            },
-            "0.4.3": {
-                "en": "Added the support of Admin5",
-                "de": "Unterstützung von Admin5 hinzugefügt",
-                "ru": "Добавлена поддержка Admin5",
-                "pt": "Adicionado o suporte de Admin5",
-                "nl": "Ondersteuning toegevoegd van Admin5",
-                "fr": "Ajout du support d'Admin5",
-                "it": "Aggiunto il supporto di Admin5",
-                "es": "Se agregó el soporte de Admin5.",
-                "pl": "Dodano obsługę Admin5",
-                "zh-cn": "添加了对Admin5的支持"
-            },
-            "0.4.2": {
-                "en": "Added possibility to add multiple states\nMoved the duration to previous state",
-                "de": "Möglichkeit hinzugefügt, mehrere Zustände hinzuzufügen\nDie Dauer wurde in den vorherigen Status verschoben",
-                "ru": "Добавлена возможность добавлять несколько состояний\nПродолжительность перенесена в предыдущее состояние",
-                "pt": "Adicionada possibilidade de adicionar vários estados\nMoveu a duração para o estado anterior",
-                "nl": "Mogelijkheid toegevoegd om meerdere staten toe te voegen\nVerplaatst de duur naar de vorige staat",
-                "fr": "Ajout de la possibilité d'ajouter plusieurs états\nDéplacement de la durée à l'état précédent",
-                "it": "Aggiunta la possibilità di aggiungere più stati\nLa durata è stata spostata allo stato precedente",
-                "es": "Posibilidad agregada de agregar múltiples estados\nSe movió la duración al estado anterior.",
-                "pl": "Dodano możliwość dodawania wielu stanów\nPrzeniesiono czas trwania do poprzedniego stanu",
-                "zh-cn": "增加了添加多个状态的可能性\n将持续时间移至先前状态"
-            },
-            "0.4.0": {
-                "en": "Added setting of even/odd background for widget\nAdded filter",
-                "de": "Einstellung des geraden / ungeraden Hintergrunds für das Widget hinzugefügt\nFilter hinzugefügt",
-                "ru": "Добавлена настройка четного / нечетного фона для виджета\nДобавлен фильтр",
-                "pt": "Adicionada configuração de fundo par / ímpar para o widget\nFiltro adicionado",
-                "nl": "Instelling van even / oneven achtergrond toegevoegd voor widget\nFilter toegevoegd",
-                "fr": "Ajout du paramètre d'arrière-plan pair / impair pour le widget\nFiltre ajouté",
-                "it": "Aggiunta l'impostazione dello sfondo pari / dispari per il widget\nAggiunto filtro",
-                "es": "Configuración agregada de fondo par / impar para el widget\nFiltro agregado",
-                "pl": "Dodano ustawienie parzystego / nieparzystego tła dla widżetu\nDodano filtr",
-                "zh-cn": "为小部件添加了偶数/奇数背景设置\n添加了过滤器"
-            },
-            "0.2.9": {
-                "en": "Corrected error in GUI by disabling of state\nImplemented the deletion of events from the event list",
-                "de": "Fehler in der GUI durch Deaktivieren des Status behoben\nDas Löschen von Ereignissen aus der Ereignisliste wurde implementiert",
-                "ru": "Исправлена ошибка в графическом интерфейсе путем отключения состояния\nРеализовано удаление событий из списка событий",
-                "pt": "Erro corrigido na GUI desativando o estado\nImplementou a exclusão de eventos da lista de eventos",
-                "nl": "Fout in GUI gecorrigeerd door status uit te schakelen\nImplementatie van het verwijderen van evenementen uit de evenementenlijst",
-                "fr": "Correction d'une erreur dans l'interface graphique en désactivant l'état\nImplémentation de la suppression des événements de la liste des événements",
-                "it": "Corretto errore nella GUI disabilitando lo stato\nImplementata la cancellazione degli eventi dalla lista degli eventi",
-                "es": "Error corregido en GUI al deshabilitar el estado\nImplementó la eliminación de eventos de la lista de eventos.",
-                "pl": "Poprawiony błąd w GUI poprzez wyłączenie stanu\nZaimplementowano usuwanie wydarzeń z listy zdarzeń",
-                "zh-cn": "通过禁用状态更正了GUI中的错误\n实现了从事件列表中删除事件"
-            },
-            "0.2.8": {
-                "en": "Corrected error in pdf settings  \nImplemented the recalculation of the relative time every 10 seconds",
-                "de": "Fehler in den PDF-Einstellungen behoben\nImplementierte die Neuberechnung der relativen Zeit alle 10 Sekunden",
-                "ru": "Исправлена ошибка в настройках pdf\nРеализован пересчет относительного времени каждые 10 секунд.",
-                "pt": "Erro corrigido nas configurações de pdf\nImplementado o recálculo do tempo relativo a cada 10 segundos",
-                "nl": "Fout gecorrigeerd in pdf-instellingen\nImplementeerde de herberekening van de relatieve tijd elke 10 seconden",
-                "fr": "Erreur corrigée dans les paramètres PDF\nImplémentation du recalcul du temps relatif toutes les 10 secondes",
-                "it": "Errore corretto nelle impostazioni del pdf\nImplementato il ricalcolo del tempo relativo ogni 10 secondi",
-                "es": "Error corregido en la configuración de PDF\nImplementó el recálculo del tiempo relativo cada 10 segundos.",
-                "pl": "Poprawiony błąd w ustawieniach pdf\nZaimplementowano przeliczanie względnego czasu co 10 sekund",
-                "zh-cn": "纠正了pdf设置中的错误\n每10秒重新计算一次相对时间"
-            },
-            "0.2.6": {
-                "en": "Corrected error in pdf creation",
-                "de": "Fehler bei der PDF-Erstellung behoben",
-                "ru": "Исправлена ошибка при создании pdf.",
-                "pt": "Erro corrigido na criação de PDF",
-                "nl": "Fout bij het maken van pdf's gecorrigeerd",
-                "fr": "Erreur corrigée dans la création de pdf",
-                "it": "Errore corretto nella creazione del pdf",
-                "es": "Error corregido en la creación de pdf",
-                "pl": "Poprawiony błąd podczas tworzenia pliku PDF",
-                "zh-cn": "纠正了pdf创建中的错误"
-            },
-            "0.2.5": {
-                "en": "Extended icon selector ",
-                "de": "Erweiterte Symbolauswahl",
-                "ru": "Расширенный селектор значков",
-                "pt": "Seletor de ícone estendido",
-                "nl": "Uitgebreide pictogramkiezer",
-                "fr": "Sélecteur d'icônes étendu",
-                "it": "Selettore di icone esteso",
-                "es": "Selector de iconos extendido",
-                "pl": "Rozszerzony selektor ikon",
-                "zh-cn": "扩展图标选择器"
-            },
-            "0.2.1": {
-                "en": "Vis-widget was corrected",
-                "de": "Vis-Widget wurde korrigiert",
-                "ru": "Исправлен виджет Vis-widget",
-                "pt": "Vis-widget foi corrigido",
-                "nl": "Vis-widget is gecorrigeerd",
-                "fr": "Vis-widget a été corrigé",
-                "it": "Il widget Vis è stato corretto",
-                "es": "Vis-widget fue corregido",
-                "pl": "Widżet Vis został poprawiony",
-                "zh-cn": "Vis-widget已更正"
-            },
-            "0.1.3": {
-                "en": "Implemented the alarm mode and messengers",
-                "de": "Alarmmodus und Messenger implementiert",
-                "ru": "Реализован режим будильника и мессенджеры.",
-                "pt": "Implementado o modo de alarme e mensageiros",
-                "nl": "Implementeerde de alarmmodus en boodschappers",
-                "fr": "Implémentation du mode d'alarme et des messagers",
-                "it": "Implementato la modalità di allarme e messenger",
-                "es": "Implementado el modo de alarma y mensajeros",
-                "pl": "Zaimplementowano tryb alarmowy i komunikatory",
-                "zh-cn": "实施了警报模式和信使"
-            },
-            "0.0.3": {
-                "en": "Objects with states are supported now",
-                "de": "Objekte mit Status werden jetzt unterstützt",
-                "ru": "Теперь поддерживаются объекты со состояниями",
-                "pt": "Objetos com estados são suportados agora",
-                "nl": "Objecten met statussen worden nu ondersteund",
-                "fr": "Les objets avec des états sont maintenant pris en charge",
-                "it": "Gli oggetti con stati sono ora supportati",
-                "es": "Los objetos con estados son compatibles ahora",
-                "pl": "Obiekty ze stanami są teraz obsługiwane",
-                "zh-cn": "现在支持带有状态的对象"
-            },
-            "0.0.2": {
-                "en": "initial commit",
-                "de": "anfängliches Commit",
-                "ru": "начальная фиксация",
-                "pt": "commit inicial",
-                "nl": "eerste vastlegging",
-                "fr": "engagement initial",
-                "it": "commit iniziale",
-                "es": "Compromiso inicial",
-                "pl": "wstępne zatwierdzenie",
-                "zh-cn": "初次提交"
-            },
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "zh-cn": "首次出版"
-            }
-        },
-        "titleLang": {
-            "en": "Event list",
-            "de": "Ereignisliste",
-            "ru": "Список событий",
-            "pt": "Lista de evento",
-            "nl": "Evenementenlijst",
-            "fr": "Liste des événements",
-            "it": "Elenco degli eventi",
-            "es": "Lista de eventos",
-            "pl": "Lista wydarzeń",
-            "zh-cn": "活动列表"
-        },
-        "desc": {
-            "en": "Builds and shows the event list from desired states in admin, web and as widget",
-            "de": "Erstellt und zeigt die Ereignisliste aus den gewünschten Status in Admin, Web und als Widget an",
-            "ru": "Создает и отображает список событий из желаемых состояний в админке, в Интернете и в виде виджета.",
-            "pt": "Constrói e mostra a lista de eventos de estados desejados em admin, web e como widget",
-            "nl": "Bouwt en toont de evenementenlijst van de gewenste staten in admin, web en als widget",
-            "fr": "Construit et affiche la liste d'événements à partir des états souhaités dans admin, Web et en tant que widget",
-            "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
-            "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
-            "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
-            "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
-        },
-        "authors": [
-            "bluefox <dogafox@gmail.com>"
-        ],
-        "keywords": [
-            "event list",
-            "events"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "icon": "eventlist.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
-        "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
-        "loglevel": "info",
-        "restartAdapters": [
-            "vis"
-        ],
-        "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
-        "welcomeScreen": {
-            "link": "eventlist/index.html",
-            "name": {
-                "en": "Events list",
-                "de": "Ereignisliste",
-                "ru": "Список событий",
-                "pt": "Lista de eventos",
-                "nl": "Evenementen lijst",
-                "fr": "Liste des événements",
-                "it": "Elenco eventi",
-                "es": "Lista de eventos",
-                "pl": "Lista wydarzeń",
-                "zh-cn": "活动清单"
-            },
-            "img": "eventlist.admin/eventlist.png",
-            "color": "black",
-            "order": 5
-        },
-        "mode": "daemon",
-        "type": "visualization",
-        "compact": true,
-        "materialize": true,
-        "materializeTab": true,
-        "messagebox": true,
-        "adminTab": {
-            "name": {
-                "en": "Event list",
-                "de": "Ereignisse",
-                "ru": "Список событий",
-                "pt": "Lista de evento",
-                "nl": "Evenementenlijst",
-                "fr": "Liste des événements",
-                "it": "Elenco degli eventi",
-                "es": "Lista de eventos",
-                "pl": "Lista wydarzeń",
-                "zh-cn": "活动列表"
-            },
-            "fa-icon": "flash_on"
-        },
-        "supportCustoms": true,
-        "dependencies": [
-            {
-                "js-controller": ">=2.0.0"
-            },
-            "vis"
-        ],
-        "adminUI": {
-            "config": "json"
-        },
-        "connectionType": "local",
-        "dataSource": "push"
+  "common": {
+    "name": "eventlist",
+    "version": "0.5.0",
+    "news": {
+      "0.5.0": {
+        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
+        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
+        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
+        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
+        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
+        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
+        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
+        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
+        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
+        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
+      },
+      "0.4.4": {
+        "en": "Corrected the warning for js-controller 3.x",
+        "de": "Die Warnung für js-controller 3.x wurde korrigiert",
+        "ru": "Исправлено предупреждение для js-controller 3.x",
+        "pt": "Corrigido o aviso para js-controller 3.x",
+        "nl": "De waarschuwing voor js-controller 3.x gecorrigeerd",
+        "fr": "Correction de l'avertissement pour js-controller 3.x",
+        "it": "Corretto l'avviso per js-controller 3.x",
+        "es": "Se corrigió la advertencia para js-controller 3.x",
+        "pl": "Poprawiono ostrzeżenie dla js-controller 3.x",
+        "zh-cn": "更正了 js-controller 3.x 的警告"
+      },
+      "0.4.3": {
+        "en": "Added the support of Admin5",
+        "de": "Unterstützung von Admin5 hinzugefügt",
+        "ru": "Добавлена поддержка Admin5",
+        "pt": "Adicionado o suporte de Admin5",
+        "nl": "Ondersteuning toegevoegd van Admin5",
+        "fr": "Ajout du support d'Admin5",
+        "it": "Aggiunto il supporto di Admin5",
+        "es": "Se agregó el soporte de Admin5.",
+        "pl": "Dodano obsługę Admin5",
+        "zh-cn": "添加了对Admin5的支持"
+      },
+      "0.4.2": {
+        "en": "Added possibility to add multiple states\nMoved the duration to previous state",
+        "de": "Möglichkeit hinzugefügt, mehrere Zustände hinzuzufügen\nDie Dauer wurde in den vorherigen Status verschoben",
+        "ru": "Добавлена возможность добавлять несколько состояний\nПродолжительность перенесена в предыдущее состояние",
+        "pt": "Adicionada possibilidade de adicionar vários estados\nMoveu a duração para o estado anterior",
+        "nl": "Mogelijkheid toegevoegd om meerdere staten toe te voegen\nVerplaatst de duur naar de vorige staat",
+        "fr": "Ajout de la possibilité d'ajouter plusieurs états\nDéplacement de la durée à l'état précédent",
+        "it": "Aggiunta la possibilità di aggiungere più stati\nLa durata è stata spostata allo stato precedente",
+        "es": "Posibilidad agregada de agregar múltiples estados\nSe movió la duración al estado anterior.",
+        "pl": "Dodano możliwość dodawania wielu stanów\nPrzeniesiono czas trwania do poprzedniego stanu",
+        "zh-cn": "增加了添加多个状态的可能性\n将持续时间移至先前状态"
+      },
+      "0.4.0": {
+        "en": "Added setting of even/odd background for widget\nAdded filter",
+        "de": "Einstellung des geraden / ungeraden Hintergrunds für das Widget hinzugefügt\nFilter hinzugefügt",
+        "ru": "Добавлена настройка четного / нечетного фона для виджета\nДобавлен фильтр",
+        "pt": "Adicionada configuração de fundo par / ímpar para o widget\nFiltro adicionado",
+        "nl": "Instelling van even / oneven achtergrond toegevoegd voor widget\nFilter toegevoegd",
+        "fr": "Ajout du paramètre d'arrière-plan pair / impair pour le widget\nFiltre ajouté",
+        "it": "Aggiunta l'impostazione dello sfondo pari / dispari per il widget\nAggiunto filtro",
+        "es": "Configuración agregada de fondo par / impar para el widget\nFiltro agregado",
+        "pl": "Dodano ustawienie parzystego / nieparzystego tła dla widżetu\nDodano filtr",
+        "zh-cn": "为小部件添加了偶数/奇数背景设置\n添加了过滤器"
+      },
+      "0.2.9": {
+        "en": "Corrected error in GUI by disabling of state\nImplemented the deletion of events from the event list",
+        "de": "Fehler in der GUI durch Deaktivieren des Status behoben\nDas Löschen von Ereignissen aus der Ereignisliste wurde implementiert",
+        "ru": "Исправлена ошибка в графическом интерфейсе путем отключения состояния\nРеализовано удаление событий из списка событий",
+        "pt": "Erro corrigido na GUI desativando o estado\nImplementou a exclusão de eventos da lista de eventos",
+        "nl": "Fout in GUI gecorrigeerd door status uit te schakelen\nImplementatie van het verwijderen van evenementen uit de evenementenlijst",
+        "fr": "Correction d'une erreur dans l'interface graphique en désactivant l'état\nImplémentation de la suppression des événements de la liste des événements",
+        "it": "Corretto errore nella GUI disabilitando lo stato\nImplementata la cancellazione degli eventi dalla lista degli eventi",
+        "es": "Error corregido en GUI al deshabilitar el estado\nImplementó la eliminación de eventos de la lista de eventos.",
+        "pl": "Poprawiony błąd w GUI poprzez wyłączenie stanu\nZaimplementowano usuwanie wydarzeń z listy zdarzeń",
+        "zh-cn": "通过禁用状态更正了GUI中的错误\n实现了从事件列表中删除事件"
+      },
+      "0.2.8": {
+        "en": "Corrected error in pdf settings  \nImplemented the recalculation of the relative time every 10 seconds",
+        "de": "Fehler in den PDF-Einstellungen behoben\nImplementierte die Neuberechnung der relativen Zeit alle 10 Sekunden",
+        "ru": "Исправлена ошибка в настройках pdf\nРеализован пересчет относительного времени каждые 10 секунд.",
+        "pt": "Erro corrigido nas configurações de pdf\nImplementado o recálculo do tempo relativo a cada 10 segundos",
+        "nl": "Fout gecorrigeerd in pdf-instellingen\nImplementeerde de herberekening van de relatieve tijd elke 10 seconden",
+        "fr": "Erreur corrigée dans les paramètres PDF\nImplémentation du recalcul du temps relatif toutes les 10 secondes",
+        "it": "Errore corretto nelle impostazioni del pdf\nImplementato il ricalcolo del tempo relativo ogni 10 secondi",
+        "es": "Error corregido en la configuración de PDF\nImplementó el recálculo del tiempo relativo cada 10 segundos.",
+        "pl": "Poprawiony błąd w ustawieniach pdf\nZaimplementowano przeliczanie względnego czasu co 10 sekund",
+        "zh-cn": "纠正了pdf设置中的错误\n每10秒重新计算一次相对时间"
+      }
     },
-    "native": {
-        "maxLength": 100,
-        "dateFormat": "MMM Do, HH:mm:ss",
-        "relativeTime": 3600,
-        "defaultBooleanTextTrue": "",
-        "defaultBooleanTextFalse": "",
-        "defaultBooleanText": "",
-        "defaultBooleanColorTrue": "",
-        "defaultBooleanColorFalse": "",
-        "defaultBooleanIconTrue": "",
-        "defaultBooleanIconFalse": "",
-        "defaultNonBooleanText": "",
-        "language": "",
-        "stateId": true,
-        "icons": true,
-        "duration": true,
-        "license": "",
-        "pdfButton": false,
-        "pdfSettings": {
-            "orientation": "portrait",
-            "enabledTime": true,
-            "enabledEvent": true,
-            "enabledValue": true,
-            "enabledDuration": true,
-            "widthTime": 105,
-            "widthEvent": 200,
-            "widthValue": 110,
-            "widthDuration": 100,
-            "textTime": "Time",
-            "textEvent": "Event",
-            "textValue": "Value",
-            "textDuration": "Duration",
-            "textColor": "#000000",
-            "paddingLeft": 60,
-            "paddingTopFirst": 120,
-            "paddingTop": 60,
-            "pageWidth": 510,
-            "pageHeight": 740,
-            "fontSize": 10,
-            "colorLineOdd": "#E8E8E8",
-            "colorLineEven": "#FFFFFF",
-            "enabledHeader": true,
-            "fontSizeHeader": 13,
-            "colorHeaderBackground": "#888888",
-            "colorHeader": "#FFFFFF",
-            "titleColor": "#000000",
-            "titleText": "Event list on {{YYYY MM DD H:mm:ss}}",
-            "titleFontSize": 18,
-            "lineHeight": 18,
-            "pageNumberOffsetX": 50,
-            "pageNumberOffsetY": 10,
-            "pageNumberFontSize": 10,
-            "pageNumberColor": "#000000",
-            "pageNumberEnabled": true,
-            "margins": {
-                "top": 30,
-                "bottom": 30,
-                "left": 30,
-                "right": 30
-            }
-        },
-        "defaultWhatsAppCMB": [],
-        "defaultTelegram": [],
-        "defaultPushover": [],
-        "deleteAlarmsByDisable": false
+    "titleLang": {
+      "en": "Event list",
+      "de": "Ereignisliste",
+      "ru": "Список событий",
+      "pt": "Lista de evento",
+      "nl": "Evenementenlijst",
+      "fr": "Liste des événements",
+      "it": "Elenco degli eventi",
+      "es": "Lista de eventos",
+      "pl": "Lista wydarzeń",
+      "zh-cn": "活动列表"
     },
-    "objects": [
-        {
-            "_id": "_design/custom",
-            "language": "javascript",
-            "views": {
-                "state": {
-                    "map": "function(doc) { doc.type === 'state' && doc.common && doc.common.custom && emit(doc._id, doc.common.custom) }"
-                }
-            }
-        }
+    "desc": {
+      "en": "Builds and shows the event list from desired states in admin, web and as widget",
+      "de": "Erstellt und zeigt die Ereignisliste aus den gewünschten Status in Admin, Web und als Widget an",
+      "ru": "Создает и отображает список событий из желаемых состояний в админке, в Интернете и в виде виджета.",
+      "pt": "Constrói e mostra a lista de eventos de estados desejados em admin, web e como widget",
+      "nl": "Bouwt en toont de evenementenlijst van de gewenste staten in admin, web en als widget",
+      "fr": "Construit et affiche la liste d'événements à partir des états souhaités dans admin, Web et en tant que widget",
+      "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
+      "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
+      "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
+      "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
     ],
-    "instanceObjects": [
-        {
-            "_id": "insert",
-            "common": {
-                "name": "Insert event into table",
-                "write": true,
-                "read": false,
-                "type": "json",
-                "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "delete",
-            "common": {
-                "name": "Delete event from table",
-                "write": true,
-                "read": false,
-                "type": "json",
-                "desc": "* - delete all, ID - delete events from list for specific object, timestamp - delete one event from list by timestamp (number or ISO string)"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "triggerPDF",
-            "common": {
-                "name": "Generate PDF file",
-                "write": true,
-                "read": false,
-                "def": false,
-                "role": "button",
-                "type": "boolean"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "alarm",
-            "common": {
-                "name": "Switch alarm state",
-                "write": true,
-                "read": true,
-                "type": "boolean",
-                "role": "switch",
-                "desc": "Toggle alarm state"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "eventListRaw",
-            "common": {
-                "expert": true,
-                "name": "Raw events table",
-                "write": false,
-                "read": true,
-                "def": "[]",
-                "type": "json"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "eventJSONList",
-            "common": {
-                "name": "Event JSON table",
-                "write": false,
-                "read": true,
-                "def": "[]",
-                "type": "json"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent",
-            "common": {
-                "name": "Last event"
-            },
-            "type": "channel",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.json",
-            "common": {
-                "name": "Last event as JSON",
-                "write": false,
-                "read": true,
-                "def": "{}",
-                "type": "json"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.event",
-            "common": {
-                "name": "Last event text",
-                "write": false,
-                "read": true,
-                "def": "",
-                "type": "string"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.ts",
-            "common": {
-                "name": "Last event time in ms",
-                "write": false,
-                "read": true,
-                "def": 0,
-                "role": "datetime",
-                "type": "number"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.duration",
-            "common": {
-                "name": "Last event duration",
-                "write": false,
-                "read": true,
-                "def": 0,
-                "unit": "ms",
-                "role": "state",
-                "type": "number"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.val",
-            "common": {
-                "name": "Last event value",
-                "write": false,
-                "read": true,
-                "role": "state",
-                "type": "mixed"
-            },
-            "type": "state",
-            "native": {}
-        },
-        {
-            "_id": "lastEvent.id",
-            "common": {
-                "name": "Last event state id",
-                "write": false,
-                "read": true,
-                "role": "state",
-                "def": "",
-                "type": "string"
-            },
-            "type": "state",
-            "native": {}
+    "keywords": [
+      "event list",
+      "events"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "icon": "eventlist.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
+    "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
+    "loglevel": "info",
+    "restartAdapters": [
+      "vis"
+    ],
+    "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
+    "welcomeScreen": {
+      "link": "eventlist/index.html",
+      "name": {
+        "en": "Events list",
+        "de": "Ereignisliste",
+        "ru": "Список событий",
+        "pt": "Lista de eventos",
+        "nl": "Evenementen lijst",
+        "fr": "Liste des événements",
+        "it": "Elenco eventi",
+        "es": "Lista de eventos",
+        "pl": "Lista wydarzeń",
+        "zh-cn": "活动清单"
+      },
+      "img": "eventlist.admin/eventlist.png",
+      "color": "black",
+      "order": 5
+    },
+    "mode": "daemon",
+    "type": "visualization",
+    "compact": true,
+    "materialize": true,
+    "materializeTab": true,
+    "messagebox": true,
+    "adminTab": {
+      "name": {
+        "en": "Event list",
+        "de": "Ereignisse",
+        "ru": "Список событий",
+        "pt": "Lista de evento",
+        "nl": "Evenementenlijst",
+        "fr": "Liste des événements",
+        "it": "Elenco degli eventi",
+        "es": "Lista de eventos",
+        "pl": "Lista wydarzeń",
+        "zh-cn": "活动列表"
+      },
+      "fa-icon": "flash_on"
+    },
+    "supportCustoms": true,
+    "dependencies": [
+      {
+        "js-controller": ">=2.0.0"
+      },
+      "vis"
+    ],
+    "adminUI": {
+      "config": "json"
+    },
+    "connectionType": "local",
+    "dataSource": "push"
+  },
+  "native": {
+    "maxLength": 100,
+    "dateFormat": "MMM Do, HH:mm:ss",
+    "relativeTime": 3600,
+    "defaultBooleanTextTrue": "",
+    "defaultBooleanTextFalse": "",
+    "defaultBooleanText": "",
+    "defaultBooleanColorTrue": "",
+    "defaultBooleanColorFalse": "",
+    "defaultBooleanIconTrue": "",
+    "defaultBooleanIconFalse": "",
+    "defaultNonBooleanText": "",
+    "language": "",
+    "stateId": true,
+    "icons": true,
+    "duration": true,
+    "license": "",
+    "pdfButton": false,
+    "pdfSettings": {
+      "orientation": "portrait",
+      "enabledTime": true,
+      "enabledEvent": true,
+      "enabledValue": true,
+      "enabledDuration": true,
+      "widthTime": 105,
+      "widthEvent": 200,
+      "widthValue": 110,
+      "widthDuration": 100,
+      "textTime": "Time",
+      "textEvent": "Event",
+      "textValue": "Value",
+      "textDuration": "Duration",
+      "textColor": "#000000",
+      "paddingLeft": 60,
+      "paddingTopFirst": 120,
+      "paddingTop": 60,
+      "pageWidth": 510,
+      "pageHeight": 740,
+      "fontSize": 10,
+      "colorLineOdd": "#E8E8E8",
+      "colorLineEven": "#FFFFFF",
+      "enabledHeader": true,
+      "fontSizeHeader": 13,
+      "colorHeaderBackground": "#888888",
+      "colorHeader": "#FFFFFF",
+      "titleColor": "#000000",
+      "titleText": "Event list on {{YYYY MM DD H:mm:ss}}",
+      "titleFontSize": 18,
+      "lineHeight": 18,
+      "pageNumberOffsetX": 50,
+      "pageNumberOffsetY": 10,
+      "pageNumberFontSize": 10,
+      "pageNumberColor": "#000000",
+      "pageNumberEnabled": true,
+      "margins": {
+        "top": 30,
+        "bottom": 30,
+        "left": 30,
+        "right": 30
+      }
+    },
+    "defaultWhatsAppCMB": [],
+    "defaultTelegram": [],
+    "defaultPushover": [],
+    "deleteAlarmsByDisable": false
+  },
+  "objects": [
+    {
+      "_id": "_design/custom",
+      "language": "javascript",
+      "views": {
+        "state": {
+          "map": "function(doc) { doc.type === 'state' && doc.common && doc.common.custom && emit(doc._id, doc.common.custom) }"
         }
-    ]
+      }
+    }
+  ],
+  "instanceObjects": [
+    {
+      "_id": "insert",
+      "common": {
+        "name": "Insert event into table",
+        "write": true,
+        "read": false,
+        "type": "json",
+        "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "delete",
+      "common": {
+        "name": "Delete event from table",
+        "write": true,
+        "read": false,
+        "type": "json",
+        "desc": "* - delete all, ID - delete events from list for specific object, timestamp - delete one event from list by timestamp (number or ISO string)"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "triggerPDF",
+      "common": {
+        "name": "Generate PDF file",
+        "write": true,
+        "read": false,
+        "def": false,
+        "role": "button",
+        "type": "boolean"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "alarm",
+      "common": {
+        "name": "Switch alarm state",
+        "write": true,
+        "read": true,
+        "type": "boolean",
+        "role": "switch",
+        "desc": "Toggle alarm state"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "eventListRaw",
+      "common": {
+        "expert": true,
+        "name": "Raw events table",
+        "write": false,
+        "read": true,
+        "def": "[]",
+        "type": "json"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "eventJSONList",
+      "common": {
+        "name": "Event JSON table",
+        "write": false,
+        "read": true,
+        "def": "[]",
+        "type": "json"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent",
+      "common": {
+        "name": "Last event"
+      },
+      "type": "channel",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.json",
+      "common": {
+        "name": "Last event as JSON",
+        "write": false,
+        "read": true,
+        "def": "{}",
+        "type": "json"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.event",
+      "common": {
+        "name": "Last event text",
+        "write": false,
+        "read": true,
+        "def": "",
+        "type": "string"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.ts",
+      "common": {
+        "name": "Last event time in ms",
+        "write": false,
+        "read": true,
+        "def": 0,
+        "role": "datetime",
+        "type": "number"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.duration",
+      "common": {
+        "name": "Last event duration",
+        "write": false,
+        "read": true,
+        "def": 0,
+        "unit": "ms",
+        "role": "state",
+        "type": "number"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.val",
+      "common": {
+        "name": "Last event value",
+        "write": false,
+        "read": true,
+        "role": "state",
+        "type": "mixed"
+      },
+      "type": "state",
+      "native": {}
+    },
+    {
+      "_id": "lastEvent.id",
+      "common": {
+        "name": "Last event state id",
+        "write": false,
+        "read": true,
+        "role": "state",
+        "def": "",
+        "type": "string"
+      },
+      "type": "state",
+      "native": {}
+    }
+  ]
 }

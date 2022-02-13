@@ -140,7 +140,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.0 (2022-02-13)
 * (bluefox) Corrected the error with "changes only" option
 * (bluefox) Added possibility to use icons with custom events
 
@@ -165,22 +165,22 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 ### 0.2.8 (2020-10-14)
 * (bluefox) Corrected error in pdf settings  
-* (bluefox) Implemented the recalculation of the relative time every 10 seconds  
+* (bluefox) Implemented the recalculation of the relative time every 10 seconds
 
 ### 0.2.6 (2020-09-25)
-* (bluefox) Corrected error in pdf creation  
+* (bluefox) Corrected error in pdf creation
 
 ### 0.2.5 (2020-09-24)
-* (bluefox) Extended icon selector 
- 
+* (bluefox) Extended icon selector
+
 ### 0.2.1 (2020-09-21)
-* (bluefox) Vis-widget was corrected 
+* (bluefox) Vis-widget was corrected
 
 ### 0.1.3 (2020-09-15)
-* (bluefox) Implemented the alarm mode and messengers 
+* (bluefox) Implemented the alarm mode and messengers
 
 ### 0.0.3 (2020-09-08)
-* (bluefox) Objects with states are supported now 
+* (bluefox) Objects with states are supported now
 
 ### 0.0.2 (2020-09-07)
 * (bluefox) initial commit
