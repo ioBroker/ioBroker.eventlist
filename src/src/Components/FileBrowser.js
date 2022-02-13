@@ -43,6 +43,7 @@ import IconList from '@material-ui/icons/List';
 import IconTile from '@material-ui/icons/ViewModule';
 import IconBack from '@material-ui/icons/ArrowBack';
 import DeleteIcon from '@material-ui/icons/Delete';
+import CancelIcon from '@material-ui/icons/Close';
 
 import ExpertIcon from  '@iobroker/adapter-react/Components/ExpertIcon';
 import NoImage from '@iobroker/adapter-react/assets/no_icon.svg';
@@ -1172,12 +1173,24 @@ class FileBrowser extends React.Component {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => this.setState({deleteItem: ''})} >{this.props.t('ra_Cancel')}</Button>
-                    <Button onClick={() => {
-                        this.suppressDeleteConfirm = Date.now() + 60000 * 5;
-                        this.deleteItem();
-                    }} >{this.props.t('ra_Delete (no confirm for 5 mins)')}</Button>
-                    <Button onClick={() => this.deleteItem()} color="primary">{this.props.t('ra_Delete')}</Button>
+                    <Button
+                        onClick={() => {
+                            this.suppressDeleteConfirm = Date.now() + 60000 * 5;
+                            this.deleteItem();
+                        }}
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                    >{this.props.t('ra_Delete (no confirm for 5 mins)')}</Button>
+                    <Button
+                        onClick={() => this.deleteItem()} color="primary"
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                    >{this.props.t('ra_Delete')}</Button>
+                    <Button
+                        onClick={() => this.setState({deleteItem: ''})}
+                        variant="contained"
+                        startIcon={<CancelIcon />}
+                    >{this.props.t('ra_Cancel')}</Button>
                 </DialogActions>
             </Dialog>;
         } else {

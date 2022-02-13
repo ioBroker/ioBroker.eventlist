@@ -74,9 +74,6 @@ const styles = theme => ({
         color: 'red',
         fontStyle: 'italic',
     },
-    buttonIcon: {
-        marginRight: theme.spacing(2),
-    },
     buttonFormat: {
         marginTop: 20,
     },
@@ -199,8 +196,10 @@ class Options extends Component {
                 <Button
                     variant="contained"
                     className={this.props.classes.buttonFormat}
-                    onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}>
-                        <IconHelp className={this.props.classes.buttonIcon}/>{I18n.t('Format description')}
+                    onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}
+                    startIcon={<IconHelp />}
+                >
+                        {I18n.t('Format description')}
                 </Button>
                 <br/>
                 <TextField

@@ -25,9 +25,6 @@ const styles = theme => ({
     textField: {
 
     },
-    buttonIcon: {
-        marginRight: theme.spacing(1)
-    },
     icon: {
         width: 32,
         maxHeight: 32
@@ -165,12 +162,12 @@ class SelectStateDialog extends Component {
                 label={I18n.t('Filter')}
                 InputLabelProps={ {shrink: true} }
                 InputProps={{
-                    endAdornment: this.state.searchedValue ? (
+                    endAdornment: this.state.searchedValue ?
                         <IconButton
                             onClick={() => this.setState({ searchedValue: '' })}>
                             <ClearIcon />
                         </IconButton>
-                    ) : undefined,
+                        : undefined,
                 }}
                 autoFocus
                 value={this.state.filter}
@@ -187,8 +184,13 @@ class SelectStateDialog extends Component {
                 </List>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.props.onClose()} color="primary">
-                    <CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}
+                <Button
+                    onClick={() => this.props.onClose()}
+                    color="primary"
+                    variant="contained"
+                    startIcon={<CancelIcon />}
+                >
+                    {I18n.t('Cancel')}
                 </Button>
             </DialogActions>
         </Dialog>;

@@ -39,10 +39,7 @@ const DEFAULT_TEMPLATE = 'default';
 const styles = theme => ({
     textFieldWithButton: {
         width: 'calc(100% - 70px)'
-    },
-    buttonIcon: {
-        marginRight: theme.spacing(1)
-    },
+    }
 });
 
 class AddIdDialog extends Component {
@@ -299,18 +296,28 @@ class AddIdDialog extends Component {
                 /> : null}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.props.onClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{!changed ? I18n.t('Close') : I18n.t('Cancel')}</Button>
                 {this.state.exists[this.state.currentId] && this.state.ids.length === 1 ? <Button
                     onClick={() => this.setState({confirmRemove: true})}
-                ><RemoveIcon className={this.props.classes.buttonIcon}/>{I18n.t('Remove')}</Button> : null}
+                    variant="contained"
+                    startIcon={<RemoveIcon />}
+                >{I18n.t('Remove')}</Button> : null}
                 <Button
                     disabled={!this.state.ids.length || !changed}
+                    variant="contained"
                     onClick={() =>
                         this.writeSettings([...this.state.ids], () =>
                             this.props.onClose())
                     }
+                    startIcon={<SaveIcon />}
                     color="primary"
-                ><SaveIcon className={this.props.classes.buttonIcon}/>{exists ? I18n.t('Update') : I18n.t('Add')}</Button>
+                >{exists ? I18n.t('Update') : I18n.t('Add')}</Button>
+                <Button
+                    onClick={() => this.props.onClose()}
+                    startIcon={<CancelIcon />}
+                    variant="contained"
+                >
+                    {!changed ? I18n.t('Close') : I18n.t('Cancel')}
+                </Button>
             </DialogActions>
             {this.renderConfirmExit()}
             {this.renderConfirmRemove()}

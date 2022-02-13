@@ -352,6 +352,13 @@ function formatEvent(state, allowRelative) {
                 } else {
                     eventTemplate = states[id].event;
                 }
+
+                if (eventTemplate === null || eventTemplate === undefined) {
+                    eventTemplate = '';
+                } else if (typeof eventTemplate !== 'string') {
+                    eventTemplate = eventTemplate.toString();
+                }
+
                 eventTemplate = eventTemplate.replace(/%u/g, states[id].unit || '');
                 eventTemplate = eventTemplate.replace(/%n/g, states[id].name || id);
                 if (item) {
@@ -661,6 +668,10 @@ function addEvent(event) {
                 _event.oldVal = event.oldVal;
             }
 
+            if (event.icon) {
+                _event.icon = event.icon;
+            }
+
             if (event.duration !== undefined && event.duration !== null) {
                 // This is duration of previous event
                 const prevEvent = eventListRaw.find(item => item.id === event.id);
@@ -690,7 +701,7 @@ function addEvent(event) {
                     .then(() => updateMomentTimes())
                     .then(() => Promise.all([
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined ? null : _event.id, true),
+                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined || _event.id === null ? null : _event.id.toString(), true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
                         adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),

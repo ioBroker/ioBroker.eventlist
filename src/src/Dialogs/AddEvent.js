@@ -16,14 +16,12 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 
 import I18n from '@iobroker/adapter-react/i18n';
+import IconPicker from '@iobroker/adapter-react/Components/IconPicker';
 
 const styles = theme => ({
     textField: {
 
-    },
-    buttonIcon: {
-        marginRight: theme.spacing(1)
-    },
+    }
 });
 
 class AddEventDialog extends Component {
@@ -34,8 +32,11 @@ class AddEventDialog extends Component {
             showTime: false,
             event: '',
             val: '',
-            ts: ''
+            ts: '',
+            icon: ''
         };
+
+        this.imagePrefix = this.props.imagePrefix || './files';
     }
 
     onOk() {
@@ -43,6 +44,11 @@ class AddEventDialog extends Component {
         if (this.state.ts) {
             event.ts = this.state.ts;
         }
+
+        if (this.state.icon) {
+            event.icon = this.state.icon;
+        }
+
         if (this.state.val) {
             if (parseFloat(this.state.val).toString() === this.state.val) {
                 event.val = parseFloat(this.state.val);
@@ -105,16 +111,33 @@ class AddEventDialog extends Component {
                         shrink: true,
                     }}
                 /> : null }
+                <IconPicker
+                    disabled={this.props.reading}
+                    imagePrefix={this.imagePrefix}
+                    label={I18n.t('Icon')}
+                    socket={this.props.socket}
+                    value={this.state.icon}
+                    onChange={icon =>
+                        this.setState({icon})}
+                />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.props.onClose()} color="primary">
-                    <CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}
-                </Button>
                 <Button
                     disabled={!this.state.event || (this.state.showTime && !this.state.ts)}
                     onClick={() => this.onOk()}
-                    color="primary">
-                    <AddIcon className={this.props.classes.buttonIcon}/>{I18n.t('Insert')}
+                    color="primary"
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                >
+                    {I18n.t('Insert')}
+                </Button>
+                <Button
+                    onClick={() => this.props.onClose()}
+                    color="primary"
+                    variant="contained"
+                    startIcon={<CancelIcon />}
+                >
+                    {I18n.t('Cancel')}
                 </Button>
             </DialogActions>
         </Dialog>;
@@ -123,6 +146,7 @@ class AddEventDialog extends Component {
 
 AddEventDialog.propTypes = {
     onClose: PropTypes.func.isRequired,
+    imagePrefix: PropTypes.string,
 };
 
 export default withStyles(styles)(AddEventDialog);

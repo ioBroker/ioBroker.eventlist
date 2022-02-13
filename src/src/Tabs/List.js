@@ -601,8 +601,8 @@ class List extends Component {
                             this.setState({showSelectState: true});
                         }}>
                             <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
-                                <IconEdit style={{verticalAlign: 'middle', marginRight: 8}}/>
-                                {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('States')}</span>}
+                                <IconEdit style={{verticalAlign: 'middle', marginRight: 8, paddingLeft: 16}}/>
+                                {narrowWidth ? null : <span style={{verticalAlign: 'middle', paddingRight: 16}}>{I18n.t('States')}</span>}
                             </div>
                         </Fab>
                     </Tooltip>}
@@ -831,6 +831,7 @@ class List extends Component {
             return null;
         } else {
             return <AddEventDialog
+                imagePrefix={this.imagePrefix}
                 onClose={event => {
                     this.setState({showAddEventDialog: false}, () =>
                         event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))

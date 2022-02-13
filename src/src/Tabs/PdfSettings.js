@@ -334,8 +334,10 @@ class PdfSettings extends Component {
                 <Button
                     variant="contained"
                     className={this.props.classes.buttonFormat}
-                    onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}>
-                    <IconHelp className={this.props.classes.buttonIcon}/>{I18n.t('Time format description')}
+                    onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}
+                    startIcon={<IconHelp />}
+                >
+                    {I18n.t('Time format description')}
                 </Button>
                 <br/>
                 <ColorPicker

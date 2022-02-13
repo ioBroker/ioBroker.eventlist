@@ -45,7 +45,7 @@ Event list can be displayed as vis widget.
 There is a possibility to generate a PDF document with all events.
 
 Document title can consist the generation date if you place the pattern into it: `Event list on {{YYYY MM DD}}`. 
-The exactly description of time format could be found here: https://momentjs.com/docs/#/displaying/format/
+The exact description of time format could be found here: https://momentjs.com/docs/#/displaying/format/
 
 The generation of PDF can be triggered by writing a `true` into `eventlist.0.triggerPDF`. 
 
@@ -140,6 +140,10 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Corrected the error with "changes only" option
+* (bluefox) Added possibility to use icons with custom events
+
 ### 0.4.4 (2021-06-24)
 * (bluefox) Corrected the warning for js-controller 3.x
 
@@ -187,7 +191,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ## License
 MIT License
 
-Copyright (c) 2020 ioBroker <dogafox@gmail.com>
+Copyright (c) 2020-2022 ioBroker <dogafox@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

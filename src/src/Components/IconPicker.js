@@ -54,9 +54,6 @@ const styles = theme => ({
         marginTop: 0,
         marginBottom: 0,
     },
-    buttonIcon: {
-        marginRight: theme.spacing(1),
-    },
     icon: {
         width: 32,
         height: 32,
@@ -240,14 +237,21 @@ class IconPicker extends React.Component {
                 </div>}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.onDialogClose()}><CancelIcon className={this.props.classes.buttonIcon}/>{I18n.t('Cancel')}</Button>
+
                 <Button onClick={() => this.onDialogClose(this.state.dialogValue)}
                         color="primary"
                         disabled={!this.state.dialogValue || this.state.dialogInitialValue === this.state.dialogValue}
                         autoFocus
+                        variant="contained"
+                        startIcon={<CheckIcon />}
                 >
-                    <CheckIcon className={this.props.classes.buttonIcon}/>{I18n.t('Select')}
+                    {I18n.t('Select')}
                 </Button>
+                <Button
+                    onClick={() => this.onDialogClose()}
+                    variant="contained"
+                    startIcon={<CancelIcon />}
+                >{I18n.t('Cancel')}</Button>
             </DialogActions>
         </Dialog>
     }
@@ -281,9 +285,9 @@ class IconPicker extends React.Component {
                 InputProps={{
                     endAdornment: this.state.value ? (
                         <IconButton
-                            onClick={() => {
-                                this.setState({value: '', imgError: false}, () => this.props.onChange(''));
-                            }}>
+                            onClick={() =>
+                                this.setState({value: '', imgError: false}, () => this.props.onChange(''))
+                        }>
                             <ClearIcon />
                         </IconButton>
                     ) : undefined,

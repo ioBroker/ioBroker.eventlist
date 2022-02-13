@@ -369,6 +369,7 @@ class EditState extends Component {
                     settings.whatsAppCMB          = newSettings.whatsAppCMB || [];
                     settings.pushover             = newSettings.pushover    || [];
                     settings.telegram             = newSettings.telegram    || [];
+                    settings.changesOnly          = newSettings.changesOnly;
 
                     settings.defaultMessengers = newSettings.defaultMessengers === undefined ? true : newSettings.defaultMessengers;
 
