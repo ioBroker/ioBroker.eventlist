@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "news": {
+      "0.5.2": {
+        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
+        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
+        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
+        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
+        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
+        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
+        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
+        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
+        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
+        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
+      },
       "0.5.1": {
         "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
         "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
@@ -74,18 +86,6 @@
         "es": "Configuración agregada de fondo par / impar para el widget\nFiltro agregado",
         "pl": "Dodano ustawienie parzystego / nieparzystego tła dla widżetu\nDodano filtr",
         "zh-cn": "为小部件添加了偶数/奇数背景设置\n添加了过滤器"
-      },
-      "0.2.9": {
-        "en": "Corrected error in GUI by disabling of state\nImplemented the deletion of events from the event list",
-        "de": "Fehler in der GUI durch Deaktivieren des Status behoben\nDas Löschen von Ereignissen aus der Ereignisliste wurde implementiert",
-        "ru": "Исправлена ошибка в графическом интерфейсе путем отключения состояния\nРеализовано удаление событий из списка событий",
-        "pt": "Erro corrigido na GUI desativando o estado\nImplementou a exclusão de eventos da lista de eventos",
-        "nl": "Fout in GUI gecorrigeerd door status uit te schakelen\nImplementatie van het verwijderen van evenementen uit de evenementenlijst",
-        "fr": "Correction d'une erreur dans l'interface graphique en désactivant l'état\nImplémentation de la suppression des événements de la liste des événements",
-        "it": "Corretto errore nella GUI disabilitando lo stato\nImplementata la cancellazione degli eventi dalla lista degli eventi",
-        "es": "Error corregido en GUI al deshabilitar el estado\nImplementó la eliminación de eventos de la lista de eventos.",
-        "pl": "Poprawiony błąd w GUI poprzez wyłączenie stanu\nZaimplementowano usuwanie wydarzeń z listy zdarzeń",
-        "zh-cn": "通过禁用状态更正了GUI中的错误\n实现了从事件列表中删除事件"
       }
     },
     "titleLang": {
