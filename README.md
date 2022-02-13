@@ -140,7 +140,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.1 (2022-02-13)
 * (bluefox) Corrected the error with "changes only" option
 * (bluefox) Added possibility to use icons with custom events
 

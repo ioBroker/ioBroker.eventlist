@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "news": {
+      "0.5.1": {
+        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
+        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
+        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
+        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
+        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
+        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
+        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
+        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
+        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
+        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
+      },
       "0.5.0": {
         "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
         "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
@@ -74,18 +86,6 @@
         "es": "Error corregido en GUI al deshabilitar el estado\nImplementó la eliminación de eventos de la lista de eventos.",
         "pl": "Poprawiony błąd w GUI poprzez wyłączenie stanu\nZaimplementowano usuwanie wydarzeń z listy zdarzeń",
         "zh-cn": "通过禁用状态更正了GUI中的错误\n实现了从事件列表中删除事件"
-      },
-      "0.2.8": {
-        "en": "Corrected error in pdf settings  \nImplemented the recalculation of the relative time every 10 seconds",
-        "de": "Fehler in den PDF-Einstellungen behoben\nImplementierte die Neuberechnung der relativen Zeit alle 10 Sekunden",
-        "ru": "Исправлена ошибка в настройках pdf\nРеализован пересчет относительного времени каждые 10 секунд.",
-        "pt": "Erro corrigido nas configurações de pdf\nImplementado o recálculo do tempo relativo a cada 10 segundos",
-        "nl": "Fout gecorrigeerd in pdf-instellingen\nImplementeerde de herberekening van de relatieve tijd elke 10 seconden",
-        "fr": "Erreur corrigée dans les paramètres PDF\nImplémentation du recalcul du temps relatif toutes les 10 secondes",
-        "it": "Errore corretto nelle impostazioni del pdf\nImplementato il ricalcolo del tempo relativo ogni 10 secondi",
-        "es": "Error corregido en la configuración de PDF\nImplementó el recálculo del tiempo relativo cada 10 segundos.",
-        "pl": "Poprawiony błąd w ustawieniach pdf\nZaimplementowano przeliczanie względnego czasu co 10 sekund",
-        "zh-cn": "纠正了pdf设置中的错误\n每10秒重新计算一次相对时间"
       }
     },
     "titleLang": {
