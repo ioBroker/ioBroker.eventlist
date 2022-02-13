@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "news": {
+      "0.5.3": {
+        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
+        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
+        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
+        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
+        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
+        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
+        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
+        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
+        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
+        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
+      },
       "0.5.2": {
         "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
         "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
@@ -74,18 +86,6 @@
         "es": "Posibilidad agregada de agregar múltiples estados\nSe movió la duración al estado anterior.",
         "pl": "Dodano możliwość dodawania wielu stanów\nPrzeniesiono czas trwania do poprzedniego stanu",
         "zh-cn": "增加了添加多个状态的可能性\n将持续时间移至先前状态"
-      },
-      "0.4.0": {
-        "en": "Added setting of even/odd background for widget\nAdded filter",
-        "de": "Einstellung des geraden / ungeraden Hintergrunds für das Widget hinzugefügt\nFilter hinzugefügt",
-        "ru": "Добавлена настройка четного / нечетного фона для виджета\nДобавлен фильтр",
-        "pt": "Adicionada configuração de fundo par / ímpar para o widget\nFiltro adicionado",
-        "nl": "Instelling van even / oneven achtergrond toegevoegd voor widget\nFilter toegevoegd",
-        "fr": "Ajout du paramètre d'arrière-plan pair / impair pour le widget\nFiltre ajouté",
-        "it": "Aggiunta l'impostazione dello sfondo pari / dispari per il widget\nAggiunto filtro",
-        "es": "Configuración agregada de fondo par / impar para el widget\nFiltro agregado",
-        "pl": "Dodano ustawienie parzystego / nieparzystego tła dla widżetu\nDodano filtr",
-        "zh-cn": "为小部件添加了偶数/奇数背景设置\n添加了过滤器"
       }
     },
     "titleLang": {
