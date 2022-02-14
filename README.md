@@ -140,7 +140,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### __WORK IN PROGRESS__
+### 0.5.4 (2022-02-14)
 * (bluefox) Corrected the image paths
 
 ### 0.5.3 (2022-02-13)
