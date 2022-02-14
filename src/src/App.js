@@ -142,7 +142,7 @@ class App extends GenericApp {
     renderEventList() {
         return <TabList
             key="enums"
-            imagePrefix={this.isWeb ? '../' : '../../files/'}
+            imagePrefix={this.isWeb ? '../' : '../..'}
             editEnabled={!this.isTab}
             showEditButton={this.isTab}
             themeName={this.state.themeName}
@@ -153,7 +153,7 @@ class App extends GenericApp {
             onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
             instance={this.instance}
             adapterName={this.adapterName}
-        />
+        />;
     }
 
     render() {

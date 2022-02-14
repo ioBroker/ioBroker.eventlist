@@ -36,7 +36,7 @@ class AddEventDialog extends Component {
             icon: ''
         };
 
-        this.imagePrefix = this.props.imagePrefix || './files';
+        this.imagePrefix = this.props.imagePrefix;
     }
 
     onOk() {

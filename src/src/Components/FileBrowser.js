@@ -383,13 +383,13 @@ class FileBrowser extends React.Component {
         }
 
         let viewType;
-        if (this.props.showViewTypeButton) {
+        if (props.showViewTypeButton) {
             viewType = window.localStorage.getItem('files.viewType') || TABLE;
         } else {
             viewType = TABLE;
         }
 
-        let selected = this.props.selected || window.localStorage.getItem('files.selected') || USER_DATA;
+        let selected = props.selected || window.localStorage.getItem('files.selected') || USER_DATA;
         let currentDir = '';
         if (isFile(selected)) {
             currentDir = getParentDir(selected);
@@ -403,7 +403,7 @@ class FileBrowser extends React.Component {
             filterEmpty: window.localStorage.getItem('files.empty') !== 'false',
             expanded,
             currentDir,
-            expertMode: this.props.expertMode,
+            expertMode: props.expertMode,
             addFolder: false,
             uploadFile: false,
             deleteItem: '',
@@ -414,9 +414,9 @@ class FileBrowser extends React.Component {
             errorText: '',
         };
 
-        this.imagePrefix = this.props.imagePrefix || './files/';
+        this.imagePrefix = props.imagePrefix;
 
-        this.levelPadding = this.props.levelPadding || 20;
+        this.levelPadding = props.levelPadding || 20;
         this.mounted = true;
         this.suppressDeleteConfirm = 0;
 

@@ -96,14 +96,14 @@ class IconPicker extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            color: this.props.color || '',
-            value: this.props.value || '',
+            color: props.color || '',
+            value: props.value || '',
             dialogValue: '',
             showDialog: false,
-            selectedTab: this.props.value && !this.props.value.startsWith('data:image/') ? 1 : 0,
+            selectedTab: props.value && !props.value.startsWith('data:image/') ? 1 : 0,
             imgError: false,
         };
-        this.imagePrefix = this.props.imagePrefix || './files/';
+        this.imagePrefix = props.imagePrefix;
     }
 
     /*static getDerivedStateFromProps(props, state) {
@@ -148,7 +148,7 @@ class IconPicker extends React.Component {
     }
 
     getIdFromSrc(svg) {
-        const len = 'data:image/svg+xml;base64, ';
+        const len = 'data:image/svg+xml;base64,';
         if (!svg || !svg.startsWith(len)) {
             return null;
         }

@@ -152,7 +152,7 @@ class AddIdDialog extends Component {
 
         return <SelectIDDialog
             statesOnly={true}
-            imagePrefix={'../..'}
+            imagePrefix={this.props.imagePrefix}
             showExpertButton={true}
             multiSelect={true}
             notEditable={true}

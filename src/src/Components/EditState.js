@@ -131,7 +131,7 @@ class EditState extends Component {
             simulateState: '',
         };
 
-        this.imagePrefix = this.props.imagePrefix || './files';
+        this.imagePrefix = this.props.imagePrefix;
         this.language = this.props.native.language || I18n.getLanguage();
         moment.locale(this.language === 'en' ? 'en-gb' : this.language);
 

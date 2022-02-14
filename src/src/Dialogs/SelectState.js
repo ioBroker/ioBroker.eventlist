@@ -130,7 +130,7 @@ class SelectStateDialog extends Component {
                 return null;
             }
 
-            const icon = getSelectIdIcon(obj);
+            const icon = getSelectIdIcon(obj, this.props.imagePrefix);
             return <ListItem button onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
                 <ListItemIcon>
                     {icon ? <img src={icon} className={this.props.classes.icon} alt="state"/> : <div className={this.props.classes.emptyIcon}>&nbsp;</div>}
@@ -202,6 +202,7 @@ SelectStateDialog.propTypes = {
     socket: PropTypes.object.isRequired,
     adapterName: PropTypes.string.isRequired,
     instance: PropTypes.number.isRequired,
+    imagePrefix: PropTypes.string.isRequired,
 };
 
 export default withStyles(styles)(SelectStateDialog);

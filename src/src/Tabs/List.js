@@ -255,7 +255,7 @@ class List extends Component {
             isFloatComma: true,
         };
 
-        this.imagePrefix    = this.props.imagePrefix || 'files/'; // by default is admin
+        this.imagePrefix    = this.props.imagePrefix; // by default is admin
         this.aliveId        = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
         this.eventListId    = `${this.props.adapterName}.${this.props.instance}.eventJSONList`;
         this.eventRawListId = `${this.props.adapterName}.${this.props.instance}.eventListRaw`;
@@ -731,6 +731,7 @@ class List extends Component {
             return null;
         }
         return <SelectStateDialog
+            imagePrefix={this.props.imagePrefix}
             socket={this.props.socket}
             adapterName={this.props.adapterName}
             instance={this.props.instance}
