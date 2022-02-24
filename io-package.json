@@ -150,6 +150,7 @@
     },
     "mode": "daemon",
     "type": "visualization",
+    "eraseOnUpload": true,
     "compact": true,
     "materialize": true,
     "materializeTab": true,
