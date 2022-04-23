@@ -182,7 +182,13 @@
       "custom": "json"
     },
     "connectionType": "local",
-    "dataSource": "push"
+    "dataSource": "push",
+    "tier": 3,
+    "plugins": {
+      "sentry": {
+        "dsn": "https://bb1b82030b5041a68f0e065262601347@sentry.iobroker.net/191"
+      }
+    }
   },
   "native": {
     "maxLength": 100,

@@ -119,7 +119,7 @@ function startAdapter(options) {
             updateMomentTimes()
                 .then(() => {});
         } else if (id === adapter.namespace + '.insert' && state && !state.ack && state.val) {
-            if (state.val.startsWith('{')) {
+            if (typeof state.val === 'string' && state.val.startsWith('{')) {
                 try {
                     state.val = JSON.parse(state.val);
                 } catch (e) {
@@ -904,7 +904,7 @@ function updateStateSettings(id, obj) {
                     }
                     if (result && !states[id].color && result.color !== states[id].color) {
                         changed = true;
-                        states[id].result.color = result.color;
+                        states[id].color = result.color;
                     }
                 }));
         }
