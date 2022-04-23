@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "news": {
+      "0.5.5": {
+        "en": "Fix a crash issue\nAdd Sentry also for the Node.js part",
+        "de": "Beheben Sie ein Absturzproblem\nFügen Sie Sentry auch für den Node.js-Teil hinzu",
+        "ru": "Исправить проблему сбоя\nДобавьте Sentry также для части Node.js",
+        "pt": "Corrigir um problema de falha\nAdicione o Sentry também para a parte Node.js",
+        "nl": "Een crashprobleem oplossen\nVoeg Sentry ook toe voor het Node.js-gedeelte",
+        "fr": "Résoudre un problème de plantage\nAjouter Sentry également pour la partie Node.js",
+        "it": "Risolvi un problema di arresto anomalo\nAggiungi Sentry anche per la parte Node.js",
+        "es": "Solucionar un problema de bloqueo\nAgregue Sentry también para la parte de Node.js",
+        "pl": "Napraw problem z awarią\nDodaj Sentry również dla części Node.js",
+        "zh-cn": "修复崩溃问题\n也为 Node.js 部分添加 Sentry"
+      },
       "0.5.4": {
         "en": "Corrected the image paths",
         "de": "Bildpfade korrigiert",
@@ -74,18 +86,6 @@
         "es": "Se corrigió la advertencia para js-controller 3.x",
         "pl": "Poprawiono ostrzeżenie dla js-controller 3.x",
         "zh-cn": "更正了 js-controller 3.x 的警告"
-      },
-      "0.4.3": {
-        "en": "Added the support of Admin5",
-        "de": "Unterstützung von Admin5 hinzugefügt",
-        "ru": "Добавлена поддержка Admin5",
-        "pt": "Adicionado o suporte de Admin5",
-        "nl": "Ondersteuning toegevoegd van Admin5",
-        "fr": "Ajout du support d'Admin5",
-        "it": "Aggiunto il supporto di Admin5",
-        "es": "Se agregó el soporte de Admin5.",
-        "pl": "Dodano obsługę Admin5",
-        "zh-cn": "添加了对Admin5的支持"
       }
     },
     "titleLang": {
