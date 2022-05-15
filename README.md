@@ -73,7 +73,7 @@ sendTo('eventlist.0', 'insert', 'My custom text');
 // or
 setState('eventlist.0.insert', 'My custom text');
 // or
-setState('eventlist.0.insert', {event: 'My custom text %s', val: 5});
+setState('eventlist.0.insert', JSON.stringify({event: 'My custom text %s', val: 5}));
 ```
 
 User can request formatted JSON list for specific ID. Of course the ID must be enabled in the `eventlist` before.
