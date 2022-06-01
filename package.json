@@ -42,7 +42,7 @@
     "@alcalzone/release-script": "^3.5.9",
     "@alcalzone/release-script-plugin-iobroker": "^3.5.9",
     "@alcalzone/release-script-plugin-license": "^3.5.9",
-    "@types/iobroker": "^4.0.2",
+    "@types/iobroker": "^4.0.4",
     "del": "^6.1.1",
     "axios": "^0.27.2",
     "request": "^2.88.2"
