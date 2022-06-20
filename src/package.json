@@ -3,19 +3,19 @@
   "version": "0.5.5",
   "private": true,
   "dependencies": {
-    "@iobroker/adapter-react": "^2.0.19",
-    "@material-ui/core": "^4.12.3",
-    "@sentry/browser": "^6.17.7",
-    "@sentry/integrations": "^6.17.7",
+    "@iobroker/adapter-react": "^2.2.3",
+    "@material-ui/core": "^4.12.4",
+    "@sentry/browser": "^7.2.0",
+    "@sentry/integrations": "^7.2.0",
     "clsx": "^1.1.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-icons": "^4.3.1",
+    "react-icons": "^4.4.0",
     "react-scripts": "^4.0.3",
-    "@material-ui/icons": "^4.11.2",
+    "@material-ui/icons": "^4.11.3",
     "moment": "^2.29.1",
     "react-color": "^2.19.3",
-    "react-dropzone": "^12.0.4"
+    "react-dropzone": "^14.2.1"
   },
   "scripts": {
     "start": "react-scripts start",

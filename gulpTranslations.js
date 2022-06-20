@@ -18,11 +18,12 @@ const languages = {
     'zh-cn': {}
 };
 
-const request = require('request');
+const axios = require('axios');
+
 function translateIoBroker(text) {
     return new Promise((resolve, reject) =>
-        request.post('https://translator.iobroker.in/translator',
-            {form: {together: false, text}},
+        axios.post('https://translator.iobroker.in/translator',
+            {form: { together: false, text }},
             (error, response, body) => {
                 if (error || response.statusCode >= 400) {
                     return reject('upload failed:' + error);

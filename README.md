@@ -137,10 +137,13 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
-	### __WORK IN PROGRESS__
+	### **WORK IN PROGRESS**
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Allowed to work behind reverse proxy
+
 ### 0.5.5 (2022-04-23)
 * (Apollon77) Fix a crash issue
 * (Apollon77) Add Sentry also for the Node.js part

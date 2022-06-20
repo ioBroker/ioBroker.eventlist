@@ -1,5 +1,5 @@
 'use strict';
-
+/*
 goog.provide('Blockly.JavaScript.Sendto');
 
 goog.require('Blockly.JavaScript');
@@ -131,3 +131,4 @@ Blockly.JavaScript['ifttt_iot'] = function(block) {
     return 'sendTo("iot' + dropdown_instance + '", "ifttt", {event: ' + event  + ', value1: ' + value1 + ', value2: ' + value2 + ', value3: ' + value3 + '});\n' +
         logText;
 };
+*/

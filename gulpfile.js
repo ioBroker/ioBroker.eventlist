@@ -154,7 +154,7 @@ gulp.task('6-patch', () => new Promise(resolve => {
     if (fs.existsSync(__dirname + '/admin/index.html')) {
         let code = fs.readFileSync(__dirname + '/admin/index.html').toString('utf8');
         code = code.replace(/<script>var script=document\.createElement\("script"\)[^<]+<\/script>/,
-            `<script type="text/javascript" src="./../../lib/js/socket.io.js"></script>`);
+            `<script type="text/javascript" src="../../lib/js/socket.io.js"></script>`);
 
         fs.unlinkSync(__dirname + '/admin/index.html');
         fs.writeFileSync(__dirname + '/admin/index_m.html', code);
@@ -162,15 +162,15 @@ gulp.task('6-patch', () => new Promise(resolve => {
     if (fs.existsSync(__dirname + '/src/build/index.html')) {
         let code = fs.readFileSync(__dirname + '/src/build/index.html').toString('utf8');
         code = code.replace(/<script>var script=document\.createElement\("script"\)[^<]+<\/script>/,
-            `<script type="text/javascript" src="./../../lib/js/socket.io.js"></script>`);
+            `<script type="text/javascript" src="../../lib/js/socket.io.js"></script>`);
 
         fs.writeFileSync(__dirname + '/src/build/index.html', code);
     }
     if (fs.existsSync(__dirname + '/src/build/index.html')) {
-        let code = fs.readFileSync(__dirname + '/src/build/index.html').toString('utf8');
+        const code = fs.readFileSync(__dirname + '/src/build/index.html').toString('utf8');
         fs.writeFileSync(__dirname + '/admin/tab_m.html', code);
     } else if (fs.existsSync(__dirname + '/admin/index.html')) {
-        let code = fs.readFileSync(__dirname + '/admin/index.html').toString('utf8');
+        const code = fs.readFileSync(__dirname + '/admin/index.html').toString('utf8');
         fs.writeFileSync(__dirname + '/admin/tab_m.html', code);
     }
 
@@ -193,29 +193,31 @@ gulp.task('7-copy-www', () =>
 gulp.task('7-copy-www-dep', gulp.series('6-patch-dep', '7-copy-www'));
 
 function renameWWW() {
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
         if (fs.existsSync(__dirname + '/www/tab_m.html')) {
             fs.unlinkSync(__dirname + '/www/tab_m.html');
         }
         if (fs.existsSync(__dirname + '/www/index_m.html')) {
             let code = fs.readFileSync(__dirname + '/www/index_m.html').toString('utf8');
             if (!code.includes('_socket/info.js')) {
-                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../../_socket/info.js"></script>');
+                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../_socket/info.js"></script>');
             }
+            code = code.replace('<script type="text/javascript" src="../../lib/js/socket.io.js"></script>', '<script type="text/javascript" src="../lib/js/socket.io.js"></script>')
             fs.writeFileSync(__dirname + '/www/index.html', code);
         }
         if (fs.existsSync(__dirname + '/www/index.html')) {
             let code = fs.readFileSync(__dirname + '/www/index.html').toString('utf8');
             if (!code.includes('_socket/info.js')) {
-                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../../_socket/info.js"></script>');
+                code = code.replace('<link rel="manifest" href="./manifest.json"/>', '<link rel="manifest" href="./manifest.json"/><script type="text/javascript" src="../_socket/info.js"></script>');
             }
+            code = code.replace('<script type="text/javascript" src="../../lib/js/socket.io.js"></script>', '<script type="text/javascript" src="../lib/js/socket.io.js"></script>')
             fs.writeFileSync(__dirname + '/www/index.html', code);
         }
 
         if (fs.existsSync(__dirname + '/www/index_m.html')) {
             fs.unlinkSync(__dirname + '/www/index_m.html');
         }
-        resolve();
+        resolve(null);
     });
 }
 

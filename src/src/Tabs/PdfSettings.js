@@ -731,7 +731,11 @@ class PdfSettings extends Component {
 
     renderPdfFile() {
         return <Grid item xs={12} md={12} lg={6}>
-            <iframe title="pdf" className={this.props.classes.iframePdfLandscape} src={`/files/eventlist/report${this.props.instance ? '-' + this.props.instance : ''}.pdf?q=${this.state.random}`} />
+            <iframe
+                title="pdf"
+                className={this.props.classes.iframePdfLandscape}
+                src={`../../files/eventlist/report${this.props.instance ? '-' + this.props.instance : ''}.pdf?q=${this.state.random}`}
+            />
         </Grid>
     }
 
@@ -739,18 +743,21 @@ class PdfSettings extends Component {
         if (!this.state.messageText) {
             return null;
         }
-        return <DialogMessage title={I18n.t('Success')} onClose={() => this.setState({messageText: ''})}>{this.state.messageText}</DialogMessage>
+        return <DialogMessage
+            title={I18n.t('Success')}
+            onClose={() => this.setState({messageText: ''})}
+        >
+            {this.state.messageText}
+        </DialogMessage>
     }
 
     render() {
-        return (
-            <form className={this.props.classes.tab}>
-                <Grid container spacing={1} className={this.props.classes.gridContainer}>
-                    {this.renderSettings()}
-                    {this.renderPdfFile()}
-                </Grid>
-            </form>
-        );
+        return <form className={this.props.classes.tab}>
+            <Grid container spacing={1} className={this.props.classes.gridContainer}>
+                {this.renderSettings()}
+                {this.renderPdfFile()}
+            </Grid>
+        </form>;
     }
 }
 
