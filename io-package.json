@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "0.5.5",
+    "version": "1.0.0",
     "news": {
+      "1.0.0": {
+        "en": "Allowed to work behind reverse proxy",
+        "de": "Erlaubt, hinter der Reverse Proxy zu arbeiten",
+        "ru": "Разрешено работать за обратным прокси",
+        "pt": "Permitido trabalhar atrás do proxy reverso",
+        "nl": "Genoemd om achteruit te werken",
+        "fr": "Permet de travailler derrière le proxy inverse",
+        "it": "Permesso di lavorare dietro proxy inverso",
+        "es": "Permitido trabajar detrás del proxy inverso",
+        "pl": "Wszystko, by pracować za odwrotnym proxym",
+        "zh-cn": "允许在反倾销后工作"
+      },
       "0.5.5": {
         "en": "Fix a crash issue\nAdd Sentry also for the Node.js part",
         "de": "Beheben Sie ein Absturzproblem\nFügen Sie Sentry auch für den Node.js-Teil hinzu",
@@ -74,18 +86,6 @@
         "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
         "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
         "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
-      },
-      "0.4.4": {
-        "en": "Corrected the warning for js-controller 3.x",
-        "de": "Die Warnung für js-controller 3.x wurde korrigiert",
-        "ru": "Исправлено предупреждение для js-controller 3.x",
-        "pt": "Corrigido o aviso para js-controller 3.x",
-        "nl": "De waarschuwing voor js-controller 3.x gecorrigeerd",
-        "fr": "Correction de l'avertissement pour js-controller 3.x",
-        "it": "Corretto l'avviso per js-controller 3.x",
-        "es": "Se corrigió la advertencia para js-controller 3.x",
-        "pl": "Poprawiono ostrzeżenie dla js-controller 3.x",
-        "zh-cn": "更正了 js-controller 3.x 的警告"
       }
     },
     "titleLang": {
