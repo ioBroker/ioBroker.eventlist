@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "news": {
+      "1.0.1": {
+        "en": "Added preparations for ioBroker cloud",
+        "de": "Weitere Präparate für ioBroker Cloud",
+        "ru": "Добавлена подготовка к облаку ioBroker",
+        "pt": "Adicionados preparativos para ioBroker cloud",
+        "nl": "Voegde voorbereidingen voor ioBrokerwolk",
+        "fr": "Préparations supplémentaires pour ioBroker cloud",
+        "it": "Aggiunto preparazioni per ioBroker cloud",
+        "es": "Preparativos adicionales para la nube de yoBroker",
+        "pl": "Zamknięte przygotowania do ioBrokera",
+        "zh-cn": "增 编"
+      },
       "1.0.0": {
         "en": "Allowed to work behind reverse proxy",
         "de": "Erlaubt, hinter der Reverse Proxy zu arbeiten",
@@ -64,18 +76,6 @@
         "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
       },
       "0.5.1": {
-        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
-        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
-        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
-        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
-        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
-        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
-        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
-        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
-        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
-        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
-      },
-      "0.5.0": {
         "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
         "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
         "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",

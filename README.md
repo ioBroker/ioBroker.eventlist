@@ -141,7 +141,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 1.0.1 (2022-06-22)
 * (bluefox) Added preparations for ioBroker cloud
 
 ### 1.0.0 (2022-06-20)
