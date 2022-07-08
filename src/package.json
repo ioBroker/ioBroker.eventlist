@@ -11,7 +11,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-icons": "^4.4.0",
-    "react-scripts": "^4.0.3",
+    "react-scripts": "^5.0.1",
     "@material-ui/icons": "^4.11.3",
     "moment": "^2.29.1",
     "react-color": "^2.19.3",
