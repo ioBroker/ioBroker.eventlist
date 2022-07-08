@@ -8,7 +8,7 @@
     "@sentry/browser": "^7.2.0",
     "@sentry/integrations": "^7.2.0",
     "clsx": "^1.1.1",
-    "react": "^17.0.2",
+    "react": "^18.2.0",
     "react-dom": "^17.0.2",
     "react-icons": "^4.4.0",
     "react-scripts": "^4.0.3",
