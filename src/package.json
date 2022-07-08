@@ -15,7 +15,7 @@
     "@material-ui/icons": "^4.11.3",
     "moment": "^2.29.4",
     "react-color": "^2.19.3",
-    "react-dropzone": "^14.2.1"
+    "react-dropzone": "^14.2.2"
   },
   "scripts": {
     "start": "react-scripts start",
