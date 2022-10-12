@@ -535,6 +535,8 @@ function formatEvent(state, allowRelative) {
 
     if (valWithUnit !== '') {
         event.val = valWithUnit;
+    } else {
+        event.val = val;
     }
     // because of filter add event.id
     if (state.id) {

@@ -3,19 +3,6 @@
     "name": "eventlist",
     "version": "1.1.0",
     "news": {
-      "1.1.0": {
-        "en": "Fixed icons of devices\nMigrated GUI to `mui5`\nAllowed the editing of list name",
-        "de": "Feste Symbole von Geräten\nMigrated GUI to mui5\nErlaubt die Bearbeitung des Listennamens",
-        "ru": "Фиксированные иконки устройств\nMigrated GUI к mui5\nРазрешено редактирование названия списка",
-        "pt": "Ícones fixos de dispositivos\nGUI migrado para mui5\nPermitir a edição do nome da lista",
-        "nl": "Vertaling:\nGemigreerde GUI\nVertaling:",
-        "fr": "Icônes fixes de dispositifs\nMigrated GUI to mui5\nPermis l'édition du nom de la liste",
-        "it": "Icone fisse di dispositivi\nGUI emigrata a mui5\nConsentito la modifica del nome dell'elenco",
-        "es": "Iconos fijos de dispositivos\nGUI migrado a mui5\nPermitido la edición del nombre de la lista",
-        "pl": "Ikony urządzeń\nMigrated GUI (ang.)\nWspółtworzył edycję nazwy listy",
-        "uk": "Фіксовані іконки приладів\nMigrated GUI до mui5\nДозволено редагування імені списку",
-        "zh-cn": "装置的固定来源\n米格伊德·穆伊\n名单的编辑"
-      },
       "1.0.1": {
         "en": "Added preparations for ioBroker cloud",
         "de": "Weitere Präparate für ioBroker Cloud",
