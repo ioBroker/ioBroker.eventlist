@@ -1,16 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core/styles';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import ListItemText from '@material-ui/core/ListItemText';
-import Select from '@material-ui/core/Select';
-import Checkbox from '@material-ui/core/Checkbox';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import { withStyles } from '@mui/styles';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import ListItemText from '@mui/material/ListItemText';
+import Select from '@mui/material/Select';
+import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
 
-import I18n from '@iobroker/adapter-react/i18n';
+import I18n from '@iobroker/adapter-react-v5/i18n';
 
 const styles = theme => ({
 
@@ -75,12 +75,13 @@ class MessengerSelect extends React.Component {
             return null;
         }
 
-        return <FormControl className={(this.props.classes.formControl || '') + ' ' + this.props.className} style={this.props.style || {}}>
+        return <FormControl variant="standard" className={(this.props.classes.formControl || '') + ' ' + this.props.className} style={this.props.style || {}}>
             {!this.state.instances ?
                 <CircularProgress/> :
                 <>
                     <InputLabel>{this.props.label || I18n.t('Send to messenger')}</InputLabel>
                     <Select
+                        variant="standard"
                         multiple
                         value={this.state.selected}
                         onChange={event => {

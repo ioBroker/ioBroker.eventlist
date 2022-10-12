@@ -141,6 +141,11 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Fixed icons of devices
+* (bluefox) Migrated GUI to `mui5`
+* (bluefox) Allowed the editing of list name
+
 ### 1.0.1 (2022-06-22)
 * (bluefox) Added preparations for ioBroker cloud
 

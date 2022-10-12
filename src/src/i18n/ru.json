@@ -142,5 +142,8 @@
   "Remove alarm events from list by the alarm mode deactivating": "Удалять тревожные события из списка после деактивации тревожного режима",
   "Filter by ID": "Фильтр по ID",
   "Edit event": "Изменить событие",
-  "Add new states": "Добавить новые состояния"
+  "Add new states": "Добавить новые состояния",
+  "Show state ID in the list": "Показать идентификатор состояния в списке",
+  "license_hint": "Подсказка",
+  "Default messenger's settings": "Настройки мессенджеров по умолчанию"
 }

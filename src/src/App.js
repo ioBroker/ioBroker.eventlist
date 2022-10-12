@@ -1,16 +1,16 @@
 import React from 'react';
-import {withStyles} from '@material-ui/core/styles';
-import { MuiThemeProvider } from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
+import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
 
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import AppBar from '@mui/material/AppBar';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
-import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
-import Router from '@iobroker/adapter-react/Components/Router';
-import GenericApp from '@iobroker/adapter-react/GenericApp';
-import Loader from '@iobroker/adapter-react/Components/Loader'
-import I18n from '@iobroker/adapter-react/i18n';
+import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
+import Router from '@iobroker/adapter-react-v5/Components/Router';
+import GenericApp from '@iobroker/adapter-react-v5/GenericApp';
+import Loader from '@iobroker/adapter-react-v5/Components/Loader'
+import I18n from '@iobroker/adapter-react-v5/i18n';
 
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
@@ -45,6 +45,7 @@ class App extends GenericApp {
             'pl': require('./i18n/pl'),
             'zh-cn': require('./i18n/zh-cn'),
         };
+        extendedProps.sentryDSN = window.sentryDSN;
         extendedProps.bottomButtons = true;
 
         if (!window.location.pathname.includes('adapter/') && window.location.port !== '3000') {
@@ -96,13 +97,13 @@ class App extends GenericApp {
 
     updateNative(native, cb) {
         const changed = JSON.stringify(native) !== JSON.stringify(this.savedNative);
-        this.setState({native, changed}, cb);
+        this.setState({ native, changed }, cb);
     }
 
     renderTabsForConfig() {
         return <>
             <AppBar position="static">
-                <Tabs value={this.getSelectedTab()} onChange={(e, index) => Router.doNavigate(e.target.parentNode.dataset.name)}>
+                <Tabs value={this.getSelectedTab()} onChange={e => Router.doNavigate(e.target.dataset.name)}>
                     <Tab label={I18n.t('Options')}    data-name="options" />
                     <Tab label={I18n.t('Event list')} data-name="list" />
                     <Tab label={I18n.t('PDF')}        data-name="pdf" />
@@ -115,7 +116,7 @@ class App extends GenericApp {
                     common={this.common}
                     socket={this.socket}
                     native={this.state.native}
-                    onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+                    onError={text => this.setState({ errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text })}
                     onLoad={native => this.onLoadConfig(native)}
                     instance={this.instance}
                     adapterName={this.adapterName}
@@ -128,7 +129,7 @@ class App extends GenericApp {
                     common={this.common}
                     socket={this.socket}
                     native={this.state.native}
-                    onError={text => this.setState({errorText: text})}
+                    onError={text => this.setState({ errorText: text })}
                     instance={this.instance}
                     adapterName={this.adapterName}
                     onChange={(attr, value, cb) => this.updateNativeValue(attr, value, cb)}
@@ -143,6 +144,7 @@ class App extends GenericApp {
         return <TabList
             key="enums"
             imagePrefix={this.isWeb ? '../' : '../..'}
+            isWeb={this.isWeb}
             editEnabled={!this.isTab}
             showEditButton={this.isTab}
             themeName={this.state.themeName}
@@ -150,29 +152,34 @@ class App extends GenericApp {
             common={this.common}
             socket={this.socket}
             native={this.state.native}
-            onError={text => this.setState({errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text})}
+            onError={text => this.setState({ errorText: (text || text === 0) && typeof text !== 'string' ? text.toString() : text })}
             instance={this.instance}
             adapterName={this.adapterName}
+            name={this.common.titleLang}
         />;
     }
 
     render() {
         if (!this.state.loaded) {
-            return <MuiThemeProvider theme={this.state.theme}>
-                <Loader themeType={this.state.themeType} />
-            </MuiThemeProvider>
+            return <StyledEngineProvider injectFirst>
+                <ThemeProvider theme={this.state.theme}>
+                    <Loader themeType={this.state.themeType} />
+                </ThemeProvider>
+            </StyledEngineProvider>;
         }
 
-        return <MuiThemeProvider theme={this.state.theme}>
-            <div className="App" style={{background: this.state.theme.palette.background.default, color: this.state.theme.palette.text.primary}}>
-                {!this.isTab ?
-                    this.renderTabsForConfig()
-                    :
-                    this.renderEventList()
-                }
-                {this.renderError()}
-            </div>
-        </MuiThemeProvider>;
+        return <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={this.state.theme}>
+                <div className="App" style={{ background: this.state.theme.palette.background.default, color: this.state.theme.palette.text.primary }}>
+                    {!this.isTab ?
+                        this.renderTabsForConfig()
+                        :
+                        this.renderEventList()
+                    }
+                    {this.renderError()}
+                </div>
+            </ThemeProvider>
+        </StyledEngineProvider>;
     }
 }
 

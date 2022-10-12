@@ -1,45 +1,45 @@
-import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import React, { Component } from 'react';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { lighten } from '@material-ui/core/styles';
-import withWidth from "@material-ui/core/withWidth";
+import { lighten } from '@mui/material/styles';
 
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
-import Fab from '@material-ui/core/Fab';
-import Snackbar from '@material-ui/core/Snackbar';
-import LinearProgress  from '@material-ui/core/LinearProgress';
-import CircularProgress  from '@material-ui/core/CircularProgress';
-import MenuItem from '@material-ui/core/MenuItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Select from '@material-ui/core/Select';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Fab from '@mui/material/Fab';
+import Snackbar from '@mui/material/Snackbar';
+import LinearProgress  from '@mui/material/LinearProgress';
+import CircularProgress  from '@mui/material/CircularProgress';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+import Select from '@mui/material/Select';
 
-import {MdRefresh as IconReload} from 'react-icons/md';
-import {MdClose as IconClose} from 'react-icons/md';
-import {MdQuestionAnswer as IconQuestion} from 'react-icons/md';
-import {MdAdd as IconAddEvent} from 'react-icons/md';
-import {MdEdit as IconEdit} from 'react-icons/md';
-import {FaFilePdf as IconPdf} from 'react-icons/fa';
-import DeleteIcon from '@material-ui/icons/Delete';
-import IconEvent from '@material-ui/icons/Event';
+import { MdRefresh as IconReload } from 'react-icons/md';
+import { MdClose as IconClose } from 'react-icons/md';
+import { MdQuestionAnswer as IconQuestion } from 'react-icons/md';
+import { MdAdd as IconAddEvent } from 'react-icons/md';
+import { MdEdit as IconEdit } from 'react-icons/md';
+import { FaFilePdf as IconPdf } from 'react-icons/fa';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconEvent from '@mui/icons-material/Event';
 
-import I18n from '@iobroker/adapter-react/i18n';
-import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
-import Router from '@iobroker/adapter-react/Components/Router';
-import Image from '@iobroker/adapter-react/Components/Image';
-import Utils from '@iobroker/adapter-react/Components/Utils';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import ConfirmDialog from '@iobroker/adapter-react-v5/Dialogs/Confirm';
+import Router from '@iobroker/adapter-react-v5/Components/Router';
+import Image from '@iobroker/adapter-react-v5/Components/Image';
+import Utils from '@iobroker/adapter-react-v5/Components/Utils';
+import { withWidth } from '@iobroker/adapter-react-v5';
 
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
@@ -85,7 +85,7 @@ const styles = theme => ({
         paddingLeft: theme.spacing(2),
         paddingRight: theme.spacing(1),
     },
-    toolbarHighlight: theme.palette.type === 'light'
+    toolbarHighlight: theme.palette.mode === 'light'
         ? {
             color: theme.palette.secondary.main,
             backgroundColor: lighten(theme.palette.secondary.light, 0.85),
@@ -394,7 +394,7 @@ class List extends Component {
 
     onRequestSort = (event, property) => {
         const isAsc = this.state.orderBy === property && this.state.order === 'asc';
-        this.setState({order: isAsc ? 'desc' : 'asc', orderBy: property});
+        this.setState({ order: isAsc ? 'desc' : 'asc', orderBy: property });
     };
 
     renderHeader() {
@@ -464,7 +464,7 @@ class List extends Component {
 
     triggerPdf() {
         if (this.state.isInstanceAlive) {
-            this.props.socket.sendTo(this.props.adapterName + '.' + this.props.instance, 'pdf', this.props.native.pdfSettings)
+            this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'pdf', this.props.native.pdfSettings)
                 .then(() => {
                     let myWindow;
                     if (!window.location.pathname.includes('adapter/')) {
@@ -480,7 +480,7 @@ class List extends Component {
 
     readIds() {
         return new Promise((resolve, reject) => {
-            this.props.socket.getRawSocket().emit('getObjectView', 'custom', 'state', {startkey: '', endkey: '\u9999'}, (err, res) => {
+            this.props.socket.getRawSocket().emit('getObjectView', 'custom', 'state', { startkey: '', endkey: '\u9999' }, (err, res) => {
                 if (!err) {
                     const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
                     const ids = [];
@@ -529,16 +529,17 @@ class List extends Component {
                 {this.state.filterStates.length ? <IconClose className={this.props.classes.filterClearIcon}/> : null}
             </div>
             <Select
+                variant="standard"
                 className={this.props.classes.filterControl}
                 multiple
                 label={I18n.t('Filter by ID')}
                 value={this.state.filterStates}
                 onChange={event => {
                     window.localStorage.setItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.filterStates`, JSON.stringify(event.target.value));
-                    this.setState({filterStates: event.target.value});
+                    this.setState({ filterStates: event.target.value });
                 }}
                 //input={<Input placeholder={I18n.t('Filter by ID')}/>}
-                onOpen={() => this.readIds().then(ids => this.setState({stateIds: ids}))}
+                onOpen={() => this.readIds().then(ids => this.setState({ stateIds: ids }))}
                 renderValue={selected => selected.length === 1 ? selected[0] : selected.length}
             >
                 {!this.state.stateIds ?
@@ -550,7 +551,7 @@ class List extends Component {
                             <ListItemText
                                 primary={<span>{item.name} <span className={this.props.classes.filterCounts}>{item.count}</span></span>}
                                 secondary={item.id}
-                                classes={{secondary: this.props.classes.filterSecondary}}
+                                classes={{ secondary: this.props.classes.filterSecondary }}
                             />
                         </MenuItem>)
                 }
@@ -560,6 +561,11 @@ class List extends Component {
 
     renderToolbar() {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm';
+        let name = this.props.name || I18n.t('Event list');
+        if (typeof name === 'object') {
+            name = name[I18n.getLanguage()] || name.en || I18n.t('Event list');
+        }
+
         return <Toolbar className={clsx(this.props.classes.toolbarRoot, this.state.selected.length && this.props.classes.toolbarHighlight)}>
 
             {this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled && this.state.selected.length ?
@@ -568,7 +574,7 @@ class List extends Component {
                 </Typography>
             :
                 <Typography className={this.props.classes.toolbarTitle} variant="h6" id="tableTitle" component="div">
-                    <span>{I18n.t('Event list')}</span>
+                    <span>{name}</span>
                     <span className={this.props.classes.instanceNotOnline}>{!this.state.isInstanceAlive ? I18n.t('(Instance not running)') : ''}</span>
                 </Typography>
             }
@@ -760,6 +766,12 @@ class List extends Component {
                             const isItemSelected = this.state.selected.includes(row._id);
                             const labelId = `enhanced-table-checkbox-${index}`;
 
+                            let icon = row.icon;
+
+                            if (!this.props.isWeb && icon.match(/^[-_0-9a-z]+\.admin\//)) { // support of hm-rpc.admin/icons/152_hmip-swdo-i_thumb.png
+                                icon = '/files/' + icon;
+                            }
+
                             return <TableRow
                                 hover
                                 onClick={() => this.handleClick(row._id)}
@@ -779,9 +791,9 @@ class List extends Component {
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdTs} scope="row" padding="none" align="right">{row.ts}</TableCell>
                                 {this.props.native.icons ?
                                     <TableCell style={row._style || undefined } className={this.props.classes.tdIcons} component="td" padding="none" align="center">
-                                        {row.icon ? (row.icon.endsWith('default') ? <IconEvent/> : <Image
+                                        {icon ? (icon.endsWith('default') ? <IconEvent/> : <Image
                                             imagePrefix={this.imagePrefix}
-                                            src={row.icon}
+                                            src={icon}
                                             className={this.props.classes.icon}
                                             color={(row._style && row._style.color) || ''}
                                         />) : null}
@@ -887,6 +899,8 @@ List.propTypes = {
     themeType: PropTypes.string,
     native: PropTypes.object.isRequired,
     imagePrefix: PropTypes.string,
+    isWeb: PropTypes.bool,
+    name: PropTypes.string,
 };
 
 export default withWidth()(withStyles(styles)(List));

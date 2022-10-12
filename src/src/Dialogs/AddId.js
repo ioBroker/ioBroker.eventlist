@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
 import 'moment/locale/fr';
@@ -14,25 +14,25 @@ import 'moment/locale/pl';
 import 'moment/locale/pt';
 import 'moment/locale/nl';
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
-import CancelIcon from '@material-ui/icons/Cancel';
-import SaveIcon from '@material-ui/icons/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import SaveIcon from '@mui/icons-material/Save';
 import {FaEraser as RemoveIcon} from 'react-icons/fa';
 
-import I18n from '@iobroker/adapter-react/i18n';
-import ConfirmDialog from '@iobroker/adapter-react/Dialogs/Confirm';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import ConfirmDialog from '@iobroker/adapter-react-v5/Dialogs/Confirm';
 import EditState from '../Components/EditState';
-import SelectIDDialog from '@iobroker/adapter-react/Dialogs/SelectID';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import SelectIDDialog from '@iobroker/adapter-react-v5/Dialogs/SelectID';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const DEFAULT_TEMPLATE = 'default';
 
@@ -260,6 +260,7 @@ class AddIdDialog extends Component {
                 </DialogContentText>
                 <div className={this.props.classes.field}>
                     <TextField
+                        variant="standard"
                         autoFocus
                         disabled={!!this.propsId}
                         margin="dense"
@@ -272,7 +273,7 @@ class AddIdDialog extends Component {
                         fullWidth
                     />
                     {!this.propsId ? <Button
-                        style={{marginTop: 8}}
+                        style={{ marginTop: 8 }}
                         variant="contained"
                         color="secondary"
                         onClick={() => this.setState({showSelectId: true})}
@@ -297,6 +298,7 @@ class AddIdDialog extends Component {
             </DialogContent>
             <DialogActions>
                 {this.state.exists[this.state.currentId] && this.state.ids.length === 1 ? <Button
+                    color="grey"
                     onClick={() => this.setState({confirmRemove: true})}
                     variant="contained"
                     startIcon={<RemoveIcon />}
@@ -312,6 +314,7 @@ class AddIdDialog extends Component {
                     color="primary"
                 >{exists ? I18n.t('Update') : I18n.t('Add')}</Button>
                 <Button
+                    color="grey"
                     onClick={() => this.props.onClose()}
                     startIcon={<CancelIcon />}
                     variant="contained"

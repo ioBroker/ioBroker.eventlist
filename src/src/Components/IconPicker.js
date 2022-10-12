@@ -1,30 +1,30 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
 import clsx from 'clsx';
 
-import TextField from '@material-ui/core/TextField';
-import I18n from '@iobroker/adapter-react/i18n';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Grid from '@material-ui/core/Grid';
+import TextField from '@mui/material/TextField';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Grid from '@mui/material/Grid';
 
-import ClearIcon from '@material-ui/icons/Close';
-import CancelIcon from '@material-ui/icons/Close';
-import CheckIcon from '@material-ui/icons/Check';
-import SelectIcon from '@material-ui/icons/ViewModule';
+import ClearIcon from '@mui/icons-material/Close';
+import CancelIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
+import SelectIcon from '@mui/icons-material/ViewModule';
 
-import Image from '@iobroker/adapter-react/Components/Image';
+import Image from '@iobroker/adapter-react-v5/Components/Image';
 import FileBrowser from './FileBrowser';
 
-import IconLampTable from '@iobroker/adapter-react/assets/lamp_table.svg';
-import IconLampCeiling from '@iobroker/adapter-react/assets/lamp_ceiling.svg';
+import IconLampTable from '@iobroker/adapter-react-v5/assets/lamp_table.svg';
+import IconLampCeiling from '@iobroker/adapter-react-v5/assets/lamp_ceiling.svg';
 
 const ICONS = [
     {icon: IconLampTable,   color: '#FFFFFF', name: 'Table lamp'},
@@ -58,7 +58,7 @@ const styles = theme => ({
         width: 32,
         height: 32,
         margin: theme.spacing(1),
-        color: theme.palette.type === 'dark' ? '#FFF' : '#000'
+        color: theme.palette.mode === 'dark' ? '#FFF' : '#000'
     },
     grid: {
         padding: theme.spacing(2)
@@ -86,7 +86,7 @@ const styles = theme => ({
     imagePreview: {
         width: 32,
         height: 32,
-        color: theme.palette.type === 'dark' ? '#FFF' : '#000',
+        color: theme.palette.mode === 'dark' ? '#FFF' : '#000',
     }
 });
 
@@ -238,16 +238,18 @@ class IconPicker extends React.Component {
             </DialogContent>
             <DialogActions>
 
-                <Button onClick={() => this.onDialogClose(this.state.dialogValue)}
-                        color="primary"
-                        disabled={!this.state.dialogValue || this.state.dialogInitialValue === this.state.dialogValue}
-                        autoFocus
-                        variant="contained"
-                        startIcon={<CheckIcon />}
+                <Button
+                    onClick={() => this.onDialogClose(this.state.dialogValue)}
+                    color="primary"
+                    disabled={!this.state.dialogValue || this.state.dialogInitialValue === this.state.dialogValue}
+                    autoFocus
+                    variant="contained"
+                    startIcon={<CheckIcon />}
                 >
                     {I18n.t('Select')}
                 </Button>
                 <Button
+                    color="grey"
                     onClick={() => this.onDialogClose()}
                     variant="contained"
                     startIcon={<CancelIcon />}
@@ -273,6 +275,7 @@ class IconPicker extends React.Component {
                 />
             </div>
             <TextField
+                variant="standard"
                 disabled={!!this.props.disabled}
                 margin="dense"
                 label={this.props.label || I18n.t('Icon')}

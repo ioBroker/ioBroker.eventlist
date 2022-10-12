@@ -24,6 +24,7 @@
   "Default event text for boolean": "Default event text for boolean",
   "Default event text for non boolean states": "Default event text for non boolean states",
   "Default messengers": "Default messengers",
+  "Default messenger's settings": "Default messengers settings",
   "Default text": "Default text",
   "Default text by FALSE": "Default text by FALSE",
   "Default text by TRUE": "Default text by TRUE",
@@ -130,7 +131,7 @@
   "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference": "You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference",
   "current": "current",
   "hours": "h",
-  "license_hint": "license_hint",
+  "license_hint": "License hint",
   "minutes": "m",
   "ms": "ms",
   "optional": "optional",
@@ -143,5 +144,6 @@
   "Remove alarm events from list by the alarm mode deactivating": "Remove alarm events from list by the alarm mode deactivating",
   "Filter by ID": "Filter by ID",
   "Edit event": "Edit event",
-  "Add new states": "Add new states"
+  "Add new states": "Add new states",
+  "Show state ID in the list": "Show state ID in the list"
 }
