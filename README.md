@@ -141,7 +141,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### 1.1.0 (2022-10-12)
+### **WORK IN PROGRESS**
 * (bluefox) Fixed icons of devices
 * (bluefox) Migrated GUI to `mui5`
 * (bluefox) Allowed the editing of list name
