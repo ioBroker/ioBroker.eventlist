@@ -1,9 +1,8 @@
-import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import React, { Component } from 'react';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 import moment from 'moment'
 import clsx from 'clsx'
-import withWidth from "@material-ui/core/withWidth";
 
 import 'moment/locale/fr';
 import 'moment/locale/de';
@@ -17,32 +16,33 @@ import 'moment/locale/pl';
 import 'moment/locale/pt';
 import 'moment/locale/nl';
 
-import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Switch from '@material-ui/core/Switch';
-import Paper from '@material-ui/core/Paper';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import Typography from '@material-ui/core/Typography';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Switch from '@mui/material/Switch';
+import Paper from '@mui/material/Paper';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import IconButton from '@mui/material/IconButton';
 
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
-import {FaMinus as EmptyIcon} from 'react-icons/fa';
-import {FaWhatsapp as WhatsappIcon} from 'react-icons/fa';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { FaMinus as EmptyIcon } from 'react-icons/fa';
+import { FaWhatsapp as WhatsappIcon } from 'react-icons/fa';
 import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
-import IconPicker from '@iobroker/adapter-react/Components/IconPicker';
-import I18n from '@iobroker/adapter-react/i18n';
-import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
-import Image from '@iobroker/adapter-react/Components/Image';
+import IconPicker from '@iobroker/adapter-react-v5/Components/IconPicker';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
+import Image from '@iobroker/adapter-react-v5/Components/Image';
+import { withWidth } from '@iobroker/adapter-react-v5';
 
 import MessengerSelect from '../Components/MessengerSelect';
 
@@ -53,7 +53,7 @@ const styles = theme => ({
     },
     examplePaper: {
         marginBottom: theme.spacing(2),
-        background: theme.palette.type === 'dark' ? '#5f5f5f' : '#d8d8d8'
+        background: theme.palette.mode === 'dark' ? '#5f5f5f' : '#d8d8d8'
     },
     exampleTitle: {
         fontWeight: 'bold',
@@ -75,7 +75,7 @@ const styles = theme => ({
     paper: {
         marginBottom: theme.spacing(1),
         padding: theme.spacing(1),
-        width: 'calc(100% - ' + theme.spacing(2) + 'px)',
+        width: `calc(100% - ${theme.spacing(2)})`,
     },
     formControl: {
         width: 200
@@ -754,6 +754,7 @@ class EditState extends Component {
                         label={I18n.t('Use default text')}
                     /> : null}
                     {!isBoolean || !state.defText ? <TextField
+                        variant="standard"
                         disabled={this.props.reading}
                         margin="dense"
                         label={I18n.t('Text')}
@@ -860,6 +861,7 @@ class EditState extends Component {
                     />
                     {narrowWidth ? <br/> : null}
                     {!this.state.settings.eventDefault ? <TextField
+                        variant="standard"
                         disabled={this.props.reading}
                         margin="dense"
                         label={I18n.t('Event text')}
@@ -1012,9 +1014,10 @@ class EditState extends Component {
                     {this.state.settings.type === 'number' && this.state.settings.states ?
                         <>
                             <br/>
-                            <FormControl className={this.props.classes.formControl} disabled={this.props.reading}>
+                            <FormControl variant="standard" className={this.props.classes.formControl} disabled={this.props.reading}>
                                 <InputLabel>{I18n.t('Simulate value')}</InputLabel>
                                 <Select
+                                    variant="standard"
                                     value={this.state.simulateState === null ? '_current_' : this.state.simulateState}
                                     onChange={e => this.setState({simulateState: e.target.value === '_current_' ? null : e.target.value})}
                                 >

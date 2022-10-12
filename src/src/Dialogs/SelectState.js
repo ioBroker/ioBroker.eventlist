@@ -1,25 +1,25 @@
-import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import React, { Component } from 'react';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import IconButton from '@mui/material/IconButton';
 
-import CancelIcon from '@material-ui/icons/Cancel';
-import AddIcon from '@material-ui/icons/Add';
-import ClearIcon from '@material-ui/icons/Close';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AddIcon from '@mui/icons-material/Add';
+import ClearIcon from '@mui/icons-material/Close';
 
-import I18n from '@iobroker/adapter-react/i18n';
-import Utils from '@iobroker/adapter-react/Components/Utils';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import Utils from '@iobroker/adapter-react-v5/Components/Utils';
 
 const styles = theme => ({
     textField: {
@@ -35,7 +35,7 @@ const styles = theme => ({
     listItem: {
         padding: 3,
         '&:hover': {
-            background: theme.palette.type === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
+            background: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
         }
     },
     listPrimary: {
@@ -159,6 +159,7 @@ class SelectStateDialog extends Component {
             maxWidth="md"
             onClose={() => this.props.onClose()}>
             <DialogTitle>{I18n.t('Select state')}<TextField
+                variant="standard"
                 label={I18n.t('Filter')}
                 InputLabelProps={ {shrink: true} }
                 InputProps={{
@@ -178,7 +179,7 @@ class SelectStateDialog extends Component {
             <DialogContent className={this.props.classes.dialogContent}>
                 <List dense={true}>
                     {!filter && <ListItem button onClick={() => this.props.onClose(true)}>
-                        <Button variant="contained"><AddIcon />{I18n.t('Add new states')}</Button>
+                        <Button color="grey" variant="contained"><AddIcon />{I18n.t('Add new states')}</Button>
                     </ListItem>}
                     {this.state.ids.map(item => this.renderListItem(item, filter))}
                 </List>

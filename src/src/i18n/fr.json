@@ -143,5 +143,7 @@
   "Remove alarm events from list by the alarm mode deactivating": "Supprimer les événements d'alarme de la liste en désactivant le mode d'alarme",
   "Filter by ID": "Filtrer par ID",
   "Edit event": "Modifier l'événement",
-  "Add new states": "Ajouter de nouveaux états"
+  "Add new states": "Ajouter de nouveaux états",
+  "Show state ID in the list": "Afficher l'ID d'état dans la liste",
+  "Default messenger's settings": "Paramètres de messagers par défaut"
 }

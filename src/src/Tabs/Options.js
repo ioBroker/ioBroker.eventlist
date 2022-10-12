@@ -1,29 +1,29 @@
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import Select from '@material-ui/core/Select';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Snackbar from '@material-ui/core/Snackbar';
-import IconButton from '@material-ui/core/IconButton';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Typography from '@material-ui/core/Typography';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Typography from '@mui/material/Typography';
+import AccordionDetails from '@mui/material/AccordionDetails';
 
-import {MdClose as IconClose} from 'react-icons/md';
-import {MdHelp as IconHelp} from 'react-icons/md';
+import { MdClose as IconClose } from 'react-icons/md';
+import { MdHelp as IconHelp } from 'react-icons/md';
 
-import I18n from '@iobroker/adapter-react/i18n';
-import Logo from '@iobroker/adapter-react/Components/Logo';
-import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import Logo from '@iobroker/adapter-react-v5/Components/Logo';
+import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
 
 import MessengerSelect from  '../Components/MessengerSelect';
 
@@ -176,6 +176,7 @@ class Options extends Component {
             />
             <div className={ this.props.classes.column + ' ' + this.props.classes.columnSettings }>
                 <TextField
+                    variant="standard"
                     label={ I18n.t('Max list length') }
                     className={ this.props.classes.input }
                     value={ this.props.native.maxLength }
@@ -186,6 +187,7 @@ class Options extends Component {
                 />
                 <br/>
                 <TextField
+                    variant="standard"
                     label={ I18n.t('Date format') }
                     className={ this.props.classes.input }
                     value={ this.props.native.dateFormat }
@@ -194,15 +196,17 @@ class Options extends Component {
                     margin="normal"
                 />
                 <Button
+                    color="grey"
                     variant="contained"
                     className={this.props.classes.buttonFormat}
                     onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}
                     startIcon={<IconHelp />}
                 >
-                        {I18n.t('Format description')}
+                    {I18n.t('Format description')}
                 </Button>
                 <br/>
                 <TextField
+                    variant="standard"
                     label={ I18n.t('Show absolute time after seconds') }
                     className={ this.props.classes.input }
                     value={ this.props.native.relativeTime }
@@ -246,6 +250,7 @@ class Options extends Component {
                     </AccordionSummary>
                     <AccordionDetails style={{display: 'block'}}>
                         <TextField
+                            variant="standard"
                             label={ I18n.t('Default event text for boolean') }
                             className={ this.props.classes.input }
                             value={ this.props.native.defaultBooleanText }
@@ -256,6 +261,7 @@ class Options extends Component {
                         />
                         <br/>
                         <TextField
+                            variant="standard"
                             label={ I18n.t('Default text by TRUE') }
                             className={ this.props.classes.input }
                             value={ this.props.native.defaultBooleanTextTrue }
@@ -265,6 +271,7 @@ class Options extends Component {
                         />
                         {narrowWidth && <br/>}
                         <TextField
+                            variant="standard"
                             label={ I18n.t('Default text by FALSE') }
                             className={ this.props.classes.input }
                             value={ this.props.native.defaultBooleanTextFalse }
@@ -294,6 +301,7 @@ class Options extends Component {
                 </Accordion>
 
                 <TextField
+                    variant="standard"
                     label={ I18n.t('Default event text for non boolean states') }
                     className={ this.props.classes.input }
                     value={ this.props.native.defaultNonBooleanText }
@@ -303,9 +311,10 @@ class Options extends Component {
                     helperText={I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                 />
                 <br/>
-                <FormControl className={this.props.classes.input}>
+                <FormControl variant="standard" className={this.props.classes.input}>
                     <InputLabel>{I18n.t('Language')}</InputLabel>
                     <Select
+                        variant="standard"
                         value={this.props.native.language || 'system'}
                         onChange={ e => this.props.onChange('language', e.target.value === 'system' ? '' : e.target.value) }
                     >

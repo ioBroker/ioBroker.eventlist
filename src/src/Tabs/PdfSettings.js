@@ -1,29 +1,29 @@
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 
-import TextField from '@material-ui/core/TextField';
-import DialogMessage from '@iobroker/adapter-react/Dialogs/Message';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Grid from '@material-ui/core/Grid';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
+import TextField from '@mui/material/TextField';
+import DialogMessage from '@iobroker/adapter-react-v5/Dialogs/Message';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Grid from '@mui/material/Grid';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
 
-import {MdHelp as IconHelp} from 'react-icons/md';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import { MdHelp as IconHelp } from 'react-icons/md';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
-import ColorPicker from '@iobroker/adapter-react/Components/ColorPicker';
-import I18n from '@iobroker/adapter-react/i18n';
+import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
+import I18n from '@iobroker/adapter-react-v5/i18n';
 
 const styles = theme => ({
     tab: {
@@ -258,9 +258,10 @@ class PdfSettings extends Component {
         >
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Page size')}</AccordionSummary>
             <AccordionDetails style={{display: 'block'}}>
-                <FormControl className={clsx(this.props.classes.fieldWide, this.props.classes.orientation)}>
+                <FormControl variant="standard" className={clsx(this.props.classes.fieldWide, this.props.classes.orientation)}>
                     <InputLabel>{I18n.t('Page orientation')}</InputLabel>
                     <Select
+                        variant="standard"
                         disabled={this.state.pdfInGeneration}
                         value={settings.orientation || 'portrait'}
                         onChange={e => this.toggleOrientation(e.target.value, e)}
@@ -270,6 +271,7 @@ class PdfSettings extends Component {
                     </Select>
                 </FormControl>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     type="number"
                     className={this.props.classes.field}
@@ -278,6 +280,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('pageWidth', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     type="number"
                     className={this.props.classes.field}
@@ -287,6 +290,7 @@ class PdfSettings extends Component {
                 />
                 <br/>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     type="number"
                     className={this.props.classes.fieldWide}
@@ -295,6 +299,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('paddingTopFirst', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     type="number"
                     className={this.props.classes.fieldWide}
@@ -303,6 +308,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('paddingTop', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     type="number"
                     className={this.props.classes.field}
@@ -322,6 +328,7 @@ class PdfSettings extends Component {
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Title')}</AccordionSummary>
             <AccordionDetails style={{display: 'inline-block'}}>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="titleText"
                     type="text"
@@ -332,6 +339,7 @@ class PdfSettings extends Component {
                     helperText={I18n.t('You can add time with {{YYYY MM DD}}')}
                 />
                 <Button
+                    color="grey"
                     variant="contained"
                     className={this.props.classes.buttonFormat}
                     onClick={() => window.open('https://momentjs.com/docs/#/displaying/format/', 'momentHelp')}
@@ -348,6 +356,7 @@ class PdfSettings extends Component {
                     onChange={color => this.onChange('titleColor', color)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="titleFontSize"
                     type="number"
@@ -377,6 +386,7 @@ class PdfSettings extends Component {
             </AccordionSummary>
             {!!settings.enabledHeader && <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="fontSizeHeader"
                     type="number"
@@ -411,6 +421,7 @@ class PdfSettings extends Component {
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Margins')}</AccordionSummary>
             <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="top"
                     type="number"
@@ -420,6 +431,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('margins.top', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="left"
                     type="number"
@@ -429,6 +441,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('margins.left', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="bottom"
                     type="number"
@@ -438,6 +451,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('margins.bottom', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="right"
                     type="right"
@@ -458,6 +472,7 @@ class PdfSettings extends Component {
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Text settings')}</AccordionSummary>
             <AccordionDetails style={{display: 'inline-block'}}>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="fontSize"
                     type="number"
@@ -474,6 +489,7 @@ class PdfSettings extends Component {
                     onChange={color => this.onChange('textColor', color)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="lineHeight"
                     type="number"
@@ -518,6 +534,7 @@ class PdfSettings extends Component {
             </AccordionSummary>
             {!!settings.enabledTime && <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="widthTime"
                     type="number"
@@ -527,6 +544,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('widthTime', e.target.value, e)}
                 />
                 {!!settings.enabledHeader && <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="textTime"
                     type="text"
@@ -547,6 +565,7 @@ class PdfSettings extends Component {
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Event')}</AccordionSummary>
             <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="widthEvent"
                     type="number"
@@ -556,6 +575,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('widthEvent', e.target.value, e)}
                 />
                 {!!settings.enabledHeader && <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="textEvent"
                     type="text"
@@ -585,6 +605,7 @@ class PdfSettings extends Component {
             </AccordionSummary>
             {!!settings.enabledValue && <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="widthValue"
                     type="number"
@@ -594,6 +615,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('widthValue', e.target.value, e)}
                 />
                 {!!settings.enabledHeader &&  <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="textValue"
                     type="text"
@@ -626,6 +648,7 @@ class PdfSettings extends Component {
             </AccordionSummary>
             {!!settings.enabledDuration && <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="widthDuration"
                     type="number"
@@ -635,6 +658,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('widthDuration', e.target.value, e)}
                 />
                 {!!settings.enabledHeader && <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="textDuration"
                     type="text"
@@ -664,6 +688,7 @@ class PdfSettings extends Component {
             </AccordionSummary>
             {!!settings.pageNumberEnabled && <AccordionDetails>
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="pageNumberFontSize"
                     type="number"
@@ -680,6 +705,7 @@ class PdfSettings extends Component {
                     onChange={color => this.onChange('pageNumberColor', color)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="pageNumberOffsetX"
                     type="number"
@@ -689,6 +715,7 @@ class PdfSettings extends Component {
                     onChange={e => this.onChange('pageNumberOffsetX', e.target.value, e)}
                 />
                 <TextField
+                    variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="pageNumberOffsetY"
                     type="number"

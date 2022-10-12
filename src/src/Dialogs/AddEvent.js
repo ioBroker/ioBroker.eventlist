@@ -1,22 +1,22 @@
 import React, {Component} from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
-import CancelIcon from '@material-ui/icons/Cancel';
-import AddIcon from '@material-ui/icons/Add';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AddIcon from '@mui/icons-material/Add';
 
-import I18n from '@iobroker/adapter-react/i18n';
-import IconPicker from '@iobroker/adapter-react/Components/IconPicker';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+import IconPicker from '@iobroker/adapter-react-v5/Components/IconPicker';
 
 const styles = theme => ({
     textField: {
@@ -71,6 +71,7 @@ class AddEventDialog extends Component {
                     {I18n.t('You can add event to table, e.g. some comment.')}
                 </DialogContentText>
                 <TextField
+                    variant="standard"
                     autoFocus
                     margin="dense"
                     label={I18n.t('Event text')}
@@ -84,6 +85,7 @@ class AddEventDialog extends Component {
                 />
                 <br/>
                 <TextField
+                    variant="standard"
                     margin="dense"
                     label={I18n.t('Value')}
                     value={this.state.val}
@@ -102,6 +104,7 @@ class AddEventDialog extends Component {
                 />
                 <br/>
                 {this.state.showTime ? <TextField
+                    variant="standard"
                     label={I18n.t('Time')}
                     type="datetime-local"
                     value={this.state.ts}
@@ -132,6 +135,7 @@ class AddEventDialog extends Component {
                     {I18n.t('Insert')}
                 </Button>
                 <Button
+                    color="grey"
                     onClick={() => this.props.onClose()}
                     variant="contained"
                     startIcon={<CancelIcon />}

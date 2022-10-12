@@ -139,5 +139,11 @@
   "Remove alarm events from list by the alarm mode deactivating": "Alarmereignisse aus der Liste löschen, nachdem der Alarmmodus deaktiviert wurde",
   "Filter by ID": "Nach ID filtern",
   "Edit event": "Ereignis bearbeiten",
-  "Add new states": "Neue Zustände hinzufügen"
+  "Add new states": "Neue Zustände hinzufügen",
+  "Show state ID in the list": "Status-ID in der Liste anzeigen",
+  "Check license online": "Lizenz online prüfen",
+  "Invalid license": "Ungültige Lizenz",
+  "License": "Lizenz",
+  "Place your ioBroker OPC-UA license here": "Platzieren Sie hier Ihre ioBroker OPC-UA-Lizenz",
+  "Default messenger's settings": "Standard-Messenger-Einstellungen"
 }

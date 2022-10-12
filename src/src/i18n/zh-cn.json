@@ -143,5 +143,7 @@
   "Remove alarm events from list by the alarm mode deactivating": "通过禁用警报模式从列表中删除警报事件",
   "Filter by ID": "按编号过滤",
   "Edit event": "编辑活动",
-  "Add new states": "添加新状态"
+  "Add new states": "添加新状态",
+  "Show state ID in the list": "在列表中显示状态 ID",
+  "Default messenger's settings": "默认信使设置"
 }
