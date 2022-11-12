@@ -113,7 +113,7 @@ const styles = theme => ({
 const DEFAULT_TEMPLATE = 'default';
 const DISABLED_TEXT = '-------------';
 
-class EditState extends Component {
+export class EditState extends Component {
     constructor(props) {
         super(props);
 

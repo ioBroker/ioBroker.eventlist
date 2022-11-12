@@ -26,20 +26,20 @@ import Tab from '@mui/material/Tab';
 
 import CancelIcon from '@mui/icons-material/Cancel';
 import SaveIcon from '@mui/icons-material/Save';
-import {FaEraser as RemoveIcon} from 'react-icons/fa';
+import { FaEraser as RemoveIcon } from 'react-icons/fa';
 
 import I18n from '@iobroker/adapter-react-v5/i18n';
 import ConfirmDialog from '@iobroker/adapter-react-v5/Dialogs/Confirm';
-import EditState from '../Components/EditState';
+import EditStateComponent, { EditState } from '../Components/EditState';
 import SelectIDDialog from '@iobroker/adapter-react-v5/Dialogs/SelectID';
 import LinearProgress from '@mui/material/LinearProgress';
 
 const DEFAULT_TEMPLATE = 'default';
 
-const styles = theme => ({
+const styles = () => ({
     textFieldWithButton: {
-        width: 'calc(100% - 70px)'
-    }
+        width: 'calc(100% - 70px)',
+    },
 });
 
 class AddIdDialog extends Component {
@@ -281,7 +281,7 @@ class AddIdDialog extends Component {
                 </div>
                 {this.state.reading ? <LinearProgress/> : <div style={{height: 4, width: '100%'}}/>}
                 {tabs}
-                {this.state.settings[this.state.currentId] ? <EditState
+                {this.state.settings[this.state.currentId] ? <EditStateComponent
                     key={this.state.currentId}
                     id={this.state.currentId}
                     onChange={(id, settings) => this.onChange(id, settings)}
