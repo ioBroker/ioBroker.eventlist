@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "news": {
+      "1.2.0": {
+        "en": "Fixed error with edit of the state settings\nAdded possibility to use default texts for strings values like for booleans",
+        "de": "Fehler behoben mit der Bearbeitung der Zustandseinstellungen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
+        "ru": "Исправлена ошибка с редактированием государственных настроек\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
+        "pt": "Erro corrigido com a edição das configurações do estado\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
+        "nl": "Vergissing van de staatsinstelling\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
+        "fr": "Erreur corrigée avec la modification des paramètres de l'état\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
+        "it": "Errore fisso con modifica delle impostazioni dello stato\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
+        "es": "Error fijo con la edición de la configuración del estado\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
+        "pl": "Błędny błąd z edytacją ustawienia stanu\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
+        "uk": "Виправлена помилка з редагуванням параметрів стану\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
+        "zh-cn": "混淆国家环境的错误\n增加使用与假释等一系列价值观的违约案文的可能性"
+      },
       "1.1.1": {
         "en": "Fixed icons of devices\nMigrated GUI to `mui5`\nAllowed the editing of list name\ncorrected events without unit",
         "de": "Feste Symbole von Geräten\nMigrated GUI to mui5\nErlaubt die Bearbeitung des Listennamens\nkorrigierte ereignisse ohne einheit",
@@ -65,18 +78,6 @@
         "zh-cn": "更正了图像路径"
       },
       "0.5.3": {
-        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
-        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
-        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
-        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
-        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
-        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
-        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
-        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
-        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
-        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
-      },
-      "0.5.2": {
         "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
         "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
         "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
