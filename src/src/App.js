@@ -27,7 +27,13 @@ const styles = theme => ({
         padding: 10,
         height: 'calc(100% - 64px - 48px - 20px - 38px)',
         overflow: 'auto'
-    }
+    },
+    selected: {
+        color: theme.palette.mode === 'dark' ? undefined : '#FFF !important',
+    },
+    indicator: {
+        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : '#FFF',
+    },
 });
 
 class App extends GenericApp {
@@ -103,10 +109,14 @@ class App extends GenericApp {
     renderTabsForConfig() {
         return <>
             <AppBar position="static">
-                <Tabs value={this.getSelectedTab()} onChange={e => Router.doNavigate(e.target.dataset.name)}>
-                    <Tab label={I18n.t('Options')}    data-name="options" />
-                    <Tab label={I18n.t('Event list')} data-name="list" />
-                    <Tab label={I18n.t('PDF')}        data-name="pdf" />
+                <Tabs
+                    value={this.getSelectedTab()}
+                    onChange={e => Router.doNavigate(e.target.dataset.name)}
+                    classes={{ indicator: this.props.classes.indicator }}
+                >
+                    <Tab classes={{ selected: this.props.classes.selected }} label={I18n.t('Options')}    data-name="options" />
+                    <Tab classes={{ selected: this.props.classes.selected }} label={I18n.t('Event list')} data-name="list" />
+                    <Tab classes={{ selected: this.props.classes.selected }} label={I18n.t('PDF')}        data-name="pdf" />
                 </Tabs>
             </AppBar>
 

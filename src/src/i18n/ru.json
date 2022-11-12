@@ -145,5 +145,10 @@
   "Add new states": "Добавить новые состояния",
   "Show state ID in the list": "Показать идентификатор состояния в списке",
   "license_hint": "Подсказка",
-  "Default messenger's settings": "Настройки мессенджеров по умолчанию"
+  "Default messenger's settings": "Настройки мессенджеров по умолчанию",
+  "String settings": "Строковые параметры",
+  "For value": "По стоимости",
+  "Text for value": "Текст для значения",
+  "Color for value": "Цвет по цене",
+  "Delete value": "Удалить значение"
 }

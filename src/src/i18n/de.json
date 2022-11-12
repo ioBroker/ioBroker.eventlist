@@ -145,5 +145,10 @@
   "Invalid license": "Ungültige Lizenz",
   "License": "Lizenz",
   "Place your ioBroker OPC-UA license here": "Platzieren Sie hier Ihre ioBroker OPC-UA-Lizenz",
-  "Default messenger's settings": "Standard-Messenger-Einstellungen"
+  "Default messenger's settings": "Standard-Messenger-Einstellungen",
+  "String settings": "Zeichenketteneinstellungen",
+  "For value": "Für Wert",
+  "Text for value": "Text für Wert",
+  "Color for value": "Farbe für Wert",
+  "Delete value": "Wert löschen"
 }

@@ -128,7 +128,7 @@ export class EditState extends Component {
             id: this.props.id || '',
             settings: JSON.parse(JSON.stringify(this.props.settings)),
             expanded,
-            simulateState: '',
+            simulateState: null,
         };
 
         this.imagePrefix = this.props.imagePrefix;
@@ -158,7 +158,7 @@ export class EditState extends Component {
         let changed;
         let trueState = states.find(item => item.val === 'true');
         if (!trueState) {
-            trueState = {val: 'true',  text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true', disabled: false};
+            trueState = { val: 'true', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'true', disabled: false };
             states.push(trueState);
             changed = true;
         } else {
@@ -166,7 +166,7 @@ export class EditState extends Component {
         }
         let falseState = states.find(item => item.val === 'false');
         if (!falseState) {
-            falseState = {val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false', disabled: false};
+            falseState = { val: 'false', text: DEFAULT_TEMPLATE, color: DEFAULT_TEMPLATE, icon: DEFAULT_TEMPLATE, original: 'false', disabled: false };
             states.push(falseState);
             changed = true;
         } else {
@@ -260,7 +260,7 @@ export class EditState extends Component {
         }
     }
 
-    static addNumericStates(newState, objStates) {
+    static addNumericStates(newState, objStates, defaultStringTexts) {
         const states = JSON.parse(JSON.stringify(newState.states || []));
         let changed;
         objStates = EditState.parseStates(objStates);
@@ -269,13 +269,57 @@ export class EditState extends Component {
             Object.keys(objStates).forEach(attr => {
                 let _st = states.find(item => item.val === attr);
                 if (!_st) {
-                    _st = {val: attr,  text: objStates[attr], color: '', icon: '', disabled: false};
+                    _st = { val: attr,  text: objStates[attr], color: '', icon: '', disabled: false };
+                    // check default states
+                    const def = defaultStringTexts?.find(item => item.value === attr);
+                    if (def) {
+                        _st.text = def.text ? DEFAULT_TEMPLATE : objStates[attr];
+                        _st.color = def.color ? DEFAULT_TEMPLATE : '';
+                        _st.icon = def.icon ? DEFAULT_TEMPLATE : '';
+                    }
+
                     states.push(_st);
                     changed = true;
                 }
             });
 
             states.forEach(item => {
+                // text
+                let newVal = item.text === DEFAULT_TEMPLATE;
+                if (newVal !== item.defText) {
+                    changed = true;
+                    item.defText = newVal;
+                }
+                newVal = item.text === DEFAULT_TEMPLATE ? '' : item.text;
+                if (newVal !== item.text) {
+                    changed = true;
+                    item.text = newVal;
+                }
+
+                // Color
+                newVal = item.color === DEFAULT_TEMPLATE;
+                if (newVal !== item.defColor) {
+                    changed = true;
+                    item.defColor = newVal;
+                }
+                newVal = item.color === DEFAULT_TEMPLATE ? '' : item.color;
+                if (newVal !== item.color) {
+                    changed = true;
+                    item.color = newVal;
+                }
+
+                // icon
+                newVal = item.icon === DEFAULT_TEMPLATE;
+                if (newVal !== item.defIcon) {
+                    changed = true;
+                    item.defIcon = newVal;
+                }
+                newVal = item.icon === DEFAULT_TEMPLATE ? '' : item.icon;
+                if (newVal !== item.icon) {
+                    changed = true;
+                    item.icon = newVal;
+                }
+
                 if (item.original !== objStates[item.val]) {
                     item.original = objStates[item.val];
                     changed = true;
@@ -336,7 +380,7 @@ export class EditState extends Component {
         }
     }
 
-    static readSettingsFromServer(socket, lang, native, namespace, id) {
+    static readSettingsFromServer(socket, lang, native, namespace, id, defaultStringTexts) {
         return socket.getObject(id)
             .then(obj => {
                 const settings = {
@@ -377,7 +421,7 @@ export class EditState extends Component {
                         EditState.addBooleanStates(settings);
                         settings.simulateState = false;
                     } else if (settings.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
-                        EditState.addNumericStates(settings, obj.common.states);
+                        EditState.addNumericStates(settings, obj.common.states, native.defaultStringTexts);
                         settings.simulateState = null;
                     } else {
                         settings.states = null;
@@ -394,7 +438,7 @@ export class EditState extends Component {
                         EditState.addBooleanStates(settings);
                         settings.simulateState = false;
                     } else if (settings.type === 'number' && obj && obj.common && obj.common.states && typeof obj.common.states === 'object') {
-                        EditState.addNumericStates(settings, obj.common.states);
+                        EditState.addNumericStates(settings, obj.common.states, native.defaultStringTexts);
                         settings.simulateState = null;
                     } else {
                         settings.states = null;
@@ -450,7 +494,12 @@ export class EditState extends Component {
             const item = this.state.settings.states.find(item => item.val === stateVal);
 
             if (item && item.defColor) {
-                color = stateVal === 'true' ? ColorPicker.getColor(this.props.native.defaultBooleanColorTrue) : ColorPicker.getColor(this.props.native.defaultBooleanColorFalse);
+                const def = this.state.settings.type !== 'boolean' && this.props.native.defaultStringTexts?.find(t => t.value === stateVal || t.value === item.original);
+                if (def) {
+                    color = def.color;
+                } else {
+                    color = stateVal === 'true' ? ColorPicker.getColor(this.props.native.defaultBooleanColorTrue) : ColorPicker.getColor(this.props.native.defaultBooleanColorFalse);
+                }
             } else if (item && item.color && ColorPicker.getColor(item.color)) {
                 color = ColorPicker.getColor(item.color);
             }
@@ -475,7 +524,12 @@ export class EditState extends Component {
             const item = this.state.settings.states.find(item => item.val === stateVal);
 
             if (item && item.defIcon) {
-                icon = (stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse) || this.state.ownIcon || '';
+                const def = this.state.settings.type !== 'boolean' && this.props.native.defaultStringTexts?.find(t => t.value === stateVal || t.value === item.original);
+                if (def) {
+                    icon = def.icon;
+                } else {
+                    icon = (stateVal === 'true' ? this.props.native.defaultBooleanIconTrue : this.props.native.defaultBooleanIconFalse) || this.state.ownIcon || '';
+                }
             } else if (item && item.icon) {
                 icon = item.icon;
             }
@@ -507,7 +561,12 @@ export class EditState extends Component {
                 text = item.defText ? this.props.native.defaultBooleanTextFalse || this.textSwitchedOff : item.text || this.textSwitchedOff;
             } else {
                 if (item && item.defText) {
-                    text = stateVal === 'true' ? this.props.native.defaultBooleanTextTrue : this.props.native.defaultBooleanTextFalse;
+                    const def = this.state.settings.type !== 'boolean' && this.props.native.defaultStringTexts?.find(t => t.value === stateVal || t.value === item.original);
+                    if (def) {
+                        text = def.text;
+                    } else {
+                        text = stateVal === 'true' ? this.props.native.defaultBooleanTextTrue : this.props.native.defaultBooleanTextFalse;
+                    }
                 } else if (item && item.text) {
                     text = item.text;
                 } else {
@@ -636,7 +695,7 @@ export class EditState extends Component {
 
         settings.states && settings.states.forEach(item => {
             curSettings.states = curSettings.states || [];
-            const it = {val: item.val};
+            const it = { val: item.val };
 
             if (item.disabled)  {
                 it.disabled = true;
@@ -644,22 +703,12 @@ export class EditState extends Component {
                 return;
             }
 
-            if (item.val === 'true' || item.val === 'false') {
-                it.text  = item.defText  ? DEFAULT_TEMPLATE : item.text || '';
-                if (item.defColor || (item.color && ColorPicker.getColor(item.color))) {
-                    it.color = item.defColor ? DEFAULT_TEMPLATE : ColorPicker.getColor(item.color);
-                }
-                if (item.defIcon || item.icon) {
-                    it.icon = item.defIcon  ? DEFAULT_TEMPLATE : item.icon;
-                }
-            } else {
-                it.text  = item.text || '';
-                if (item.color && ColorPicker.getColor(item.color))  {
-                    it.color = ColorPicker.getColor(item.color);
-                }
-                if (item.icon)  {
-                    it.icon = item.icon;
-                }
+            it.text = item.defText ? DEFAULT_TEMPLATE : item.text || '';
+            if (item.defColor || (item.color && ColorPicker.getColor(item.color))) {
+                it.color = item.defColor ? DEFAULT_TEMPLATE : ColorPicker.getColor(item.color);
+            }
+            if (item.defIcon || item.icon) {
+                it.icon = item.defIcon ? DEFAULT_TEMPLATE : item.icon;
             }
 
             curSettings.states.push(it);
@@ -689,7 +738,7 @@ export class EditState extends Component {
             expanded = [];
         } else if (id === true) {
             expanded = ['state_settings', 'state_messengers'];
-            this.state.settings.states && this.state.settings.states.forEach(state => expanded.push('state_' + state.val));
+            this.state.settings.states && this.state.settings.states.forEach(state => expanded.push(`state_${state.val}`));
         } else {
             expanded = [...this.state.expanded];
             const pos = expanded.indexOf(id);
@@ -706,24 +755,36 @@ export class EditState extends Component {
         this.setState({expanded});
     }
 
-    renderState(i, narrowWidth) {
+    renderState(i) {
         const state = this.state.settings.states[i];
         const isBoolean = state.val === 'true' || state.val === 'false';
+        let text = state.defText ? (state.val === 'true' ? this.props.native.defaultBooleanTextTrue : this.props.native.defaultBooleanTextFalse) : state.text;
 
         let color = state.defColor ? (state.val === 'true' ? this.props.native.defaultBooleanColorTrue : this.props.native.defaultBooleanColorFalse) : state.color;
         color = !state.disabled && color ? ColorPicker.getColor(color) : '';
 
+        let hasDefaultValue = isBoolean;
+        if (!hasDefaultValue && this.props.native.defaultStringTexts) {
+            const def = this.props.native.defaultStringTexts.find(item => item.value === state.val || item.value === state.original);
+            hasDefaultValue = !!def;
+            if (def) {
+                color = state.defColor ? def.color : color;
+                color = !state.disabled && color ? ColorPicker.getColor(color) : '';
+                text = state.defText ? def.text : text;
+            }
+        }
+
         return <Accordion
             key={state.val}
-            expanded={this.state.expanded.includes('state_' + state.val) && !state.disabled}
-            onChange={() => this.onToggle('state_' + state.val)}
+            expanded={this.state.expanded.includes(`state_${state.val}`) && !state.disabled}
+            onChange={() => this.onToggle(`state_${state.val}`)}
         >
-            <AccordionSummary expandIcon={!state.disabled ? <ExpandMoreIcon /> : <EmptyIcon/>}>
-                <Typography className={this.props.classes.heading}>{I18n.t('State')} <span style={{color: color || undefined, fontWeight: 'bold'}}>{
+            <AccordionSummary expandIcon={!state.disabled ? <ExpandMoreIcon /> : <EmptyIcon />}>
+                <Typography className={this.props.classes.heading}>{I18n.t('State')} <span style={{ color: color || undefined, fontWeight: 'bold' }}>{
                     state.original === 'true' || state.original === 'false' ?
-                        `${state.original.toUpperCase()}${state.text ? ' - ' + state.text : ''}`
+                        `${state.original.toUpperCase()}${text ? ` - ${text}` : ''}`
                         :
-                        `${state.original}(${state.val})${state.text ? ' - ' + state.text : ''}`
+                        `${state.original}(${state.val})${text ? ` - ${text}` : ''}`
                 }</span></Typography>
                 <div className={this.props.classes.flex}/>
                 <FormControlLabel
@@ -741,7 +802,7 @@ export class EditState extends Component {
             </AccordionSummary>
             {!state.disabled && <AccordionDetails>
                 <Paper className={this.props.classes.paper}>
-                    {isBoolean ? <FormControlLabel
+                    {hasDefaultValue ? <FormControlLabel
                         disabled={this.props.reading}
                         control={<Checkbox
                             checked={state.defText}
@@ -753,13 +814,13 @@ export class EditState extends Component {
                         }
                         label={I18n.t('Use default text')}
                     /> : null}
-                    {!isBoolean || !state.defText ? <TextField
+                    {!hasDefaultValue || !state.defText ? <TextField
                         variant="standard"
                         disabled={this.props.reading}
                         margin="dense"
                         label={I18n.t('Text')}
                         value={state.text}
-                        classes={{root: this.props.classes.textDense}}
+                        classes={{ root: this.props.classes.textDense }}
                         onChange={e => {
                             const states = JSON.parse(JSON.stringify(this.state.settings.states));
                             states[i].text = e.target.value;
@@ -768,8 +829,8 @@ export class EditState extends Component {
                         type="text"
                         className={this.props.classes.textField}
                     /> : null}
-                    {narrowWidth ? <br/> : null}
-                    {isBoolean ? <FormControlLabel
+                    <br />
+                    {hasDefaultValue ? <FormControlLabel
                         disabled={this.props.reading}
                         control={<Checkbox
                             checked={state.defColor}
@@ -781,10 +842,10 @@ export class EditState extends Component {
                         }
                         label={I18n.t('Use default color', state.val.toUpperCase())}
                     /> : null}
-                    {!isBoolean || !state.defColor ?
+                    {!hasDefaultValue || !state.defColor ?
                         <ColorPicker
                             disabled={this.props.reading}
-                            openAbove={true}
+                            openAbove
                             color={state.color}
                             style={{width: 250, display: 'inline-block'}}
                             name={I18n.t('Color')}
@@ -794,7 +855,7 @@ export class EditState extends Component {
                                 this.setSettings('states', states);
                             }}
                         /> : null}
-                    {narrowWidth ? <br/> : null}
+                    <br />
                     {isBoolean ? <FormControlLabel
                         disabled={this.props.reading}
                         control={<Checkbox
@@ -821,7 +882,6 @@ export class EditState extends Component {
                             this.setSettings('states', states);
                         }}
                     /> : null}
-                    {narrowWidth ? <br/> : null}
                 </Paper>
             </AccordionDetails>}
         </Accordion>;
@@ -830,13 +890,15 @@ export class EditState extends Component {
     setSettings(attr, value) {
         const settings = JSON.parse(JSON.stringify(this.state.settings));
         settings[attr] = value;
-        this.setState({settings}, () =>
+        this.setState({ settings }, () =>
             this.props.onChange(this.props.id, EditState.getSettings(settings)));
     }
 
     renderStateSettings(narrowWidth) {
         const color = ColorPicker.getColor(this.state.settings.color);
-        const text = this.state.settings.eventDefault ? (this.state.settings.type === 'boolean' ? this.props.native.defaultBooleanText : this.props.native.defaultNonBooleanText) : this.state.settings.event || I18n.t('Use the specific state texts');
+        const text = this.state.settings.eventDefault ?
+            (this.state.settings.type === 'boolean' ? this.props.native.defaultBooleanText : this.props.native.defaultNonBooleanText) :
+            this.state.settings.event || I18n.t('Use the specific state texts');
 
         return <Accordion
             expanded={this.state.expanded.includes('state_settings')}
@@ -844,7 +906,7 @@ export class EditState extends Component {
         >
             <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{root: this.props.classes.width100minus32}}>
                 <Typography className={this.props.classes.heading}>{I18n.t('Event settings')}
-                    {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{' - ' + text}</span> : null}
+                    {!narrowWidth ? <span style={{color: color || undefined, fontStyle: 'italic'}}>{` - ${text}`}</span> : null}
                 </Typography>
             </AccordionSummary>
             <AccordionDetails>
@@ -859,7 +921,7 @@ export class EditState extends Component {
                             <span>{I18n.t('Default text')}</span>
                         </span>}
                     />
-                    {narrowWidth ? <br/> : null}
+                    {narrowWidth ? <br /> : null}
                     {!this.state.settings.eventDefault ? <TextField
                         variant="standard"
                         disabled={this.props.reading}
@@ -875,16 +937,16 @@ export class EditState extends Component {
                             I18n.t('You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration')}
                         fullWidth
                     /> : null}
-                    <br/>
+                    <br />
                     <ColorPicker
                         disabled={this.props.reading}
                         color={this.state.settings.color}
                         style={{width: 250, display: 'inline-block'}}
                         name={I18n.t('Event color')}
-                        openAbove={true}
+                        openAbove
                         onChange={color => this.setSettings('color', color)}
                     />
-                    <br/>
+                    <br />
                     <IconPicker
                         disabled={this.props.reading}
                         imagePrefix={this.imagePrefix}
@@ -930,7 +992,7 @@ export class EditState extends Component {
                     }
                     label={I18n.t('Only in alarm state')}
                 />
-                {narrowWidth && <br/>}
+                {narrowWidth && <br />}
                 <FormControlLabel
                     disabled={this.props.reading}
                     control={<Checkbox
@@ -939,7 +1001,7 @@ export class EditState extends Component {
                     }
                     label={I18n.t('Default messengers')}
                 />
-                <br/>
+                <br />
                 {this.state.settings.defaultMessengers ? null : <MessengerSelect
                     label={ I18n.t('Telegram') }
                     adapterName={'telegram'}
@@ -948,7 +1010,7 @@ export class EditState extends Component {
                     selected={ this.state.settings.telegram }
                     socket={this.props.socket}
                 />}
-                {narrowWidth && !this.state.settings.defaultMessengers && <br/>}
+                {narrowWidth && !this.state.settings.defaultMessengers && <br />}
                 {this.state.settings.defaultMessengers ? null : <MessengerSelect
                     label={ I18n.t('WhatsApp-CMB') }
                     adapterName={'whatsapp-cmb'}
@@ -957,7 +1019,7 @@ export class EditState extends Component {
                     selected={ this.state.settings.whatsAppCMB}
                     socket={this.props.socket}
                 />}
-                {narrowWidth && !this.state.settings.defaultMessengers && <br/>}
+                {narrowWidth && !this.state.settings.defaultMessengers && <br />}
                 {this.state.settings.defaultMessengers ? null : <MessengerSelect
                     label={ I18n.t('Pushover') }
                     adapterName={'pushover'}
@@ -977,18 +1039,17 @@ export class EditState extends Component {
             if (this.state.state.val === null || this.state.state.val === undefined) {
                 val = ' - --';
             } else {
-                val = ' - ' + this.state.state.val.toString();
+                val = ` - ${this.state.state.val.toString()}`;
             }
         }
 
         const exampleColor = this.getExampleColor() || undefined;
 
         return <React.Fragment>
-
             {this.state.settings.type ?
                 <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
                     <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
-                    <span className={this.props.classes.exampleText} style={{color: exampleColor}}>
+                    <span className={this.props.classes.exampleText} style={{ color: exampleColor }}>
                         {this.props.native.icons ? <Image
                             src={this.getExampleIcon()}
                             className={this.props.classes.exampleIcon}
@@ -999,12 +1060,12 @@ export class EditState extends Component {
                     </span>
                     {this.state.settings.type === 'boolean' ?
                         <>
-                            <br/>
+                            <br />
                             <FormControlLabel
                                 disabled={this.props.reading}
                                 control={<Switch
                                     checked={!!this.state.simulateState}
-                                    onChange={e => this.setState({simulateState: e.target.checked})}/>
+                                    onChange={e => this.setState({ simulateState: e.target.checked })}/>
                                 }
                                 label={I18n.t('Toggle state to simulate')}
                             />
@@ -1013,7 +1074,7 @@ export class EditState extends Component {
                     }
                     {this.state.settings.type === 'number' && this.state.settings.states ?
                         <>
-                            <br/>
+                            <br />
                             <FormControl variant="standard" className={this.props.classes.formControl} disabled={this.props.reading}>
                                 <InputLabel>{I18n.t('Simulate value')}</InputLabel>
                                 <Select
@@ -1023,7 +1084,7 @@ export class EditState extends Component {
                                 >
                                     <MenuItem value={'_current_'}>{I18n.t('current') + val}</MenuItem>
                                     {this.state.settings.states.map(item =>
-                                        <MenuItem value={item.val}>{item.original}({item.val})</MenuItem>)}
+                                        <MenuItem key={item.val} value={item.val}>{item.original}({item.val})</MenuItem>)}
                                 </Select>
                             </FormControl>
                         </>
@@ -1042,7 +1103,7 @@ export class EditState extends Component {
                         }
                         label={I18n.t('Only changes')}
                     />
-                    {narrowWidth && <br/>}
+                    {narrowWidth && <br />}
                     <FormControlLabel
                         disabled={this.props.reading}
                         control={<Checkbox

@@ -145,5 +145,10 @@
   "Edit event": "Bewerk evenement",
   "Add new states": "Voeg nieuwe staten toe",
   "Show state ID in the list": "Toon staat-ID in de lijst",
-  "Default messenger's settings": "Standaard instellingen voor messengers"
+  "Default messenger's settings": "Standaard instellingen voor messengers",
+  "String settings": "String instellingen",
+  "For value": "Voor waarde",
+  "Text for value": "Tekst voor waarde",
+  "Color for value": "Kleur voor waarde",
+  "Delete value": "Waarde verwijderen"
 }

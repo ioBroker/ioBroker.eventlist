@@ -145,5 +145,10 @@
   "Filter by ID": "Filter by ID",
   "Edit event": "Edit event",
   "Add new states": "Add new states",
-  "Show state ID in the list": "Show state ID in the list"
+  "Show state ID in the list": "Show state ID in the list",
+  "String settings": "String settings",
+  "For value": "For value",
+  "Text for value": "Text for value",
+  "Color for value": "Color for value",
+  "Delete value": "Delete value"
 }

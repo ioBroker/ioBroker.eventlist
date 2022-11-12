@@ -145,5 +145,10 @@
   "Edit event": "编辑活动",
   "Add new states": "添加新状态",
   "Show state ID in the list": "在列表中显示状态 ID",
-  "Default messenger's settings": "默认信使设置"
+  "Default messenger's settings": "默认信使设置",
+  "String settings": "字符串设置",
+  "For value": "为了价值",
+  "Text for value": "价值文本",
+  "Color for value": "价值的颜色",
+  "Delete value": "删除值"
 }

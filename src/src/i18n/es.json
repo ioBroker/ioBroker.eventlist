@@ -145,5 +145,10 @@
   "Edit event": "Editar evento",
   "Add new states": "Agregar nuevos estados",
   "Show state ID in the list": "Mostrar ID de estado en la lista",
-  "Default messenger's settings": "Configuración predeterminada de mensajeros"
+  "Default messenger's settings": "Configuración predeterminada de mensajeros",
+  "String settings": "Configuración de cadenas",
+  "For value": "por valor",
+  "Text for value": "Texto por valor",
+  "Color for value": "Color por valor",
+  "Delete value": "Eliminar valor"
 }

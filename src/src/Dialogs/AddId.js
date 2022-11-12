@@ -203,7 +203,8 @@ class AddIdDialog extends Component {
                                 const result = await EditState.readSettingsFromServer(
                                     this.props.socket,
                                     this.props.native.language || I18n.getLanguage(),
-                                    this.props.native, this.namespace,
+                                    this.props.native,
+                                    this.namespace,
                                     id
                                 );
 

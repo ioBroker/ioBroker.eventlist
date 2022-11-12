@@ -145,5 +145,10 @@
   "seconds": "с",
   "selected": "вибрано",
   "sorted ascending": "відсортовано за зростанням",
-  "sorted descending": "відсортовані за спаданням"
+  "sorted descending": "відсортовані за спаданням",
+  "String settings": "Параметри рядка",
+  "For value": "Для цінності",
+  "Text for value": "Текст для значення",
+  "Color for value": "Колір для цінності",
+  "Delete value": "Видалити значення"
 }

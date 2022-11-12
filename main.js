@@ -415,18 +415,30 @@ function formatEvent(state, allowRelative) {
 
             if (states[id].states) {
                 const item = states[id].states.find(item => item.val === val);
+                const stateText = states[id].originalStates[item.val];
+                const def = adapter.config.defaultStringTexts && adapter.config.defaultStringTexts.find(item => item.value === stateText || item.value === val);
+
                 if (item) {
                     if (item.disabled) {
                         return null;
                     }
                     if (item.text) {
                         val = item.text;
+                        if (val === DEFAULT_TEMPLATE && def) {
+                            val = def.text;
+                        }
                     }
                     if (item.color) {
                         color = item.color;
+                        if (color === DEFAULT_TEMPLATE && def) {
+                            color = def.color;
+                        }
                     }
                     if (item.icon) {
-                        color = item.icon;
+                        icon = item.icon;
+                        if (icon === DEFAULT_TEMPLATE && def) {
+                            icon = def.icon;
+                        }
                     }
                 } else if (states[id].originalStates) {
                     val = states[id].originalStates[val] === undefined ? val : states[id].originalStates[val];
@@ -649,7 +661,7 @@ function addEvent(event) {
                 _event.ts = new Date(_event.ts).getTime();
             } else {
                 if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
-                    adapter.log.warn('Invalid date provided in event: ' + new Date(_event.ts).toISOString());
+                    adapter.log.warn(`Invalid date provided in event: ${new Date(_event.ts).toISOString()}`);
                     _event.ts = new Date(_event.ts).getTime();
                 }
             }
@@ -735,7 +747,7 @@ function parseStates(states) {
 function updateStateSettings(id, obj) {
     if (!obj || !obj.common || !obj.common.custom || !obj.common.custom[adapter.namespace] || !obj.common.custom[adapter.namespace].enabled) {
         if (states[id]) {
-            adapter.log.debug('Removed from event list: ' + id);
+            adapter.log.debug(`Removed from event list: ${id}`);
             delete states[id];
             return adapter.unsubscribeForeignStatesAsync(id)
                 .then(() => true);

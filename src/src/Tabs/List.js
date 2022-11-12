@@ -768,8 +768,8 @@ class List extends Component {
 
                             let icon = row.icon;
 
-                            if (!this.props.isWeb && icon.match(/^[-_0-9a-z]+\.admin\//)) { // support of hm-rpc.admin/icons/152_hmip-swdo-i_thumb.png
-                                icon = '/files/' + icon;
+                            if (!this.props.isWeb && icon?.match(/^[-_0-9a-z]+\.admin\//)) { // support of hm-rpc.admin/icons/152_hmip-swdo-i_thumb.png
+                                icon = `/files/${icon}`;
                             }
 
                             return <TableRow

@@ -203,6 +203,7 @@
     "defaultBooleanIconTrue": "",
     "defaultBooleanIconFalse": "",
     "defaultNonBooleanText": "",
+    "defaultStringTexts": [],
     "language": "",
     "stateId": true,
     "icons": true,
