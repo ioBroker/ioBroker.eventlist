@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "news": {
+      "1.2.1": {
+        "en": "Updated GUI packages",
+        "de": "Aktualisierte GUI-Pakete",
+        "ru": "Обновленные пакеты GUI",
+        "pt": "Pacotes de GUI atualizados",
+        "nl": "Update GUI pakketten",
+        "fr": "Paquets GUI mis à jour",
+        "it": "Pacchetti GUI aggiornati",
+        "es": "Paquetes GUI actualizados",
+        "pl": "Pakiet GUI",
+        "uk": "Оновлені пакети GUI",
+        "zh-cn": "A. 最新古伊一揽子计划"
+      },
       "1.2.0": {
         "en": "Fixed error with edit of the state settings\nAdded possibility to use default texts for strings values like for booleans",
         "de": "Fehler behoben mit der Bearbeitung der Zustandseinstellungen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
@@ -76,18 +89,6 @@
         "es": "Se corrigieron las rutas de la imagen.",
         "pl": "Poprawiono ścieżki obrazu",
         "zh-cn": "更正了图像路径"
-      },
-      "0.5.3": {
-        "en": "Corrected the error with \"changes only\" option\nAdded possibility to use icons with custom events",
-        "de": "Der Fehler mit der Option \"Nur Änderungen\" wurde behoben\nMöglichkeit hinzugefügt, Symbole mit benutzerdefinierten Ereignissen zu verwenden",
-        "ru": "Исправлена ошибка с опцией \"только изменения\"\nДобавлена возможность использовать иконки с пользовательскими событиями",
-        "pt": "Corrigido o erro com a opção \"somente alterações\"\nAdicionada a possibilidade de usar ícones com eventos personalizados",
-        "nl": "De fout gecorrigeerd met de optie \"Alleen wijzigingen\"\nMogelijkheid toegevoegd om pictogrammen te gebruiken met aangepaste gebeurtenissen",
-        "fr": "Correction de l'erreur avec l'option \"modifications uniquement\"\nAjout de la possibilité d'utiliser des icônes avec des événements personnalisés",
-        "it": "Corretto l'errore con l'opzione \"solo modifiche\".\nAggiunta la possibilità di utilizzare le icone con eventi personalizzati",
-        "es": "Corregido el error con la opción \"solo cambios\"\nSe agregó la posibilidad de usar íconos con eventos personalizados.",
-        "pl": "Poprawiono błąd z opcją „tylko zmiany”\nDodano możliwość używania ikon z niestandardowymi zdarzeniami",
-        "zh-cn": "使用“仅更改”选项更正了错误\n增加了使用带有自定义事件的图标的可能性"
       }
     },
     "titleLang": {
