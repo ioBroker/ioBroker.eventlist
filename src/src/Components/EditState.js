@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
-import moment from 'moment'
-import clsx from 'clsx'
+import moment from 'moment';
 
 import 'moment/locale/fr';
 import 'moment/locale/de';
@@ -38,11 +37,7 @@ import { FaWhatsapp as WhatsappIcon } from 'react-icons/fa';
 import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
-import IconPicker from '@iobroker/adapter-react-v5/Components/IconPicker';
-import I18n from '@iobroker/adapter-react-v5/i18n';
-import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
-import Image from '@iobroker/adapter-react-v5/Components/Image';
-import { withWidth } from '@iobroker/adapter-react-v5';
+import { I18n, Utils, IconPicker, Image, withWidth, ColorPicker }  from '@iobroker/adapter-react-v5';
 
 import MessengerSelect from '../Components/MessengerSelect';
 
@@ -969,7 +964,7 @@ export class EditState extends Component {
 
         const messengers = [
             this.state.settings.telegram    && this.state.settings.telegram.length    ? [<img src={Telegram} key="icon" alt="telegram" className={this.props.classes.messengersIcon}/>, <span key="text">{'(' + this.state.settings.telegram.join(', ')    + ')'}</span>] : null,
-            this.state.settings.whatsAppCMB && this.state.settings.whatsAppCMB.length ? [<WhatsappIcon key="icon" className={clsx(this.props.classes.messengersIcon, this.props.classes.whatsAppIcon)}/>, <span key="text">{'(' + this.state.settings.whatsAppCMB.join(', ') + ')'}</span>] : null,
+            this.state.settings.whatsAppCMB && this.state.settings.whatsAppCMB.length ? [<WhatsappIcon key="icon" className={Utils.clsx(this.props.classes.messengersIcon, this.props.classes.whatsAppIcon)}/>, <span key="text">{'(' + this.state.settings.whatsAppCMB.join(', ') + ')'}</span>] : null,
             this.state.settings.pushover    && this.state.settings.pushover.length    ? [<img src={Pushover} key="icon" alt="pushover" className={this.props.classes.messengersIcon}/>, <span key="text">{'('    + this.state.settings.pushover.join(', ')    + ')'}</span>] : null,
         ];
 
@@ -1047,7 +1042,7 @@ export class EditState extends Component {
 
         return <React.Fragment>
             {this.state.settings.type ?
-                <Paper className={clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
+                <Paper className={Utils.clsx(this.props.classes.paper, this.props.classes.examplePaper)}>
                     <span className={this.props.classes.exampleTitle}>{I18n.t('Example event:')}</span>
                     <span className={this.props.classes.exampleText} style={{ color: exampleColor }}>
                         {this.props.native.icons ? <Image
@@ -1055,7 +1050,7 @@ export class EditState extends Component {
                             className={this.props.classes.exampleIcon}
                             color={exampleColor}
                             imagePrefix={this.imagePrefix}
-                        />: null}
+                        /> : null}
                         {this.buildExample()}
                     </span>
                     {this.state.settings.type === 'boolean' ?

@@ -22,8 +22,7 @@ import { MdHelp as IconHelp } from 'react-icons/md';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
-import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
-import I18n from '@iobroker/adapter-react-v5/i18n';
+import { I18n, ColorPicker }  from '@iobroker/adapter-react-v5';
 
 const styles = theme => ({
     tab: {
@@ -188,9 +187,9 @@ class PdfSettings extends Component {
                     }
                 });
 
-                this.props.socket.sendTo(this.props.adapterName + '.' + this.props.instance, 'pdf', settings)
+                this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'pdf', settings)
                     .then(() =>
-                        this.setState({pdfInGeneration: false, random: this.state.random + 1}, () =>
+                        this.setState({ pdfInGeneration: false, random: this.state.random + 1 }, () =>
                             setTimeout(() => {
                                 if (this.lastElement) {
                                     try {

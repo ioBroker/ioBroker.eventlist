@@ -94,26 +94,18 @@ class SelectStateDialog extends Component {
     }
 
     readIds() {
-        return new Promise((resolve, reject) => {
-            this.props.socket.getRawSocket().emit('getObjectView', 'custom', 'state', {startkey: '', endkey: '\u9999'}, (err, res) => {
-                if (!err) {
-                    const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
-                    const ids = [];
-                    if (res && res.rows) {
-                        for (let i = 0; i < res.rows.length; i++) {
-                            const obj = res.rows[i].value;
-                            if (obj[namespace]) {
-                                ids.push(res.rows[i].id);
-                            }
-                        }
+        return this.props.socket.getObjectViewCustom('state', '', '\u9999')
+            .then(objects => {
+                const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
+                const ids = [];
+                Object.keys(objects).forEach(id => {
+                    if (objects[id][namespace]) {
+                        ids.push(id);
                     }
+                });
 
-                    resolve(ids);
-                } else {
-                    reject(err);
-                }
+                return ids;
             });
-        });
     }
 
     getObject(id) {
@@ -177,7 +169,7 @@ class SelectStateDialog extends Component {
                 size="small"
             /></DialogTitle>
             <DialogContent className={this.props.classes.dialogContent}>
-                <List dense={true}>
+                <List dense>
                     {!filter && <ListItem button onClick={() => this.props.onClose(true)}>
                         <Button color="grey" variant="contained"><AddIcon />{I18n.t('Add new states')}</Button>
                     </ListItem>}

@@ -55,20 +55,6 @@ class IconFilter extends React.Component {
     }
 }
 
-function serialPromises(promises, _resolve, _results) {
-    if (!_resolve) {
-        return new Promise(resolve => serialPromises(promises, resolve, []));
-    } else if (!promises || !promises.length) {
-        _resolve(_results);
-    } else {
-        const prom = promises.shift();
-        prom.then(result => {
-            _results.push(result);
-            setTimeout(() => serialPromises(promises, _resolve, _results), 0);
-        });
-    }
-}
-
 const COLOR_RUNNING_DURATION = '#59be78';
 
 const styles = theme => ({
@@ -479,41 +465,36 @@ class List extends Component {
     }
 
     readIds() {
-        return new Promise((resolve, reject) => {
-            this.props.socket.getRawSocket().emit('getObjectView', 'custom', 'state', { startkey: '', endkey: '\u9999' }, (err, res) => {
-                if (!err) {
-                    const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
-                    const ids = [];
-                    const promises = [];
-                    if (res && res.rows) {
-                        for (let i = 0; i < res.rows.length; i++) {
-                            const obj = res.rows[i].value;
-                            if (obj[namespace]) {
-                                (id => promises.push(this.props.socket.getObject(id)
-                                    .then(obj => {
-                                        if (obj) {
-                                            let count = 0;
-                                            // count states
-                                            this.state.eventList.forEach(item => item.id === obj._id && count++);
-                                            ids.push({id: obj._id, name: Utils.getObjectNameFromObj(obj, I18n.getLanguage()), count});
-                                        }
-                                    })
-                                    .catch(e => ids.push({id}))
-                                ))(res.rows[i].id);
+        return this.props.socket.getObjectViewCustom('state', '', '\u9999')
+            .then(async objects => {
+                const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
+                const ids = [];
+                const allIds = Object.keys(objects);
+                for (let i = 0; i < allIds.length; i++) {
+                    const id = allIds[i];
+                    if (objects[id][namespace]) {
+                        try {
+                            const obj = await this.props.socket.getObject(id);
+                            if (obj) {
+                                let count = 0;
+                                // count states
+                                this.state.eventList.forEach(item => item.id === obj._id && count++);
+                                ids.push({
+                                    id: obj._id,
+                                    name: Utils.getObjectNameFromObj(obj, I18n.getLanguage()),
+                                    count,
+                                });
+                            } else {
+                                ids.push({ id });
                             }
+                        } catch (e) {
+                            ids.push({ id });
                         }
                     }
-
-                    serialPromises(promises)
-                        .then(() => {
-                            ids.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0));
-                            resolve(ids);
-                        });
-                } else {
-                    reject(err);
                 }
+                ids.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0));
+                return ids;
             });
-        });
     }
 
     renderFilter() {
