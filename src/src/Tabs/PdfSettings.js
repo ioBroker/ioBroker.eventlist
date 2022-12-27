@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
-import clsx from 'clsx';
 
 import TextField from '@mui/material/TextField';
 import DialogMessage from '@iobroker/adapter-react-v5/Dialogs/Message';
@@ -22,7 +21,7 @@ import { MdHelp as IconHelp } from 'react-icons/md';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
-import { I18n, ColorPicker }  from '@iobroker/adapter-react-v5';
+import { I18n, ColorPicker, Utils }  from '@iobroker/adapter-react-v5';
 
 const styles = theme => ({
     tab: {
@@ -255,9 +254,9 @@ class PdfSettings extends Component {
             expanded={this.state.expanded.includes('sizes')}
             onChange={(event, ex) => this.onExpand('sizes', ex)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Page size')}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: Utils.clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Page size')}</AccordionSummary>
             <AccordionDetails style={{display: 'block'}}>
-                <FormControl variant="standard" className={clsx(this.props.classes.fieldWide, this.props.classes.orientation)}>
+                <FormControl variant="standard" className={Utils.clsx(this.props.classes.fieldWide, this.props.classes.orientation)}>
                     <InputLabel>{I18n.t('Page orientation')}</InputLabel>
                     <Select
                         variant="standard"
@@ -324,14 +323,14 @@ class PdfSettings extends Component {
             expanded={this.state.expanded.includes('enabledTitle')}
             onChange={(event, ex) => this.onExpand('enabledTitle', ex)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Title')}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: Utils.clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Title')}</AccordionSummary>
             <AccordionDetails style={{display: 'inline-block'}}>
                 <TextField
                     variant="standard"
                     disabled={this.state.pdfInGeneration}
                     key="titleText"
                     type="text"
-                    className={clsx(this.props.classes.titleText)}
+                    className={Utils.clsx(this.props.classes.titleText)}
                     label={I18n.t('Title')}
                     value={settings.titleText}
                     onChange={e => this.onChange('titleText', e.target.value, e)}
@@ -389,7 +388,7 @@ class PdfSettings extends Component {
                     disabled={this.state.pdfInGeneration}
                     key="fontSizeHeader"
                     type="number"
-                    className={clsx(this.props.classes.field, this.props.classes.fontSize)}
+                    className={Utils.clsx(this.props.classes.field, this.props.classes.fontSize)}
                     label={I18n.t('Font size')}
                     value={settings.fontSizeHeader}
                     onChange={e => this.onChange('fontSizeHeader', e.target.value, e)}
@@ -417,7 +416,7 @@ class PdfSettings extends Component {
             expanded={this.state.expanded.includes('margins')}
             onChange={(event, ex) => this.onExpand('margins', ex)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Margins')}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: Utils.clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Margins')}</AccordionSummary>
             <AccordionDetails>
                 <TextField
                     variant="standard"
@@ -468,7 +467,7 @@ class PdfSettings extends Component {
             expanded={this.state.expanded.includes('text')}
             onChange={(event, ex) => this.onExpand('text', ex)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Text settings')}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: Utils.clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Text settings')}</AccordionSummary>
             <AccordionDetails style={{display: 'inline-block'}}>
                 <TextField
                     variant="standard"
@@ -561,7 +560,7 @@ class PdfSettings extends Component {
             expanded={this.state.expanded.includes('enabledEvent')}
             onChange={(event, ex) => this.onExpand('enabledEvent', ex)}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Event')}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} classes={{content: Utils.clsx(this.props.classes.accordionContent, this.props.classes.noCheckbox)}}>{I18n.t('Event')}</AccordionSummary>
             <AccordionDetails>
                 <TextField
                     variant="standard"

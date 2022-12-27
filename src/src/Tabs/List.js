@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
-import clsx from 'clsx';
 import { lighten } from '@mui/material/styles';
 
 import Table from '@mui/material/Table';
@@ -34,12 +33,9 @@ import { FaFilePdf as IconPdf } from 'react-icons/fa';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconEvent from '@mui/icons-material/Event';
 
-import I18n from '@iobroker/adapter-react-v5/i18n';
-import ConfirmDialog from '@iobroker/adapter-react-v5/Dialogs/Confirm';
-import Router from '@iobroker/adapter-react-v5/Components/Router';
-import Image from '@iobroker/adapter-react-v5/Components/Image';
-import Utils from '@iobroker/adapter-react-v5/Components/Utils';
-import { withWidth } from '@iobroker/adapter-react-v5';
+import {
+    I18n, Utils, Image, Router, withWidth, Confirm as ConfirmDialog,
+} from '@iobroker/adapter-react-v5';
 
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
@@ -547,7 +543,7 @@ class List extends Component {
             name = name[I18n.getLanguage()] || name.en || I18n.t('Event list');
         }
 
-        return <Toolbar className={clsx(this.props.classes.toolbarRoot, this.state.selected.length && this.props.classes.toolbarHighlight)}>
+        return <Toolbar className={Utils.clsx(this.props.classes.toolbarRoot, this.state.selected.length && this.props.classes.toolbarHighlight)}>
 
             {this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled && this.state.selected.length ?
                 <Typography className={this.props.classes.toolbarTitle} color="inherit" variant="subtitle1" component="div">
@@ -587,7 +583,7 @@ class List extends Component {
                             Router.doNavigate(null, 'selectState', '');
                             this.setState({showSelectState: true});
                         }}>
-                            <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
+                            <div className={Utils.clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                 <IconEdit style={{verticalAlign: 'middle', marginRight: 8, paddingLeft: 16}}/>
                                 {narrowWidth ? null : <span style={{verticalAlign: 'middle', paddingRight: 16}}>{I18n.t('States')}</span>}
                             </div>
@@ -596,7 +592,7 @@ class List extends Component {
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Insert custom event into list')} className={this.props.classes.toolbarButton}>
                         <span>
                             <Fab variant="extended" aria-label="add" size="small" color="primary" disabled={!this.state.isInstanceAlive} onClick={() => this.setState({showAddEventDialog: true})}>
-                                <div className={clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
+                                <div className={Utils.clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                     <IconAddEvent style={{verticalAlign: 'middle'}} />
                                     {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('Custom Event')}</span>}
                                 </div>
@@ -783,7 +779,7 @@ class List extends Component {
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
                                 {this.props.native.duration ?
-                                    <TableCell style={row.dr ? Object.assign({}, row._style || {}, {color: COLOR_RUNNING_DURATION}) : row._style || undefined } className={clsx(row.dr && this.props.classes.tdDurationRunning, this.props.classes.tdDuration)} component="td" padding="none" align="right">
+                                    <TableCell style={row.dr ? Object.assign({}, row._style || {}, {color: COLOR_RUNNING_DURATION}) : row._style || undefined } className={Utils.clsx(row.dr && this.props.classes.tdDurationRunning, this.props.classes.tdDuration)} component="td" padding="none" align="right">
                                         {row.duration || ''}</TableCell>
                                     : null}
                                 {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdID} align="left">{row.stateId}</TableCell>}
@@ -857,7 +853,7 @@ class List extends Component {
     }
 
     render() {
-        return <Paper className={ clsx(this.props.classes.tab, !(this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled) && this.props.classes.tabMargins) }>
+        return <Paper className={ Utils.clsx(this.props.classes.tab, !(this.state.isInstanceAlive && this.state.editAvailable && this.state.editEnabled) && this.props.classes.tabMargins) }>
             {this.renderToolbar()}
             {this.state.eventList ? this.renderList() : <LinearProgress />}
             {this.renderToast()}

@@ -6,11 +6,8 @@ import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
-import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
-import Router from '@iobroker/adapter-react-v5/Components/Router';
+import { ColorPicker, Router, Loader, I18n }  from '@iobroker/adapter-react-v5';
 import GenericApp from '@iobroker/adapter-react-v5/GenericApp';
-import Loader from '@iobroker/adapter-react-v5/Components/Loader'
-import I18n from '@iobroker/adapter-react-v5/i18n';
 
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
@@ -59,6 +56,10 @@ class App extends GenericApp {
             extendedProps.bottomButtons = false;
         } else if (window.location.pathname.includes('/tab.html') || window.location.pathname.includes('/tab_m.html')) {
             extendedProps.bottomButtons = false;
+        }
+
+        if (window.socketUrl && window.socketUrl.startsWith(':')) {
+            window.socketUrl = `${window.location.protocol}//${window.location.hostname}${window.socketUrl}`;
         }
 
         super(props, extendedProps);

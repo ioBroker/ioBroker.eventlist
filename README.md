@@ -141,6 +141,9 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Corrected web page loading in web adapter
+
 ### 1.2.1 (2022-12-23)
 * (bluefox) Updated GUI packages
 

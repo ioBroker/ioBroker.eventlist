@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
-import clsx from 'clsx';
 
 import TextField from '@mui/material/TextField';
 import I18n from '@iobroker/adapter-react-v5/i18n';
@@ -20,7 +19,7 @@ import CancelIcon from '@mui/icons-material/Close';
 import CheckIcon from '@mui/icons-material/Check';
 import SelectIcon from '@mui/icons-material/ViewModule';
 
-import Image from '@iobroker/adapter-react-v5/Components/Image';
+import { Utils, Image } from '@iobroker/adapter-react-v5';
 import FileBrowser from './FileBrowser';
 
 import IconLampTable from '@iobroker/adapter-react-v5/assets/lamp_table.svg';
@@ -128,7 +127,7 @@ class IconPicker extends React.Component {
             item
             xs
             key={item.name || i}
-            className={clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith(PRESET_PREFIX) && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
+            className={Utils.clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith(PRESET_PREFIX) && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
             onClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name})}
             onDoubleClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name}, () => this.onDialogClose(this.state.dialogValue))}
         >
@@ -262,7 +261,7 @@ class IconPicker extends React.Component {
         return <div
             key={this.props.key}
             style={this.props.style || {}}
-            className={ clsx(this.props.classes.div, this.props.className)}
+            className={ Utils.clsx(this.props.classes.div, this.props.className)}
         >
             <div className={this.props.classes.imagePreviewDiv}>
                 <Image
