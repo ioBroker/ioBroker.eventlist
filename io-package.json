@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "news": {
+      "1.2.2": {
+        "en": "Corrected web page loading in web adapter",
+        "de": "Korrigierte Web-Seitenbeladung im Web-Adapter",
+        "ru": "Исправлена загрузка веб-страницы в web адаптере",
+        "pt": "Carregamento de página web correto no adaptador web",
+        "nl": "Vertaling:",
+        "fr": "Chargement correct de page web dans l'adaptateur web",
+        "it": "Caricamento pagina web corretto nell'adattatore web",
+        "es": "Carga de página web corregida en adaptador web",
+        "pl": "Wręcznik internetowy",
+        "uk": "Виправлено завантаження веб-сторінок в веб-переглядачі",
+        "zh-cn": "网址上装载网页"
+      },
       "1.2.1": {
         "en": "Updated GUI packages",
         "de": "Aktualisierte GUI-Pakete",
@@ -77,18 +90,6 @@
         "es": "Solucionar un problema de bloqueo\nAgregue Sentry también para la parte de Node.js",
         "pl": "Napraw problem z awarią\nDodaj Sentry również dla części Node.js",
         "zh-cn": "修复崩溃问题\n也为 Node.js 部分添加 Sentry"
-      },
-      "0.5.4": {
-        "en": "Corrected the image paths",
-        "de": "Bildpfade korrigiert",
-        "ru": "Исправлены пути к изображениям.",
-        "pt": "Corrigidos os caminhos da imagem",
-        "nl": "De afbeeldingspaden gecorrigeerd",
-        "fr": "Correction des chemins d'images",
-        "it": "Corretti i percorsi dell'immagine",
-        "es": "Se corrigieron las rutas de la imagen.",
-        "pl": "Poprawiono ścieżki obrazu",
-        "zh-cn": "更正了图像路径"
       }
     },
     "titleLang": {
