@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "news": {
+      "1.2.3": {
+        "en": "Corrected the edit of the event sources\nAdded possibility to use default texts for strings values like for booleans",
+        "de": "Korrektur der Bearbeitung der Ereignisquellen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
+        "ru": "Исправлена редакция источников события\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
+        "pt": "Corrigido a edição das fontes do evento\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
+        "nl": "Vertaling:\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
+        "fr": "Correction de la modification des sources de l'événement\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
+        "it": "Corretto la modifica delle fonti dell'evento\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
+        "es": "Corregido la edición de las fuentes del evento\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
+        "pl": "Wykwalifikowano edytację źródeł zdarzeń\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
+        "uk": "Виправлено редагування джерел події\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
+        "zh-cn": "修改活动来源的特性\n增加使用与假释等一系列价值观的违约案文的可能性"
+      },
       "1.2.2": {
         "en": "Corrected web page loading in web adapter",
         "de": "Korrigierte Web-Seitenbeladung im Web-Adapter",
@@ -78,18 +91,6 @@
         "es": "Permitido trabajar detrás del proxy inverso",
         "pl": "Wszystko, by pracować za odwrotnym proxym",
         "zh-cn": "允许在反倾销后工作"
-      },
-      "0.5.5": {
-        "en": "Fix a crash issue\nAdd Sentry also for the Node.js part",
-        "de": "Beheben Sie ein Absturzproblem\nFügen Sie Sentry auch für den Node.js-Teil hinzu",
-        "ru": "Исправить проблему сбоя\nДобавьте Sentry также для части Node.js",
-        "pt": "Corrigir um problema de falha\nAdicione o Sentry também para a parte Node.js",
-        "nl": "Een crashprobleem oplossen\nVoeg Sentry ook toe voor het Node.js-gedeelte",
-        "fr": "Résoudre un problème de plantage\nAjouter Sentry également pour la partie Node.js",
-        "it": "Risolvi un problema di arresto anomalo\nAggiungi Sentry anche per la parte Node.js",
-        "es": "Solucionar un problema de bloqueo\nAgregue Sentry también para la parte de Node.js",
-        "pl": "Napraw problem z awarią\nDodaj Sentry również dla części Node.js",
-        "zh-cn": "修复崩溃问题\n也为 Node.js 部分添加 Sentry"
       }
     },
     "titleLang": {

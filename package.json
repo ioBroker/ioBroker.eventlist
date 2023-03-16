@@ -1,6 +1,6 @@
 {
   "name": "iobroker.eventlist",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Builds and shows the event list from desired states in admin, web and as widget",
   "author": {
     "name": "bluefox",
