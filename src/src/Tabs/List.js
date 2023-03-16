@@ -460,37 +460,35 @@ class List extends Component {
         }
     }
 
-    readIds() {
-        return this.props.socket.getObjectViewCustom('state', '', '\u9999')
-            .then(async objects => {
-                const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
-                const ids = [];
-                const allIds = Object.keys(objects);
-                for (let i = 0; i < allIds.length; i++) {
-                    const id = allIds[i];
-                    if (objects[id][namespace]) {
-                        try {
-                            const obj = await this.props.socket.getObject(id);
-                            if (obj) {
-                                let count = 0;
-                                // count states
-                                this.state.eventList.forEach(item => item.id === obj._id && count++);
-                                ids.push({
-                                    id: obj._id,
-                                    name: Utils.getObjectNameFromObj(obj, I18n.getLanguage()),
-                                    count,
-                                });
-                            } else {
-                                ids.push({ id });
-                            }
-                        } catch (e) {
-                            ids.push({ id });
-                        }
+    async readIds() {
+        const objects = await this.props.socket.getObjectViewCustom('custom', 'state', '', '\u9999');
+        const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
+        const ids = [];
+        const allIds = Object.keys(objects);
+        for (let i = 0; i < allIds.length; i++) {
+            const id = allIds[i];
+            if (objects[id][namespace]) {
+                try {
+                    const obj = await this.props.socket.getObject(id);
+                    if (obj) {
+                        let count = 0;
+                        // count states
+                        this.state.eventList.forEach(item => item.id === obj._id && count++);
+                        ids.push({
+                            id: obj._id,
+                            name: Utils.getObjectNameFromObj(obj, I18n.getLanguage()),
+                            count,
+                        });
+                    } else {
+                        ids.push({ id });
                     }
+                } catch (e) {
+                    ids.push({ id });
                 }
-                ids.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0));
-                return ids;
-            });
+            }
+        }
+        ids.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0));
+        return ids;
     }
 
     renderFilter() {
@@ -516,7 +514,8 @@ class List extends Component {
                     this.setState({ filterStates: event.target.value });
                 }}
                 //input={<Input placeholder={I18n.t('Filter by ID')}/>}
-                onOpen={() => this.readIds().then(ids => this.setState({ stateIds: ids }))}
+                onOpen={() => this.readIds()
+                    .then(ids => this.setState({ stateIds: ids }))}
                 renderValue={selected => selected.length === 1 ? selected[0] : selected.length}
             >
                 {!this.state.stateIds ?

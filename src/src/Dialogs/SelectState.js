@@ -10,6 +10,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
@@ -18,8 +19,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Close';
 
-import I18n from '@iobroker/adapter-react-v5/i18n';
-import Utils from '@iobroker/adapter-react-v5/Components/Utils';
+import { I18n, Utils } from '@iobroker/adapter-react-v5';
 
 const styles = theme => ({
     textField: {
@@ -27,16 +27,16 @@ const styles = theme => ({
     },
     icon: {
         width: 32,
-        maxHeight: 32
+        maxHeight: 32,
     },
     emptyIcon: {
-        marginRight: theme.spacing(1)
+        marginRight: theme.spacing(1),
     },
     listItem: {
         padding: 3,
         '&:hover': {
             background: theme.palette.mode === 'dark' ? theme.palette.primary.dark : theme.palette.primary.light,
-        }
+        },
     },
     listPrimary: {
 
@@ -49,8 +49,14 @@ const styles = theme => ({
     newState: {
         color: theme.palette.primary.main,
         fontSize: 'greater',
-        fontWeight: 'bold'
-    }
+        fontWeight: 'bold',
+    },
+    flex: {
+        flex: 1,
+    },
+    dialogTitle: {
+        display: 'flex',
+    },
 });
 
 function getSelectIdIcon(obj, prefix) {
@@ -64,7 +70,7 @@ function getSelectIdIcon(obj, prefix) {
         // if not BASE64
         if (!aIcon.startsWith('data:image/')) {
             if (aIcon.includes('.')) {
-                src = prefix + '/adapter/' + adapter + '/' + aIcon;
+                src = `${prefix}/adapter/${adapter}/${aIcon}`;
             } else {
                 return null; //'<i class="material-icons iob-list-icon">' + obj.common.icon + '</i>';
             }
@@ -90,28 +96,25 @@ class SelectStateDialog extends Component {
         this.promises = {};
 
         this.readIds()
-            .then(ids => this.setState({ids}));
+            .then(ids => this.setState({ ids }));
     }
 
-    readIds() {
-        return this.props.socket.getObjectViewCustom('state', '', '\u9999')
-            .then(objects => {
-                const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
-                const ids = [];
-                Object.keys(objects).forEach(id => {
-                    if (objects[id][namespace]) {
-                        ids.push(id);
-                    }
-                });
+    async readIds() {
+        const objects = await this.props.socket.getObjectViewCustom('custom', 'state', '', '\u9999');
+        const namespace = `${this.props.adapterName}.${this.props.instance || 0}`;
+        const ids = [];
+        Object.keys(objects).forEach(id => {
+            if (objects[id][namespace]) {
+                ids.push(id);
+            }
+        });
 
-                return ids;
-            });
+        return ids;
     }
 
-    getObject(id) {
-        return this.props.socket.getObject(id)
-            .then(obj =>
-                this.setState({[obj._id]: obj}));
+    async getObject(id) {
+        const obj = await this.props.socket.getObject(id);
+        this.setState({ [obj._id]: obj });
     }
 
     renderListItem(id, filter) {
@@ -123,23 +126,23 @@ class SelectStateDialog extends Component {
             }
 
             const icon = getSelectIdIcon(obj, this.props.imagePrefix);
-            return <ListItem button onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
+            return <ListItemButton onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
                 <ListItemIcon>
                     {icon ? <img src={icon} className={this.props.classes.icon} alt="state"/> : <div className={this.props.classes.emptyIcon}>&nbsp;</div>}
                 </ListItemIcon>
                 <ListItemText primary={name} secondary={id !== name ? id : ''} classes={{primary: this.props.classes.listPrimary, secondary: this.props.classes.listSecondary}}/>
-            </ListItem>;
+            </ListItemButton>;
         } else {
             this.promises[id] = this.promises[id] || this.getObject(id);
             if (filter && !id.toLowerCase().includes(filter)) {
                 return null;
             }
-            return <ListItem button onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
+            return <ListItemButton onClick={() => this.props.onClose(id)} key={id} className={this.props.classes.listItem}>
                 <ListItemIcon>
                     <div className={this.props.classes.emptyIcon}>&nbsp;</div>
                 </ListItemIcon>
                 <ListItemText primary={id} classes={{primary: this.props.classes.listPrimary}}/>
-            </ListItem>;
+            </ListItemButton>;
         }
     }
 
@@ -150,24 +153,29 @@ class SelectStateDialog extends Component {
             fullWidth={true}
             maxWidth="md"
             onClose={() => this.props.onClose()}>
-            <DialogTitle>{I18n.t('Select state')}<TextField
-                variant="standard"
-                label={I18n.t('Filter')}
-                InputLabelProps={ {shrink: true} }
-                InputProps={{
-                    endAdornment: this.state.searchedValue ?
-                        <IconButton
-                            onClick={() => this.setState({ searchedValue: '' })}>
-                            <ClearIcon />
-                        </IconButton>
-                        : undefined,
-                }}
-                autoFocus
-                value={this.state.filter}
-                onChange={e => this.setState({filter: e.target.value})}
-                fullWidth
-                size="small"
-            /></DialogTitle>
+            <DialogTitle className={this.props.classes.dialogTitle}>
+                <div style={{ marginRight: 20, marginTop: 5 }}>{I18n.t('Select state')}</div>
+                <TextField
+                    variant="standard"
+                    className={this.props.classes.flex}
+                    label={I18n.t('Filter')}
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                        endAdornment: this.state.filter ?
+                            <IconButton
+                                onClick={() => this.setState({ filter: '' })}
+                            >
+                                <ClearIcon />
+                            </IconButton>
+                            : undefined,
+                    }}
+                    autoFocus
+                    value={this.state.filter}
+                    onChange={e => this.setState({ filter: e.target.value })}
+                    fullWidth
+                    size="small"
+                />
+            </DialogTitle>
             <DialogContent className={this.props.classes.dialogContent}>
                 <List dense>
                     {!filter && <ListItem button onClick={() => this.props.onClose(true)}>

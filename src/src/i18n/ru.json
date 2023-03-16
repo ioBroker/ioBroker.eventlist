@@ -150,5 +150,6 @@
   "For value": "По стоимости",
   "Text for value": "Текст для значения",
   "Color for value": "Цвет по цене",
-  "Delete value": "Удалить значение"
+  "Delete value": "Удалить значение",
+  "Clear filter": "Очистить фильтр"
 }
