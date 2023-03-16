@@ -45,9 +45,9 @@ let textSeconds;
 let textMs;
 
 function loadWords() {
-    let lines = fs.existsSync(__dirname + '/admin/words.js') ?
-        fs.readFileSync(__dirname + '/admin/words.js').toString('utf8').split(/\r\n|\n|\r/) :
-        fs.readFileSync(__dirname + '/src/public/words.js').toString('utf8').split(/\r\n|\n|\r/);
+    let lines = fs.existsSync(`${__dirname}/admin/words.js`) ?
+        fs.readFileSync(`${__dirname}/admin/words.js`).toString('utf8').split(/\r\n|\n|\r/) :
+        fs.readFileSync(`${__dirname}/src/public/words.js`).toString('utf8').split(/\r\n|\n|\r/);
 
     lines = lines.map(l => l.trim()).map(l => l.replace(/'/g, '"')).filter(l => l);
     const start = lines.findIndex(line => line.startsWith('systemDictionary = {'));
@@ -70,7 +70,7 @@ function state2json(state) {
         try {
             table = JSON.parse(table);
         } catch (e) {
-            adapter.log.warn('Cannot parse event list: "' + table + '"');
+            adapter.log.warn(`Cannot parse event list: "${table}"`);
             table = [];
         }
     }
@@ -92,12 +92,12 @@ function startAdapter(options) {
 
     // is called if a subscribed state changes
     adapter.on('stateChange', (id, state) => {
-        if (id === adapter.namespace + '.triggerPDF' && state && !state.ack && state.val) {
+        if (id === `${adapter.namespace}.triggerPDF` && state && !state.ack && state.val) {
             reformatJsonTable(false)
                 .then(table => list2pdf(adapter, moment, adapter.instance ? `report-${adapter.instance}.pdf` : 'report.pdf', table))
-                .then(() => adapter.setForeignStateAsync(adapter.namespace + '.triggerPDF', false, true));
-        } else if (id === adapter.namespace + '.alarm' && state && !state.ack) {
-            adapter.log.info('Switch ALARM state to ' + state.val);
+                .then(() => adapter.setForeignStateAsync(`${adapter.namespace}.triggerPDF`, false, true));
+        } else if (id === `${adapter.namespace}.alarm` && state && !state.ack) {
+            adapter.log.info(`Switch ALARM state to ${state.val}`);
 
             alarmMode = state.val === true || state.val === 'true' || state.val === 1 || state.val === '1' || state.val === 'ON' || state.val === 'on';
             if (adapter.config.deleteAlarmsByDisable && !alarmMode) {
@@ -114,16 +114,16 @@ function startAdapter(options) {
                         }
                     });
             }
-        } else if (id === adapter.namespace + '.eventListRaw' && state && !state.ack && state.val) {
+        } else if (id === `${adapter.namespace}.eventListRaw` && state && !state.ack && state.val) {
             eventListRaw = state2json(state);
             updateMomentTimes()
                 .then(() => {});
-        } else if (id === adapter.namespace + '.insert' && state && !state.ack && state.val) {
+        } else if (id === `${adapter.namespace}.insert` && state && !state.ack && state.val) {
             if (typeof state.val === 'string' && state.val.startsWith('{')) {
                 try {
                     state.val = JSON.parse(state.val);
                 } catch (e) {
-
+                    // ignore
                 }
                 addEvent(state.val)
                     .then(event =>
@@ -133,7 +133,7 @@ function startAdapter(options) {
                     .then(event =>
                         adapter.log.debug(`Event ${JSON.stringify(event)} was added`));
             }
-        } else if (id === adapter.namespace + '.delete' && state && !state.ack && state.val) {
+        } else if (id === `${adapter.namespace}.delete` && state && !state.ack && state.val) {
             deleteEvents(state.val)
                 .then(count =>
                     adapter.log.debug(`${count} events were deleted from the list`));
@@ -196,7 +196,7 @@ function startAdapter(options) {
         if (typeof obj === 'object' && obj.message) {
             if (obj.command === 'insert') {
                 // e.g. send email or pushover or whatever
-                adapter.log.debug('insert event: ' + JSON.stringify(obj.message));
+                adapter.log.debug(`insert event: ${JSON.stringify(obj.message)}`);
 
                 addEvent(obj.message)
                     .then(() => obj.callback && adapter.sendTo(obj.from, obj.command, {result: 'event inserted'}, obj.callback));
@@ -240,8 +240,11 @@ function startAdapter(options) {
 
     adapter.on('objectChange', (id, obj) =>
         updateStateSettings(id, obj)
-            .then(changed =>
-                changed && updateMomentTimes()));
+            .then(changed => {
+                if (changed) {
+                    return updateMomentTimes();
+                }
+            }));
 
     adapter.on('unload', cb => {
         momentInterval && clearInterval(momentInterval);
@@ -414,9 +417,10 @@ function formatEvent(state, allowRelative) {
             }
 
             if (states[id].states) {
+                // try to find text for value in states
                 const item = states[id].states.find(item => item.val === val);
                 const stateText = states[id].originalStates[item.val];
-                const def = adapter.config.defaultStringTexts && adapter.config.defaultStringTexts.find(item => item.value === stateText || item.value === val);
+                const def = adapter.config.defaultStringTexts && adapter.config.defaultStringTexts.find(it => it.value === stateText || it.value === val);
 
                 if (item) {
                     if (item.disabled) {
@@ -450,6 +454,19 @@ function formatEvent(state, allowRelative) {
                 }
             } else if (states[id].originalStates) {
                 val = states[id].originalStates[val] === undefined ? val : states[id].originalStates[val];
+                const def = adapter.config.defaultStringTexts && adapter.config.defaultStringTexts.find(it => it.value === val);
+                if (def) {
+                    val = def.text;
+                    color = def.color;
+                    icon = def.icon;
+                }
+            } else {
+                const def = adapter.config.defaultStringTexts && adapter.config.defaultStringTexts.find(it => it.value === val);
+                if (def) {
+                    val = def.text;
+                    color = def.color;
+                    icon = def.icon;
+                }
             }
 
             if (val !== '' && states[id].unit) {
@@ -573,7 +590,7 @@ function sendTelegram(event) {
             adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
             instances.forEach(num =>
-                adapter.sendTo('telegram.' + num, 'send', {text}));
+                adapter.sendTo(`telegram.${num}`, 'send', {text}));
         }
     }
 
@@ -591,11 +608,11 @@ function sendWhatsApp(event) {
 
         const ev = formatEvent(event, true);
         if (ev) {
-            const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+            const text = ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${states[event.id].unit || ''}` : '');
             adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
             instances.forEach(num =>
-                adapter.sendTo('whatsapp-cmb.' + num, 'send', {text}));
+                adapter.sendTo(`whatsapp-cmb.${num}`, 'send', {text}));
         }
     }
 
@@ -613,11 +630,11 @@ function sendPushover(event) {
 
         const ev = formatEvent(event, true);
         if (ev) {
-            const text = ev.event + (ev.val !== undefined ? ' => ' + ev.val.toString() + (states[event.id].unit || '') : '');
+            const text = ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${states[event.id].unit || ''}` : '');
             adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
             instances.forEach(num =>
-                adapter.sendTo('pushover.' + num, 'send', {text}));
+                adapter.sendTo(`pushover.${num}`, 'send', {text}));
         }
     }
 
@@ -637,98 +654,94 @@ function getRawEventList() {
     });
 }
 
-function addEvent(event) {
-    return getRawEventList()
-        .then(() => new Promise(resolve => {
-            const _event = {};
+async function addEvent(event) {
+    await getRawEventList();
+    const _event = {};
 
-            if (typeof event === 'string') {
-                event = {event};
-            }
+    if (typeof event === 'string') {
+        event = {event};
+    }
 
-            if (!event.event && !event.id) {
-                adapter.log.warn('Cannot add empty event to the list');
-                return;
-            }
+    if (!event.event && !event.id) {
+        adapter.log.warn('Cannot add empty event to the list');
+        return;
+    }
 
-            if (!alarmMode && states[event.id] && states[event.id].alarmsOnly) {
-                return adapter.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
-            }
+    if (!alarmMode && states[event.id] && states[event.id].alarmsOnly) {
+        adapter.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
+        return;
+    }
 
-            _event.ts = event.ts || Date.now();
+    _event.ts = event.ts || Date.now();
 
-            if (typeof _event.ts !== 'number') {
-                _event.ts = new Date(_event.ts).getTime();
-            } else {
-                if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
-                    adapter.log.warn(`Invalid date provided in event: ${new Date(_event.ts).toISOString()}`);
-                    _event.ts = new Date(_event.ts).getTime();
-                }
-            }
+    if (typeof _event.ts !== 'number') {
+        _event.ts = new Date(_event.ts).getTime();
+    } else {
+        if (_event.ts < MIN_VALID_DATE || _event.ts > MAX_VALID_DATE) {
+            adapter.log.warn(`Invalid date provided in event: ${new Date(_event.ts).toISOString()}`);
+            _event.ts = new Date(_event.ts).getTime();
+        }
+    }
 
-            if (event.event) {
-                _event.event = event.event;
-            }
+    if (event.event) {
+        _event.event = event.event;
+    }
 
-            if (event.id || event._id) {
-                _event.id = event.id || event._id;
-            }
+    if (event.id || event._id) {
+        _event.id = event.id || event._id;
+    }
 
-            if (event.val !== undefined) {
-                _event.val = event.val;
-            }
+    if (event.val !== undefined) {
+        _event.val = event.val;
+    }
 
-            if (event.oldVal !== undefined) {
-                _event.oldVal = event.oldVal;
-            }
+    if (event.oldVal !== undefined) {
+        _event.oldVal = event.oldVal;
+    }
 
-            if (event.icon) {
-                _event.icon = event.icon;
-            }
+    if (event.icon) {
+        _event.icon = event.icon;
+    }
 
-            if (event.duration !== undefined && event.duration !== null) {
-                // This is duration of previous event
-                const prevEvent = eventListRaw.find(item => item.id === event.id);
-                if (prevEvent) {
-                    prevEvent.duration = event.duration;
-                }
-            }
+    if (event.duration !== undefined && event.duration !== null) {
+        // This is duration of previous event
+        const prevEvent = eventListRaw.find(item => item.id === event.id);
+        if (prevEvent) {
+            prevEvent.duration = event.duration;
+        }
+    }
 
-            // time must be unique
-            while (eventListRaw.find(item => item.ts === _event.ts)) {
-                _event.ts++;
-            }
+    // time must be unique
+    while (eventListRaw.find(item => item.ts === _event.ts)) {
+        _event.ts++;
+    }
 
-            eventListRaw.unshift(_event);
-            eventListRaw.sort((a, b) => a.ts > b.ts ? -1 : (a.ts < b.ts ? 1 : 0));
+    eventListRaw.unshift(_event);
+    eventListRaw.sort((a, b) => a.ts > b.ts ? -1 : (a.ts < b.ts ? 1 : 0));
 
-            adapter.log.debug('Add ' + JSON.stringify(_event));
+    adapter.log.debug(`Add ${JSON.stringify(_event)}`);
 
-            if (eventListRaw.length > adapter.config.maxLength) {
-                eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
-            }
+    if (eventListRaw.length > adapter.config.maxLength) {
+        eventListRaw.splice(adapter.config.maxLength, eventListRaw.length - adapter.config.maxLength);
+    }
 
-            const ev = formatEvent(_event, true);
+    const ev = formatEvent(_event, true);
 
-            if (ev) {
-                adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true)
-                    .then(() => updateMomentTimes())
-                    .then(() => Promise.all([
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.event', ev.event, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.id', _event.id === undefined || _event.id === null ? null : _event.id.toString(), true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.ts', _event.ts, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.val', _event.val === undefined ? null : _event.val, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.duration', _event.duration === undefined ? null : _event.duration, true),
-                        adapter.setForeignStateAsync(adapter.namespace + '.lastEvent.json', JSON.stringify(_event), true)
-                    ]))
-                    .then(() => sendTelegram(_event))
-                    .then(() => sendWhatsApp(_event))
-                    .then(() => sendPushover(_event))
-                    .then(() => resolve(_event));
-            } else {
-                resolve(_event);
-            }
-        }));
+    if (ev) {
+        await adapter.setStateAsync('eventListRaw', JSON.stringify(eventListRaw), true);
+        await updateMomentTimes();
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.event`, ev.event, true);
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.id`, _event.id === undefined || _event.id === null ? null : _event.id.toString(), true);
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.ts`, _event.ts, true);
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.val`, _event.val === undefined ? null : _event.val, true);
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.duration`, _event.duration === undefined ? null : _event.duration, true);
+        await adapter.setForeignStateAsync(`${adapter.namespace}.lastEvent.json`, JSON.stringify(_event), true);
+        await sendTelegram(_event);
+        await sendWhatsApp(_event);
+        await sendPushover(_event);
+    }
+
+    return _event;
 }
 
 function getName(obj) {
@@ -744,310 +757,283 @@ function parseStates(states) {
     return states;
 }
 
-function updateStateSettings(id, obj) {
+async function updateStateSettings(id, obj) {
     if (!obj || !obj.common || !obj.common.custom || !obj.common.custom[adapter.namespace] || !obj.common.custom[adapter.namespace].enabled) {
         if (states[id]) {
             adapter.log.debug(`Removed from event list: ${id}`);
             delete states[id];
-            return adapter.unsubscribeForeignStatesAsync(id)
-                .then(() => true);
+            await adapter.unsubscribeForeignStatesAsync(id);
+            return true;
         } else {
-            return Promise.resolve(false);
-        }
-    } else {
-        const id = obj._id;
-        const promises = [];
-        const needSubscribe = !states[id];
-        let changed = false;
-        const settings = obj.common.custom[adapter.namespace];
-        if (states[id]) {
-            // detect relevant changes
-            if (states[id].event !== settings.event) {
-                states[id].event = settings.event;
-                changed = true;
-            }
-            if (states[id].color !== settings.color) {
-                states[id].color = settings.color;
-                changed = true;
-            }
-            if (states[id].icon !== settings.icon) {
-                states[id].icon = settings.icon;
-                changed = true;
-            }
-            if (states[id].changesOnly !== settings.changesOnly) {
-                states[id].changesOnly = settings.changesOnly;
-                changed = true;
-            }
-            if (states[id].alarmsOnly !== settings.alarmsOnly) {
-                states[id].alarmsOnly = settings.alarmsOnly;
-                changed = true;
-            }
-            if (states[id].defaultMessengers !== settings.defaultMessengers) {
-                states[id].defaultMessengers = settings.defaultMessengers;
-                changed = true;
-            }
-            if (states[id].messagesInAlarmsOnly !== settings.messagesInAlarmsOnly) {
-                states[id].messagesInAlarmsOnly = settings.messagesInAlarmsOnly;
-                changed = true;
-            }
-            if (JSON.stringify(states[id].whatsAppCMB) !== JSON.stringify(settings.whatsAppCMB)) {
-                states[id].whatsAppCMB = settings.whatsAppCMB;
-                changed = true;
-            }
-            if (JSON.stringify(states[id].telegram) !== JSON.stringify(settings.telegram)) {
-                states[id].telegram = settings.telegram;
-                changed = true;
-            }
-            if (JSON.stringify(states[id].pushover) !== JSON.stringify(settings.pushover)) {
-                states[id].pushover = settings.pushover;
-                changed = true;
-            }
-            const st = parseStates(settings.states || undefined);
-            if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
-                states[id].states = st;
-                changed = true;
-            }
-        } else {
-            states[id] = settings;
-            changed = true;
-        }
-
-        if (states[id].type !== obj.common.type) {
-            states[id].type = obj.common.type;
-            changed = true;
-        }
-
-        const st = parseStates(obj.common.states || undefined);
-        if (JSON.stringify(states[id].originalStates) !== JSON.stringify(st)) {
-            states[id].originalStates = st;
-            changed = true;
-        }
-        if (states[id].unit !== obj.common.unit) {
-            states[id].unit = obj.common.unit;
-            changed = true;
-        }
-        if (states[id].min !== obj.common.min) {
-            states[id].min = obj.common.min;
-            changed = true;
-        }
-        if (states[id].max !== obj.common.max) {
-            states[id].max = obj.common.max;
-            changed = true;
-        }
-
-        const name = getName(obj);
-        if (states[id].name !== name) {
-            states[id].name = name;
-            changed = true;
-        }
-
-        let durationUsed = adapter.config.duration;
-
-        if (!durationUsed && states[id].states) {
-            if (states[id].type === 'boolean') {
-                durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d') ||
-                               (states[id].event || adapter.config.defaultBooleanText).includes('%g');
-
-                if (!durationUsed) {
-                    let item = states[id].states.find(item => item.val === 'true');
-
-                    durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d') ||
-                                   ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d');
-                }
-                if (!durationUsed) {
-                    let item = states[id].states.find(item => item.val === 'false');
-
-                    durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%d') ||
-                                   ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%g');
-                }
-            } else {
-                durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
-                               (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
-
-                if (!durationUsed) {
-                    durationUsed = !!states[id].states.find(item => item.text.includes('%d') || item.text.includes('%g'));
-                }
-            }
-        } else if (!durationUsed) {
-            durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
-                           (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
-        }
-
-        let oldValueUsed = false;
-
-        if (states[id].states) {
-            if (states[id].type === 'boolean') {
-                oldValueUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%o');
-
-                if (!oldValueUsed) {
-                    let item = states[id].states.find(item => item.val === 'true');
-
-                    oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%o');
-                }
-                if (!oldValueUsed) {
-                    let item = states[id].states.find(item => item.val === 'false');
-
-                    oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%o');
-                }
-            } else {
-                oldValueUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
-                oldValueUsed = oldValueUsed || !!states[id].states.find(item => item.text.includes('%o'));
-            }
-        } else {
-            oldValueUsed = oldValueUsed || (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
-        }
-
-        if (states[id].oldValueUsed !== oldValueUsed) {
-            states[id].oldValueUsed = oldValueUsed;
-            changed = true;
-        }
-
-        if (states[id].durationUsed !== durationUsed) {
-            states[id].durationUsed = durationUsed;
-            changed = true;
-        }
-
-        if (adapter.config.icons && (!states[id].color || !states[id].icon)) {
-            promises.push(getIconAndColor(id, obj)
-                .then(result => {
-                    if (result && !states[id].icon && result.icon !== states[id].icon) {
-                        changed = true;
-                        // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
-                        // or                                                  hm-rpc.admin/icons/113_hmip-psm_thumb.png
-                        states[id].icon = `${id.split('.')[0]}.admin${result.icon}`;
-                    }
-                    if (result && !states[id].color && result.color !== states[id].color) {
-                        changed = true;
-                        states[id].color = result.color;
-                    }
-                }));
-        }
-
-        needSubscribe && adapter.log.debug('Subscribe on ' + id);
-
-        if (states[id].val === undefined && (states[id].changesOnly || durationUsed)) {
-            return adapter.getForeignStateAsync(id)
-                .then(state => {
-                    states[id].val = state ? state.val : null; // store to detect changes
-                    states[id].ts  = state ? state.ts  : null; // store to calculate duration
-                    return Promise.all(promises);
-                })
-                .then(() => needSubscribe ? adapter.subscribeForeignStatesAsync(id) : Promise.resolve())
-                .then(() => changed);
-        } else {
-            return Promise.all(promises)
-                .then(() => needSubscribe ? adapter.subscribeForeignStatesAsync(id) : Promise.resolve())
-                .then(() => changed);
+            return false;
         }
     }
+
+    id = obj._id;
+    const promises = [];
+    const needSubscribe = !states[id];
+    let changed = false;
+    const settings = obj.common.custom[adapter.namespace];
+    if (states[id]) {
+        // detect relevant changes
+        if (states[id].event !== settings.event) {
+            states[id].event = settings.event;
+            changed = true;
+        }
+        if (states[id].color !== settings.color) {
+            states[id].color = settings.color;
+            changed = true;
+        }
+        if (states[id].icon !== settings.icon) {
+            states[id].icon = settings.icon;
+            changed = true;
+        }
+        if (states[id].changesOnly !== settings.changesOnly) {
+            states[id].changesOnly = settings.changesOnly;
+            changed = true;
+        }
+        if (states[id].alarmsOnly !== settings.alarmsOnly) {
+            states[id].alarmsOnly = settings.alarmsOnly;
+            changed = true;
+        }
+        if (states[id].defaultMessengers !== settings.defaultMessengers) {
+            states[id].defaultMessengers = settings.defaultMessengers;
+            changed = true;
+        }
+        if (states[id].messagesInAlarmsOnly !== settings.messagesInAlarmsOnly) {
+            states[id].messagesInAlarmsOnly = settings.messagesInAlarmsOnly;
+            changed = true;
+        }
+        if (JSON.stringify(states[id].whatsAppCMB) !== JSON.stringify(settings.whatsAppCMB)) {
+            states[id].whatsAppCMB = settings.whatsAppCMB;
+            changed = true;
+        }
+        if (JSON.stringify(states[id].telegram) !== JSON.stringify(settings.telegram)) {
+            states[id].telegram = settings.telegram;
+            changed = true;
+        }
+        if (JSON.stringify(states[id].pushover) !== JSON.stringify(settings.pushover)) {
+            states[id].pushover = settings.pushover;
+            changed = true;
+        }
+        const st = parseStates(settings.states || undefined);
+        if (JSON.stringify(states[id].states) !== JSON.stringify(st)) {
+            states[id].states = st;
+            changed = true;
+        }
+    } else {
+        states[id] = settings;
+        changed = true;
+    }
+
+    if (states[id].type !== obj.common.type) {
+        states[id].type = obj.common.type;
+        changed = true;
+    }
+
+    const st = parseStates(obj.common.states || undefined);
+    if (JSON.stringify(states[id].originalStates) !== JSON.stringify(st)) {
+        states[id].originalStates = st;
+        changed = true;
+    }
+    if (states[id].unit !== obj.common.unit) {
+        states[id].unit = obj.common.unit;
+        changed = true;
+    }
+    if (states[id].min !== obj.common.min) {
+        states[id].min = obj.common.min;
+        changed = true;
+    }
+    if (states[id].max !== obj.common.max) {
+        states[id].max = obj.common.max;
+        changed = true;
+    }
+
+    const name = getName(obj);
+    if (states[id].name !== name) {
+        states[id].name = name;
+        changed = true;
+    }
+
+    let durationUsed = adapter.config.duration;
+
+    if (!durationUsed && states[id].states) {
+        if (states[id].type === 'boolean') {
+            durationUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%d') ||
+                           (states[id].event || adapter.config.defaultBooleanText).includes('%g');
+
+            if (!durationUsed) {
+                const item = states[id].states.find(item => item.val === 'true');
+
+                durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d') ||
+                               ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%d');
+            }
+            if (!durationUsed) {
+                const item = states[id].states.find(item => item.val === 'false');
+
+                durationUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%d') ||
+                               ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%g');
+            }
+        } else {
+            durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
+                           (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
+
+            if (!durationUsed) {
+                durationUsed = !!states[id].states.find(item => item.text.includes('%d') || item.text.includes('%g'));
+            }
+        }
+    } else if (!durationUsed) {
+        durationUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%d') ||
+                       (states[id].event || adapter.config.defaultNonBooleanText).includes('%g');
+    }
+
+    let oldValueUsed = false;
+
+    if (states[id].states) {
+        if (states[id].type === 'boolean') {
+            oldValueUsed = (states[id].event || adapter.config.defaultBooleanText).includes('%o');
+
+            if (!oldValueUsed) {
+                const item = states[id].states.find(item => item.val === 'true');
+
+                oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextTrue).includes('%o');
+            }
+            if (!oldValueUsed) {
+                const item = states[id].states.find(item => item.val === 'false');
+
+                oldValueUsed = ((item && item.text) || adapter.config.defaultBooleanTextFalse).includes('%o');
+            }
+        } else {
+            oldValueUsed = (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
+            oldValueUsed = oldValueUsed || !!states[id].states.find(item => item.text.includes('%o'));
+        }
+    } else {
+        oldValueUsed = oldValueUsed || (states[id].event || adapter.config.defaultNonBooleanText).includes('%o');
+    }
+
+    if (states[id].oldValueUsed !== oldValueUsed) {
+        states[id].oldValueUsed = oldValueUsed;
+        changed = true;
+    }
+
+    if (states[id].durationUsed !== durationUsed) {
+        states[id].durationUsed = durationUsed;
+        changed = true;
+    }
+
+    if (adapter.config.icons && (!states[id].color || !states[id].icon)) {
+        const result = await getIconAndColor(id, obj);
+        if (result && !states[id].icon && result.icon !== states[id].icon) {
+            changed = true;
+            // we must get from /icons/113_hmip-psm_thumb.png => /adapter/hm-rpc/icons/113_hmip-psm_thumb.png
+            // or                                                  hm-rpc.admin/icons/113_hmip-psm_thumb.png
+            states[id].icon = `${id.split('.')[0]}.admin${result.icon}`;
+        }
+        if (result && !states[id].color && result.color !== states[id].color) {
+            changed = true;
+            states[id].color = result.color;
+        }
+    }
+
+    needSubscribe && adapter.log.debug(`Subscribe on ${id}`);
+
+    if (states[id].val === undefined && (states[id].changesOnly || durationUsed)) {
+        const state = await adapter.getForeignStateAsync(id);
+        states[id].val = state ? state.val : null; // store to detect changes
+        states[id].ts  = state ? state.ts  : null; // store to calculate duration
+    }
+
+    if (needSubscribe) {
+        await adapter.subscribeForeignStatesAsync(id);
+    }
+    return changed;
 }
 
 // Read all Object names sequentially, that do not have aliases
-function readAllNames(ids, _resolve) {
-    if (!_resolve) {
-        return new Promise(resolve => readAllNames(ids, resolve));
-    } else
-    if (!ids || !ids.length) {
-        _resolve();
-    } else {
-        const id = ids.shift();
-        adapter.getForeignObjectAsync(id)
-            .then(obj => updateStateSettings(id, obj))
-            .then(() => setImmediate(readAllNames, ids, _resolve));
+async function readAllNames(ids) {
+    for (let i = 0; i < ids.length; i++) {
+        const obj = await adapter.getForeignObjectAsync(ids[i]);
+        await updateStateSettings(ids[i], obj);
     }
 }
 
-function readStates() {
-    return adapter.getObjectViewAsync('custom', 'state', {})
-        .then(doc => {
-            const readNames = [];
-            if (doc && doc.rows) {
-                doc.rows.forEach(item => {
-                    if (item.value) {
-                        const obj = item.value;
-                        if (obj && obj[adapter.namespace] && obj[adapter.namespace].enabled) {
-                            readNames.push(item.id);
-                        }
-                    }
-                });
+async function readStates() {
+    const doc = await adapter.getObjectViewAsync('custom', 'state', {});
+    const readNames = [];
+    if (doc && doc.rows) {
+        doc.rows.forEach(item => {
+            if (item.value) {
+                const obj = item.value;
+                if (obj && obj[adapter.namespace] && obj[adapter.namespace].enabled) {
+                    readNames.push(item.id);
+                }
             }
-
-            return readAllNames(JSON.parse(JSON.stringify(readNames)));
         });
+    }
+    return readAllNames(readNames);
 }
 
-function reformatJsonTable(allowRelative, table) {
-    return new Promise(resolve => {
-        if (!table && !eventListRaw) {
-            return getRawEventList()
-                .then(eventListRaw => resolve(eventListRaw));
-        } else {
-            table = table || eventListRaw;
-            return resolve(table);
-        }
-    })
-        .then(table =>
-            Promise.resolve(table.map(ev => formatEvent(ev, allowRelative)).filter(ev => ev)));
+async function reformatJsonTable(allowRelative, table) {
+    if (!table && !eventListRaw) {
+        table = await getRawEventList();
+    } else {
+        table = table || eventListRaw;
+    }
+
+    return table
+        .map(ev => formatEvent(ev, allowRelative))
+        .filter(ev => ev);
 }
 
-function getIconAndColor(id, obj) {
-    return new Promise(resolve => {
-        if (obj) {
-            resolve(obj);
+async function getIconAndColor(id, obj) {
+    if (obj) {
+        return obj;
+    } else {
+        obj = await adapter.getForeignObjectAsync(id);
+    }
+
+    if (obj && obj.common && obj.common.icon) {
+        return {icon: obj.common.icon, color: obj.common.color};
+    }
+
+    const parts = id.split('.');
+    parts.pop();
+    obj = await adapter.getForeignObjectAsync(parts.join('.'));
+    if (obj && obj.type === 'channel') {
+        if (obj.common && obj.common.icon) {
+            return {icon: obj.common.icon, color: obj.common.color};
         } else {
-            adapter.getForeignObject(id, (err, obj) => resolve(obj));
-        }
-    })
-        .then(obj => {
-            if (obj && obj.common && obj.common.icon) {
-                return {icon: obj.common.icon, color: obj.common.color};
+            const parts = obj._id.split('.');
+            parts.pop();
+            obj = await adapter.getForeignObjectAsync(parts.join('.'));
+            if (obj && (obj.type === 'channel' || obj.type === 'device')) {
+                if (obj.common && obj.common.icon) {
+                    return {icon: obj.common.icon, color: obj.common.color};
+                } else {
+                    return null;
+                }
             } else {
-                const parts = id.split('.');
-                parts.pop();
-                return adapter.getForeignObjectAsync(parts.join('.'))
-                    .then(obj => {
-                        if (obj && obj.type === 'channel') {
-                            if (obj.common && obj.common.icon) {
-                                return {icon: obj.common.icon, color: obj.common.color};
-                            } else {
-                                const parts = obj._id.split('.');
-                                parts.pop();
-                                return adapter.getForeignObjectAsync(parts.join('.'))
-                                    .then(obj => {
-                                        if (obj && (obj.type === 'channel' || obj.type === 'device')) {
-                                            if (obj.common && obj.common.icon) {
-                                                return {icon: obj.common.icon, color: obj.common.color};
-                                            } else {
-                                                return null;
-                                            }
-                                        } else {
-                                            return null;
-                                        }
-                                    });
-                            }
-                        } else if (obj && obj.type === 'device' && obj.common) {
-                            return {icon: obj.common.icon, color: obj.common.color};
-                        } else {
-                            return null;
-                        }
-                    });
+                return null;
             }
-        });
+        }
+    } else if (obj && obj.type === 'device' && obj.common) {
+        return {icon: obj.common.icon, color: obj.common.color};
+    } else {
+        return null;
+    }
 }
 
-function updateMomentTimes(table) {
+async function updateMomentTimes(table) {
     relativeCounter = 0;
-    return reformatJsonTable(true, table)
-        .then(json => {
-            if (!relativeCounter && momentInterval) {
-                clearInterval(momentInterval);
-                momentInterval = null;
-            }
-            return adapter.setStateAsync('eventJSONList', JSON.stringify(json), true);
-        });
+    const json = await reformatJsonTable(true, table);
+    if (!relativeCounter && momentInterval) {
+        clearInterval(momentInterval);
+        momentInterval = null;
+    }
+    return adapter.setStateAsync('eventJSONList', JSON.stringify(json), true);
 }
 
-function main() {
+async function main() {
     textSwitchedOn          = words['switched on'][systemLang]               || words['switched on'].en;
     textSwitchedOff         = words['switched off'][systemLang]              || words['switched off'].en;
     textDeviceChangedStatus = words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
@@ -1063,30 +1049,25 @@ function main() {
         adapter.config.maxLength = 10000;
     }
 
-    adapter.getStateAsync('alarmMode')
-        .then(state => {
-            alarmMode = !!(state && state.val);
-            return adapter.getForeignObjectAsync('system.config');
-        })
-        .then(obj => {
-            obj = obj || {};
-            obj.common = obj.common || {};
-            systemLang = adapter.config.language || obj.common.language;
-            isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
+    const state = await adapter.getStateAsync('alarmMode');
+    alarmMode = !!(state && state.val);
+    let obj = await adapter.getForeignObjectAsync('system.config');
+    obj = obj || {};
+    obj.common = obj.common || {};
+    systemLang = adapter.config.language || obj.common.language;
+    isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
 
-            moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
+    moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
 
-            return readStates();
-        })
-        .then(() => updateMomentTimes()) // Update table according to new settings
-        .then(() => Promise.all([
-            adapter.subscribeStatesAsync('insert'),
-            adapter.subscribeStatesAsync('eventListRaw'),
-            adapter.subscribeStatesAsync('triggerPDF'),
-            adapter.subscribeStatesAsync('alarm'),
-            // detect changes of objects
-            adapter.subscribeForeignObjectsAsync('*'),
-        ]));
+    await readStates();
+    await updateMomentTimes(); // Update table according to new settings
+
+    await adapter.subscribeStatesAsync('insert');
+    await adapter.subscribeStatesAsync('eventListRaw');
+    await adapter.subscribeStatesAsync('triggerPDF');
+    await adapter.subscribeStatesAsync('alarm');
+    // detect changes of objects
+    await adapter.subscribeForeignObjectsAsync('*');
 }
 
 // @ts-ignore parent is a valid property on module

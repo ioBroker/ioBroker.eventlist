@@ -141,6 +141,10 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Corrected the edit of the event sources
+* (bluefox) Added possibility to use default texts for strings values like for booleans
+
 ### 1.2.2 (2022-12-27)
 * (bluefox) Corrected web page loading in web adapter
 

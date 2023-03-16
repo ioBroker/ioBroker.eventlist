@@ -64,7 +64,7 @@ class AddEventDialog extends Component {
     }
 
     render() {
-        return <Dialog open={true} onClose={() => this.props.onClose()} aria-labelledby="form-dialog-title">
+        return <Dialog open={!0} onClose={() => this.props.onClose()} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">{I18n.t('Add event')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>

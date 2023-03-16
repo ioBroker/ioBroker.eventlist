@@ -102,7 +102,7 @@ class AddIdDialog extends Component {
 
     onClose() {
         if (this.state.ids.find(id => JSON.stringify(this.originalSettings[id]) !== JSON.stringify(this.state.settings[id]))) {
-            this.setState({confirmExit: true});
+            this.setState({ confirmExit: true });
         } else {
             this.props.onClose();
         }
@@ -118,7 +118,7 @@ class AddIdDialog extends Component {
                 ok={ I18n.t('Yes') }
                 cancel={ I18n.t('No') }
                 onClose={isYes => {
-                    this.setState({ confirmExit: false} );
+                    this.setState({ confirmExit: false });
                     isYes && this.props.onClose();
                 }}
             />;
@@ -151,25 +151,25 @@ class AddIdDialog extends Component {
         }
 
         return <SelectIDDialog
-            statesOnly={true}
+            statesOnly
             imagePrefix={this.props.imagePrefix}
-            showExpertButton={true}
-            multiSelect={true}
-            notEditable={true}
+            showExpertButton
+            multiSelect
+            notEditable
             dialogName={I18n.t('Define state ID for event list')}
             socket={this.props.socket}
             selected={this.state.ids}
             themeName={this.props.themeName}
             themeType={this.props.themeType}
             onOk={ids => this.updateIds(ids, true)}
-            onClose={() => this.setState({showSelectId: false})}
+            onClose={() => this.setState({ showSelectId: false })}
         />;
     }
 
     onChange(id, newSettings) {
         const settings = JSON.parse(JSON.stringify(this.state.settings));
         settings[id] = JSON.parse(JSON.stringify(newSettings));
-        this.setState({settings});
+        this.setState({ settings });
     }
 
     updateIds(ids, noWait) {
@@ -184,7 +184,7 @@ class AddIdDialog extends Component {
         this.setState(newState, () => {
             if (this.state.ids.find(id => !this.state.settings[id])) {
                 this.readTypeTimer && clearTimeout(this.readTypeTimer);
-                this.setState({reading: true});
+                this.setState({ reading: true });
 
                 this.readTypeTimer = setTimeout(async () => {
                     this.readTypeTimer = null;
@@ -237,7 +237,7 @@ class AddIdDialog extends Component {
             tabs =
                 <Tabs
                     value={this.state.ids.indexOf(this.state.currentId)}
-                    onChange={(event, newValue) => this.setState({currentId: this.state.ids[newValue]})}
+                    onChange={(event, newValue) => this.setState({ currentId: this.state.ids[newValue] })}
                     indicatorColor="primary"
                     textColor="primary"
                     variant="scrollable"
@@ -248,10 +248,10 @@ class AddIdDialog extends Component {
         }
 
         return <Dialog
-            open={true}
+            open={!0}
             onClose={() => this.onClose()}
             aria-labelledby="form-dialog-title"
-            fullWidth={true}
+            fullWidth
             maxWidth="lg"
         >
             <DialogTitle id="form-dialog-title">{this.propsId ? I18n.t('Edit event') : I18n.t('Add event')}</DialogTitle>
@@ -277,10 +277,10 @@ class AddIdDialog extends Component {
                         style={{ marginTop: 8 }}
                         variant="contained"
                         color="secondary"
-                        onClick={() => this.setState({showSelectId: true})}
+                        onClick={() => this.setState({ showSelectId: true })}
                     >...</Button> : null}
                 </div>
-                {this.state.reading ? <LinearProgress/> : <div style={{height: 4, width: '100%'}}/>}
+                {this.state.reading ? <LinearProgress/> : <div style={{ height: 4, width: '100%' }}/>}
                 {tabs}
                 {this.state.settings[this.state.currentId] ? <EditStateComponent
                     key={this.state.currentId}
@@ -300,7 +300,7 @@ class AddIdDialog extends Component {
             <DialogActions>
                 {this.state.exists[this.state.currentId] && this.state.ids.length === 1 ? <Button
                     color="grey"
-                    onClick={() => this.setState({confirmRemove: true})}
+                    onClick={() => this.setState({ confirmRemove: true })}
                     variant="contained"
                     startIcon={<RemoveIcon />}
                 >{I18n.t('Remove')}</Button> : null}

@@ -1166,7 +1166,7 @@ class FileBrowser extends React.Component {
 
     renderDeleteDialog() {
         if (this.state.deleteItem) {
-            return <Dialog key="deleteDialog" open={true} onClose={() => this.setState({deleteItem: ''})} aria-labelledby="form-dialog-title">
+            return <Dialog key="deleteDialog" open={!0} onClose={() => this.setState({deleteItem: ''})} aria-labelledby="form-dialog-title">
                 <DialogTitle id="form-dialog-title">{this.props.t('ra_Confirm deletion of %s', this.state.deleteItem.split('/').pop())}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>

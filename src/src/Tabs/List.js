@@ -346,32 +346,33 @@ class List extends Component {
     };
 
     renderToast() {
-        if (!this.state.toast) return null;
-        return (
-            <Snackbar
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                open={true}
-                autoHideDuration={6000}
-                onClose={() => this.setState({toast: ''})}
-                ContentProps={{
-                    'aria-describedby': 'message-id',
-                }}
-                message={<span id="message-id">{this.state.toast}</span>}
-                action={[
-                    <IconButton
-                        key="close"
-                        aria-label="Close"
-                        color="inherit"
-                        className={this.props.classes.close}
-                        onClick={() => this.setState({toast: ''})}
-                    >
-                        <IconClose />
-                    </IconButton>,
-                ]}
-            />);
+        if (!this.state.toast) {
+            return null;
+        }
+        return <Snackbar
+            anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+            }}
+            open={!0}
+            autoHideDuration={6000}
+            onClose={() => this.setState({ toast: '' })}
+            ContentProps={{
+                'aria-describedby': 'message-id',
+            }}
+            message={<span id="message-id">{this.state.toast}</span>}
+            action={[
+                <IconButton
+                    key="close"
+                    aria-label="Close"
+                    color="inherit"
+                    className={this.props.classes.close}
+                    onClick={() => this.setState({ toast: '' })}
+                >
+                    <IconClose />
+                </IconButton>,
+            ]}
+        />;
     }
 
     onRequestSort = (event, property) => {
@@ -394,9 +395,9 @@ class List extends Component {
                             if (e.target.checked) {
                                 const selected = this.state.eventList.map(n => n._id);
                                 const selectedId = selected.length === 1 ? this.state.eventList.find(item => item._id === selected[0]).stateId : '';
-                                this.setState({selected, selectedId});
+                                this.setState({ selected, selectedId });
                             } else {
-                                this.setState({selected: [], selectedId: ''});
+                                this.setState({ selected: [], selectedId: '' });
                             }
                         }}
                         inputProps={{ 'aria-label': 'select all desserts' }}
@@ -497,7 +498,7 @@ class List extends Component {
                  title={I18n.t('Clear filter')}
                  onClick={() => {
                      window.localStorage.setItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.filterStates`, '');
-                     this.setState({filterStates: []});
+                     this.setState({ filterStates: [] });
                  }}
             >
                 <IconFilter className={this.props.classes.filterIcon}/>
@@ -560,7 +561,7 @@ class List extends Component {
             {this.state.editAvailable && this.state.editEnabled && this.state.selected.length ?
                 <>
                     <Tooltip title={I18n.t('Delete')}>
-                        <IconButton aria-label="delete" onClick={() => this.setState({showDeleteConfirm: true})}>
+                        <IconButton aria-label="delete" onClick={() => this.setState({ showDeleteConfirm: true })}>
                             <DeleteIcon />
                         </IconButton>
                     </Tooltip>
@@ -568,7 +569,7 @@ class List extends Component {
                         <Tooltip title={I18n.t('Edit settings for state')}>
                             <IconButton aria-label="edit" onClick={() => {
                                 Router.doNavigate(null, 'addId', this.state.selectedId);
-                                this.setState({showAddIdDialog: this.state.selectedId})
+                                this.setState({ showAddIdDialog: this.state.selectedId });
                             }}>
                                 <IconEdit />
                             </IconButton>
@@ -580,7 +581,7 @@ class List extends Component {
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Add state to event list')} className={this.props.classes.toolbarButton}>
                         <Fab variant="extended" size="small" aria-label="add" color="secondary" classes={{root: this.props.classes.buttonAddState}} onClick={() => {
                             Router.doNavigate(null, 'selectState', '');
-                            this.setState({showSelectState: true});
+                            this.setState({ showSelectState: true });
                         }}>
                             <div className={Utils.clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                 <IconEdit style={{verticalAlign: 'middle', marginRight: 8, paddingLeft: 16}}/>
@@ -590,7 +591,7 @@ class List extends Component {
                     </Tooltip>}
                     {this.state.editAvailable && this.state.editEnabled && <Tooltip title={I18n.t('Insert custom event into list')} className={this.props.classes.toolbarButton}>
                         <span>
-                            <Fab variant="extended" aria-label="add" size="small" color="primary" disabled={!this.state.isInstanceAlive} onClick={() => this.setState({showAddEventDialog: true})}>
+                            <Fab variant="extended" aria-label="add" size="small" color="primary" disabled={!this.state.isInstanceAlive} onClick={() => this.setState({ showAddEventDialog: true })}>
                                 <div className={Utils.clsx(!narrowWidth && this.props.classes.toolbarButtonText)}>
                                     <IconAddEvent style={{verticalAlign: 'middle'}} />
                                     {narrowWidth ? null : <span style={{verticalAlign: 'middle'}}>{I18n.t('Custom Event')}</span>}
@@ -606,7 +607,7 @@ class List extends Component {
                             style={this.state.editEnabled ? {background: 'red'} : {}}
                             onClick={() => {
                                 window.localStorage.setItem(`${this.props.adapterName}-${this.props.instance || 0}-adapter.editEnabled`, this.state.editEnabled ? 'false' : 'true');
-                                this.setState({editEnabled: !this.state.editEnabled});
+                                this.setState({ editEnabled: !this.state.editEnabled });
                             }}>
                             <IconEdit />
                         </Fab>
@@ -687,7 +688,7 @@ class List extends Component {
             selectedId = this.state.eventList.find(item => item._id === newSelected[0]).stateId;
         }
 
-        this.setState({selected: newSelected, selectedId});
+        this.setState({ selected: newSelected, selectedId });
     };
 
     deleteEntries(cb) {
@@ -704,7 +705,7 @@ class List extends Component {
 
                 this.props.socket.setState(`${this.props.adapterName}.${this.props.instance}.eventListRaw`, JSON.stringify(eventList))
                     .then(() =>
-                        this.setState({selected: [], selectedId: ''}, () => cb && cb()));
+                        this.setState({ selected: [], selectedId: '' }, () => cb && cb()));
             });
     }
 
@@ -720,10 +721,10 @@ class List extends Component {
             onClose={id => {
                 if (id) {
                     Router.doNavigate(null, 'addId', id);
-                    this.setState({showAddIdDialog: id, showSelectState: false});
+                    this.setState({ showAddIdDialog: id, showSelectState: false });
                 } else {
                     Router.doNavigate(null, '', '');
-                    this.setState({showSelectState: false});
+                    this.setState({ showSelectState: false });
                 }
             }}
             />;
@@ -787,7 +788,7 @@ class List extends Component {
                                         <IconButton className={this.props.classes.editButton} onClick={e => {
                                             e.stopPropagation();
                                             Router.doNavigate(null, 'addId', row.stateId);
-                                            this.setState({showAddIdDialog: row.stateId});
+                                            this.setState({ showAddIdDialog: row.stateId });
                                         }}><IconEdit/></IconButton>
                                     </Tooltip>: null}
                                 </TableCell>}
@@ -809,7 +810,7 @@ class List extends Component {
                 cancel={I18n.t('Cancel')}
                 icon={<IconQuestion/>}
                 onClose={result =>
-                    this.setState({showDeleteConfirm: false}, () =>
+                    this.setState({ showDeleteConfirm: false }, () =>
                         result && this.deleteEntries())}
                 />
         }
@@ -821,10 +822,8 @@ class List extends Component {
         } else {
             return <AddEventDialog
                 imagePrefix={this.imagePrefix}
-                onClose={event => {
-                    this.setState({showAddEventDialog: false}, () =>
-                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))
-                }}
+                onClose={event => this.setState({ showAddEventDialog: false }, () =>
+                    event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))}
             />;
         }
     }
@@ -844,8 +843,8 @@ class List extends Component {
                 id={typeof this.state.showAddIdDialog === 'string' ? this.state.showAddIdDialog : ''}
                 onClose={event => {
                     Router.doNavigate(null, '', '');
-                    this.setState({showAddIdDialog: false}, () =>
-                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event))
+                    this.setState({ showAddIdDialog: false }, () =>
+                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event));
                 }}
             />;
         }

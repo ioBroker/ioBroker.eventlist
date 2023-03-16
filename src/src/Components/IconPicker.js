@@ -128,17 +128,18 @@ class IconPicker extends React.Component {
             xs
             key={item.name || i}
             className={Utils.clsx(this.props.classes.gridIcon, this.state.dialogValue && this.state.dialogValue.startsWith(PRESET_PREFIX) && this.state.dialogValue.endsWith(item.name) && this.props.classes.iconSelected)}
-            onClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name})}
-            onDoubleClick={() => this.setState({dialogValue: PRESET_PREFIX + item.name}, () => this.onDialogClose(this.state.dialogValue))}
+            onClick={() => this.setState({ dialogValue: PRESET_PREFIX + item.name })}
+            onDoubleClick={() => this.setState({ dialogValue: PRESET_PREFIX + item.name }, () => this.onDialogClose(this.state.dialogValue))}
         >
             <img className={this.props.classes.icon} src={item.icon} alt={item.name} style={item.color ? {color: item.color} : {}}/>
         </Grid>;
     }
 
     renderPredefinedIcons() {
-        return <Grid container spacing={2} justify="center" className={this.props.classes.grid}>{
-            ICONS.map((item, i) => this.renderOneIcon(item, i))
-        }</Grid>;
+        return <Grid container spacing={2} justify="center" className={this.props.classes.grid}
+        >
+            {ICONS.map((item, i) => this.renderOneIcon(item, i))}
+        </Grid>;
     }
 
     fetchIcon(src) {
@@ -168,18 +169,18 @@ class IconPicker extends React.Component {
             imagePrefix={this.imagePrefix}
             lang={I18n.getLanguage()}
             socket={this.props.socket}
-            ready={true}
-            showExpertButton={true}
-            showToolbar={true}
-            allowUpload={true}
+            ready
+            showExpertButton
+            showToolbar
+            allowUpload
             allowDownload={false}
-            allowCreateFolder={true}
+            allowCreateFolder
             allowDelete={false}
-            allowView={true}
-            showViewTypeButton={true}
+            allowView
+            showViewTypeButton
             filterFiles={['png', 'svg', 'bmp', 'jpg', 'jpeg']}
             onSelect={(path, isDoubleClick) =>
-                this.setState({dialogValue: path}, () =>
+                this.setState({ dialogValue: path }, () =>
                     isDoubleClick && this.onDialogClose(path))}
         />;
     }
@@ -195,20 +196,20 @@ class IconPicker extends React.Component {
                         .then(svg => {
                             svg = svg.replace('<svg ', '<svg id="' + value + '" ');
                             const valueSvg = 'data:image/svg+xml;base64, ' + window.btoa(svg);
-                            this.setState({value: valueSvg, showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: ''}, () =>
+                            this.setState({ value: valueSvg, showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: '' }, () =>
                                 this.props.onChange(valueSvg));
                         });
                 } else {
-                    this.setState({value: '', showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: ''}, () =>
+                    this.setState({ value: '', showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: '' }, () =>
                         this.props.onChange(''));
                 }
             } else {
                 // it is path to image
-                this.setState({value, showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: ''}, () =>
+                this.setState({ value, showDialog: false, imgError: false, dialogValue: '', dialogInitialValue: '' }, () =>
                     this.props.onChange(value));
             }
         } else {
-            this.setState({showDialog: false});
+            this.setState({ showDialog: false });
         }
     }
 
@@ -217,14 +218,14 @@ class IconPicker extends React.Component {
             return null;
         }
         return <Dialog
-            open={true}
+            open={!0}
             fullWidth
             maxWidth="lg"
-            onClose={() => this.setState({showDialog: false})}
+            onClose={() => this.setState({ showDialog: false })}
         >
             <DialogTitle>{I18n.t('Select icon...')}</DialogTitle>
             <DialogContent className={this.props.classes.dialogContent}>
-                <Tabs value={this.state.selectedTab} onChange={(e, selectedTab) => this.setState({selectedTab})}>
+                <Tabs value={this.state.selectedTab} onChange={(e, selectedTab) => this.setState({ selectedTab })}>
                     <Tab label={I18n.t('Predefined')} />
                     <Tab label={I18n.t('User defined')} />
                 </Tabs>
@@ -252,7 +253,9 @@ class IconPicker extends React.Component {
                     onClick={() => this.onDialogClose()}
                     variant="contained"
                     startIcon={<CancelIcon />}
-                >{I18n.t('Cancel')}</Button>
+                >
+                    {I18n.t('Cancel')}
+                </Button>
             </DialogActions>
         </Dialog>
     }
@@ -266,7 +269,7 @@ class IconPicker extends React.Component {
             <div className={this.props.classes.imagePreviewDiv}>
                 <Image
                     imagePrefix={this.imagePrefix}
-                    showError={true}
+                    showError
                     color={this.state.color}
                     className={this.props.classes.imagePreview}
                     src={this.state.value}
@@ -281,14 +284,14 @@ class IconPicker extends React.Component {
                 value={this.state.value}
                 onChange={e => {
                     const value = e.target.value;
-                    this.setState({value, imgError: false}, () => this.props.onChange(value));
+                    this.setState({ value, imgError: false }, () => this.props.onChange(value));
                 }}
                 type="text"
                 InputProps={{
                     endAdornment: this.state.value ? (
                         <IconButton
                             onClick={() =>
-                                this.setState({value: '', imgError: false}, () => this.props.onChange(''))
+                                this.setState({ value: '', imgError: false }, () => this.props.onChange(''))
                         }>
                             <ClearIcon />
                         </IconButton>
@@ -306,7 +309,7 @@ class IconPicker extends React.Component {
                     } else {
                         id = this.state.value;
                     }
-                    this.setState({showDialog: true, dialogValue: id, dialogInitialValue: id});
+                    this.setState({ showDialog: true, dialogValue: id, dialogInitialValue: id });
                 }}
             >
                 <SelectIcon/>

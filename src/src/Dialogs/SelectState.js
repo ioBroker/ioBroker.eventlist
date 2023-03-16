@@ -149,8 +149,8 @@ class SelectStateDialog extends Component {
     render() {
         const filter = this.state.filter.toLowerCase();
         return <Dialog
-            open={true}
-            fullWidth={true}
+            open={!0}
+            fullWidth
             maxWidth="md"
             onClose={() => this.props.onClose()}>
             <DialogTitle className={this.props.classes.dialogTitle}>
