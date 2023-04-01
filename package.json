@@ -17,7 +17,7 @@
     "url": "git+https://github.com/ioBroker/ioBroker.eventlist.git"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^2.6.7",
+    "@iobroker/adapter-core": "^2.6.8",
     "moment": "^2.29.4",
     "pdfkit": "^0.13.0"
   },
