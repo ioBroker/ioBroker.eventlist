@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "news": {
+      "1.2.4": {
+        "en": "Just the packages were updated",
+        "de": "Nur die Pakete wurden aktualisiert",
+        "ru": "Только пакеты были обновлены",
+        "pt": "Apenas os pacotes foram atualizados",
+        "nl": "Alleen de pakketten werden geüpload",
+        "fr": "Juste les paquets ont été mis à jour",
+        "it": "Solo i pacchetti sono stati aggiornati",
+        "es": "Sólo los paquetes fueron actualizados",
+        "pl": "Tylko pakiety zostały zaktualizowane",
+        "uk": "Просто оновлені пакети",
+        "zh-cn": "仅更新了一揽子计划"
+      },
       "1.2.3": {
         "en": "Corrected the edit of the event sources\nAdded possibility to use default texts for strings values like for booleans",
         "de": "Korrektur der Bearbeitung der Ereignisquellen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
@@ -79,18 +92,6 @@
         "es": "Preparativos adicionales para la nube de yoBroker",
         "pl": "Zamknięte przygotowania do ioBrokera",
         "zh-cn": "增 编"
-      },
-      "1.0.0": {
-        "en": "Allowed to work behind reverse proxy",
-        "de": "Erlaubt, hinter der Reverse Proxy zu arbeiten",
-        "ru": "Разрешено работать за обратным прокси",
-        "pt": "Permitido trabalhar atrás do proxy reverso",
-        "nl": "Genoemd om achteruit te werken",
-        "fr": "Permet de travailler derrière le proxy inverse",
-        "it": "Permesso di lavorare dietro proxy inverso",
-        "es": "Permitido trabajar detrás del proxy inverso",
-        "pl": "Wszystko, by pracować za odwrotnym proxym",
-        "zh-cn": "允许在反倾销后工作"
       }
     },
     "titleLang": {
