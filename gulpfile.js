@@ -47,16 +47,16 @@ function npmInstall() {
         console.log(`"${cmd} in ${cwd}`);
 
         // System call used for update of js-controller itself,
-        // because during installation npm packet will be deleted too, but some files must be loaded even during the install process.
+        // because during the installation the npm packet will be deleted too, but some files must be loaded even during the installation process.
         const child = cp.exec(cmd, {cwd});
 
         child.stderr.pipe(process.stderr);
         child.stdout.pipe(process.stdout);
 
         child.on('exit', (code /* , signal */) => {
-            // code 1 is strange error that cannot be explained. Everything is installed but error :(
+            // code 1 is a strange error that cannot be explained. Everything is installed but error :(
             if (code && code !== 1) {
-                reject('Cannot install: ' + code);
+                reject(`Cannot install: ${code}`);
             } else {
                 console.log(`"${cmd} in ${cwd} finished.`);
                 // command succeeded
@@ -67,7 +67,7 @@ function npmInstall() {
 }
 
 gulp.task('2-npm', () => {
-    if (fs.existsSync(__dirname + '/src/node_modules')) {
+    if (fs.existsSync(`${__dirname}/src/node_modules`)) {
         return Promise.resolve();
     } else {
         return npmInstall();
@@ -80,7 +80,7 @@ function build() {
     return new Promise((resolve, reject) => {
         const options = {
             stdio: 'pipe',
-            cwd:   __dirname + '/src/'
+            cwd:   `${__dirname}/src/`
         };
 
         const version = JSON.parse(fs.readFileSync(`${__dirname}/package.json`).toString('utf8')).version;
