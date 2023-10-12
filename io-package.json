@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "1.2.4",
+    "version": "2.0.0",
     "news": {
+      "2.0.0": {
+        "en": "Caught errors by subscribe\nMinimum node.js version is 16",
+        "de": "Gefangene Fehler durch abonnieren\nMinimal node.js version is 16",
+        "ru": "Поймать ошибки по подписке\nМинимальная версия node.js 16",
+        "pt": "Erros de ataque por assinatura\nNode.js mínimo versão é 16",
+        "nl": "Kreeg fouten\nMinimum node",
+        "fr": "Erreurs coquines par abonnement\nVersion minimum node.js est 16",
+        "it": "Errori ricevuti da sottoscrivere\nVersione minima node.js è 16",
+        "es": "Errores comprados por suscríbete\nVersión mínima node.js es 16",
+        "pl": "Chybać o błędy abonentów\nWersja minimalna jest 16",
+        "uk": "Спіймані помилки за підписом\nМінімальний вузол.js версія 16",
+        "zh-cn": "投机错误\nA. 最低限度不适用。"
+      },
       "1.2.4": {
         "en": "Just the packages were updated",
         "de": "Nur die Pakete wurden aktualisiert",
@@ -80,18 +93,6 @@
         "pl": "Ikony urządzeń\nMigrated GUI (ang.)\nWspółtworzył edycję nazwy listy\npoprawione zdarzenia bez jedności",
         "uk": "Фіксовані іконки приладів\nMigrated GUI до mui5\nДозволено редагування імені списку\nвиправлені події без блоку",
         "zh-cn": "装置的固定来源\n米格伊德·穆伊\n名单的编辑\n更正的活动"
-      },
-      "1.0.1": {
-        "en": "Added preparations for ioBroker cloud",
-        "de": "Weitere Präparate für ioBroker Cloud",
-        "ru": "Добавлена подготовка к облаку ioBroker",
-        "pt": "Adicionados preparativos para ioBroker cloud",
-        "nl": "Voegde voorbereidingen voor ioBrokerwolk",
-        "fr": "Préparations supplémentaires pour ioBroker cloud",
-        "it": "Aggiunto preparazioni per ioBroker cloud",
-        "es": "Preparativos adicionales para la nube de yoBroker",
-        "pl": "Zamknięte przygotowania do ioBrokera",
-        "zh-cn": "增 编"
       }
     },
     "titleLang": {
