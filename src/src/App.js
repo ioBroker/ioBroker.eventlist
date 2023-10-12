@@ -72,11 +72,9 @@ class App extends GenericApp {
         const tab = this.state.selectedTab;
         if (!tab || tab === 'options') {
             return 0;
-        } else
-        if (tab === 'list') {
+        } else if (tab === 'list') {
             return 1;
-        } else
-        if (tab === 'pdf') {
+        } else if (tab === 'pdf') {
             return 2;
         }
     }

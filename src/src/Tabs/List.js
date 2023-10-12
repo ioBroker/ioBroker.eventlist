@@ -3,35 +3,43 @@ import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 import { lighten } from '@mui/material/styles';
 
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import Fab from '@mui/material/Fab';
-import Snackbar from '@mui/material/Snackbar';
-import LinearProgress  from '@mui/material/LinearProgress';
-import CircularProgress  from '@mui/material/CircularProgress';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemText from '@mui/material/ListItemText';
-import Select from '@mui/material/Select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TableSortLabel,
+    Toolbar,
+    Typography,
+    Paper,
+    Checkbox,
+    IconButton,
+    Tooltip,
+    Fab,
+    Snackbar,
+    LinearProgress,
+    CircularProgress,
+    MenuItem,
+    ListItemText,
+    Select,
+} from '@mui/material';
 
-import { MdRefresh as IconReload } from 'react-icons/md';
-import { MdClose as IconClose } from 'react-icons/md';
-import { MdQuestionAnswer as IconQuestion } from 'react-icons/md';
-import { MdAdd as IconAddEvent } from 'react-icons/md';
-import { MdEdit as IconEdit } from 'react-icons/md';
+import {
+    MdRefresh as IconReload,
+    MdClose as IconClose,
+    MdQuestionAnswer as IconQuestion,
+    MdAdd as IconAddEvent,
+    MdEdit as IconEdit,
+} from 'react-icons/md';
+
 import { FaFilePdf as IconPdf } from 'react-icons/fa';
-import DeleteIcon from '@mui/icons-material/Delete';
-import IconEvent from '@mui/icons-material/Event';
+
+import {
+    Delete as DeleteIcon,
+    Event as IconEvent,
+} from '@mui/icons-material';
 
 import {
     I18n, Utils, Image, Router, withWidth, Confirm as ConfirmDialog,
