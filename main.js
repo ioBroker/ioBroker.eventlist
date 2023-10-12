@@ -762,7 +762,12 @@ async function updateStateSettings(id, obj) {
         if (states[id]) {
             adapter.log.debug(`Removed from event list: ${id}`);
             delete states[id];
-            await adapter.unsubscribeForeignStatesAsync(id);
+            try {
+                await adapter.unsubscribeForeignStatesAsync(id);
+            } catch (e) {
+                adapter.log.error(`Cannot unsubscribe from ${id}: ${e}`);
+            }
+
             return true;
         } else {
             return false;
@@ -770,7 +775,6 @@ async function updateStateSettings(id, obj) {
     }
 
     id = obj._id;
-    const promises = [];
     const needSubscribe = !states[id];
     let changed = false;
     const settings = obj.common.custom[adapter.namespace];
@@ -938,13 +942,23 @@ async function updateStateSettings(id, obj) {
     needSubscribe && adapter.log.debug(`Subscribe on ${id}`);
 
     if (states[id].val === undefined && (states[id].changesOnly || durationUsed)) {
-        const state = await adapter.getForeignStateAsync(id);
-        states[id].val = state ? state.val : null; // store to detect changes
-        states[id].ts  = state ? state.ts  : null; // store to calculate duration
+        try {
+            const state = await adapter.getForeignStateAsync(id);
+            states[id].val = state ? state.val : null; // store to detect changes
+            states[id].ts  = state ? state.ts  : null; // store to calculate duration
+        } catch (e) {
+            adapter.log.error(`Cannot read state ${id}: ${e}`);
+            states[id].val = null; // store to detect changes
+            states[id].ts  = null;
+        }
     }
 
     if (needSubscribe) {
-        await adapter.subscribeForeignStatesAsync(id);
+        try {
+            await adapter.subscribeForeignStatesAsync(id);
+        } catch (e) {
+            adapter.log.error(`Cannot subscribe on ${id}: ${e}`);
+        }
     }
     return changed;
 }
@@ -952,8 +966,12 @@ async function updateStateSettings(id, obj) {
 // Read all Object names sequentially, that do not have aliases
 async function readAllNames(ids) {
     for (let i = 0; i < ids.length; i++) {
-        const obj = await adapter.getForeignObjectAsync(ids[i]);
-        await updateStateSettings(ids[i], obj);
+        try {
+            const obj = await adapter.getForeignObjectAsync(ids[i]);
+            await updateStateSettings(ids[i], obj);
+        } catch (e) {
+            adapter.log.error(`Cannot read object ${ids[i]}: ${e}`);
+        }
     }
 }
 
@@ -1062,12 +1080,32 @@ async function main() {
     await readStates();
     await updateMomentTimes(); // Update table according to new settings
 
-    await adapter.subscribeStatesAsync('insert');
-    await adapter.subscribeStatesAsync('eventListRaw');
-    await adapter.subscribeStatesAsync('triggerPDF');
-    await adapter.subscribeStatesAsync('alarm');
-    // detect changes of objects
-    await adapter.subscribeForeignObjectsAsync('*');
+    try {
+        await adapter.subscribeStatesAsync('insert');
+    } catch (e) {
+        adapter.log.error(`Cannot subscribe on states: ${e}`);
+    }
+    try {
+        await adapter.subscribeStatesAsync('eventListRaw');
+    } catch (e) {
+        adapter.log.error(`Cannot subscribe on states: ${e}`);
+    }
+    try {
+        await adapter.subscribeStatesAsync('triggerPDF');
+    } catch (e) {
+        adapter.log.error(`Cannot subscribe on states: ${e}`);
+    }
+    try {
+        await adapter.subscribeStatesAsync('alarm');
+    } catch (e) {
+        adapter.log.error(`Cannot subscribe on states: ${e}`);
+    }
+    try {
+        // detect changes of objects
+        await adapter.subscribeForeignObjectsAsync('*');
+    } catch (e) {
+        adapter.log.error(`Cannot subscribe on object: ${e}`);
+    }
 }
 
 // @ts-ignore parent is a valid property on module

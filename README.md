@@ -141,6 +141,9 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Caught errors by subscribe
+
 ### 1.2.4 (2023-05-17)
 * (bluefox) Just the packages were updated
 
