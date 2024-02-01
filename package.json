@@ -22,7 +22,7 @@
   "dependencies": {
     "@iobroker/adapter-core": "^3.0.4",
     "moment": "^2.29.4",
-    "pdfkit": "^0.13.0"
+    "pdfkit": "^0.14.0"
   },
   "devDependencies": {
     "@iobroker/testing": "^4.1.0",
