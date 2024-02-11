@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "news": {
+      "2.0.1": {
+        "en": "Translated the duration",
+        "de": "Übersetzt die Dauer",
+        "ru": "Перевод продолжительности",
+        "pt": "Traduzido o tempo",
+        "nl": "Vertaald de duur",
+        "fr": "Traduit la durée",
+        "it": "Tradotto la durata",
+        "es": "Traducido la duración",
+        "pl": "Przetłumaczony czas trwania",
+        "uk": "Перекладав тривалість",
+        "zh-cn": "翻译期限"
+      },
       "2.0.0": {
         "en": "Caught errors by subscribe\nMinimum node.js version is 16",
         "de": "Gefangene Fehler durch abonnieren\nMinimal node.js version is 16",
@@ -80,19 +93,6 @@
         "pl": "Błędny błąd z edytacją ustawienia stanu\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
         "uk": "Виправлена помилка з редагуванням параметрів стану\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
         "zh-cn": "混淆国家环境的错误\n增加使用与假释等一系列价值观的违约案文的可能性"
-      },
-      "1.1.1": {
-        "en": "Fixed icons of devices\nMigrated GUI to `mui5`\nAllowed the editing of list name\ncorrected events without unit",
-        "de": "Feste Symbole von Geräten\nMigrated GUI to mui5\nErlaubt die Bearbeitung des Listennamens\nkorrigierte ereignisse ohne einheit",
-        "ru": "Фиксированные иконки устройств\nMigrated GUI к mui5\nРазрешено редактирование названия списка\nисправленные события без единицы",
-        "pt": "Ícones fixos de dispositivos\nGUI migrado para mui5\nPermitir a edição do nome da lista\neventos corrigidos sem unidade",
-        "nl": "Vertaling:\nGemigreerde GUI\nVertaling:\ngecorrigeerde gebeurtenissen zonder eenheid",
-        "fr": "Icônes fixes de dispositifs\nMigrated GUI to mui5\nPermis l'édition du nom de la liste\névénements corrigés sans unité",
-        "it": "Icone fisse di dispositivi\nGUI emigrata a mui5\nConsentito la modifica del nome dell'elenco\neventi corretti senza unità",
-        "es": "Iconos fijos de dispositivos\nGUI migrado a mui5\nPermitido la edición del nombre de la lista\neventos corregidos sin unidad",
-        "pl": "Ikony urządzeń\nMigrated GUI (ang.)\nWspółtworzył edycję nazwy listy\npoprawione zdarzenia bez jedności",
-        "uk": "Фіксовані іконки приладів\nMigrated GUI до mui5\nДозволено редагування імені списку\nвиправлені події без блоку",
-        "zh-cn": "装置的固定来源\n米格伊德·穆伊\n名单的编辑\n更正的活动"
       }
     },
     "titleLang": {

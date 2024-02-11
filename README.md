@@ -141,7 +141,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 2.0.1 (2024-02-11)
 * (bluefox) Translated the duration
 
 ### 2.0.0 (2023-10-12)
