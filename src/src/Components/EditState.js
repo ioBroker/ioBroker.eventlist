@@ -719,12 +719,22 @@ export class EditState extends Component {
             return `${this.isFloatComma ? (Math.round((ms / 100)) / 10).toString().replace('.', ',') : (Math.round((ms / 100)) / 10).toString()}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
         } else if (ms < 3600000) {
             return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
-        } else {
-            const hours = Math.floor(ms / 3600000);
-            const minutes = Math.floor(ms / 60000) % 60;
-            const seconds = Math.round(Math.floor(ms % 60000) / 1000);
-            return `${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${seconds}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
         }
+        let hours = Math.floor(ms / 3600000);
+        const minutes = Math.floor(ms / 60000) % 60;
+        const seconds = Math.round(Math.floor(ms % 60000) / 1000);
+        if (hours > 24) {
+            const days = Math.floor(hours / 24);
+            hours %= 24;
+            if (days > 2) {
+                return `${days}${withSpaces ? ' ' : ''}${I18n.t('days')} ${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')}`;
+            }
+            return `${days}${withSpaces ? ' ' : ''}${I18n.t('days')} ${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')}`;
+        }
+        if (hours > 2) {
+            return `${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')}`;
+        }
+        return `${hours}${withSpaces ? ' ' : ''}${I18n.t('hours')} ${minutes}${withSpaces ? ' ' : ''}${I18n.t('minutes')} ${seconds}${withSpaces ? ' ' : ''}${I18n.t('seconds')}`;
     }
 
     onToggle(id) {

@@ -151,5 +151,6 @@
   "Text for value": "Testo per valore",
   "Color for value": "Colore per valore",
   "Delete value": "Elimina valore",
-  "Clear filter": "Filtro pulito"
+  "Clear filter": "Filtro pulito",
+  "days": "g"
 }

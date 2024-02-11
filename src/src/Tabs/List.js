@@ -53,7 +53,7 @@ import SelectStateDialog from '../Dialogs/SelectState';
 // https://github.com/material-icons/material-icons/blob/master/LICENSE
 class IconFilter extends React.Component {
     render() {
-        return <svg viewBox="0 0 24 24" width={24} height={24} xmlns="http://www.w3.org/2000/svg" className={ this.props.className }>
+        return <svg viewBox="0 0 24 24" width={24} height={24} xmlns="http://www.w3.org/2000/svg" className={this.props.className}>
             <path fill="currentColor" stroke="currentColor" d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04c-.83 0-1.3.95-.79 1.61z"/>
         </svg>;
     }
@@ -787,8 +787,15 @@ class List extends Component {
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdEvent} align="right">{row.event}</TableCell>
                                 <TableCell style={row._style || undefined } className={this.props.classes.tdVal} align="left">{row.val === undefined ? '' : row.val.toString()}</TableCell>
                                 {this.props.native.duration ?
-                                    <TableCell style={row.dr ? Object.assign({}, row._style || {}, {color: COLOR_RUNNING_DURATION}) : row._style || undefined } className={Utils.clsx(row.dr && this.props.classes.tdDurationRunning, this.props.classes.tdDuration)} component="td" padding="none" align="right">
-                                        {row.duration || ''}</TableCell>
+                                    <TableCell
+                                        style={row.dr ? Object.assign({}, row._style || {}, { color: COLOR_RUNNING_DURATION }) : row._style || undefined }
+                                        className={Utils.clsx(row.dr && this.props.classes.tdDurationRunning, this.props.classes.tdDuration)}
+                                        component="td"
+                                        padding="none"
+                                        align="right"
+                                    >
+                                        {row.duration || ''}
+                                    </TableCell>
                                     : null}
                                 {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdID} align="left">{row.stateId}</TableCell>}
                                 {this.state.editAvailable && this.state.editEnabled && <TableCell className={this.props.classes.tdEdit} align="left">{row.stateId ?
@@ -810,18 +817,17 @@ class List extends Component {
     renderConfirmDialog() {
         if (!this.state.showDeleteConfirm) {
             return null;
-        } else {
-            return <ConfirmDialog
-                title={I18n.t('Please confirm')}
-                text={I18n.t('Are you sure to delete events from list?')}
-                ok={I18n.t('Ok')}
-                cancel={I18n.t('Cancel')}
-                icon={<IconQuestion/>}
-                onClose={result =>
-                    this.setState({ showDeleteConfirm: false }, () =>
-                        result && this.deleteEntries())}
-                />
         }
+        return <ConfirmDialog
+            title={I18n.t('Please confirm')}
+            text={I18n.t('Are you sure to delete events from list?')}
+            ok={I18n.t('Ok')}
+            cancel={I18n.t('Cancel')}
+            icon={<IconQuestion/>}
+            onClose={result =>
+                this.setState({ showDeleteConfirm: false }, () =>
+                    result && this.deleteEntries())}
+            />;
     }
 
     renderAddEventDialog() {
@@ -839,23 +845,22 @@ class List extends Component {
     renderAddIdDialog() {
         if (!this.state.showAddIdDialog) {
             return null;
-        } else {
-            return <AddIdDialog
-                imagePrefix={this.imagePrefix}
-                instance={this.props.instance}
-                adapterName={this.props.adapterName}
-                themeName={this.props.themeName}
-                themeType={this.props.themeType}
-                socket={this.props.socket}
-                native={this.props.native}
-                id={typeof this.state.showAddIdDialog === 'string' ? this.state.showAddIdDialog : ''}
-                onClose={event => {
-                    Router.doNavigate(null, '', '');
-                    this.setState({ showAddIdDialog: false }, () =>
-                        event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event));
-                }}
-            />;
         }
+        return <AddIdDialog
+            imagePrefix={this.imagePrefix}
+            instance={this.props.instance}
+            adapterName={this.props.adapterName}
+            themeName={this.props.themeName}
+            themeType={this.props.themeType}
+            socket={this.props.socket}
+            native={this.props.native}
+            id={typeof this.state.showAddIdDialog === 'string' ? this.state.showAddIdDialog : ''}
+            onClose={event => {
+                Router.doNavigate(null, '', '');
+                this.setState({ showAddIdDialog: false }, () =>
+                    event && this.props.socket.sendTo(`${this.props.adapterName}.${this.props.instance}`, 'insert', event));
+            }}
+        />;
     }
 
     render() {

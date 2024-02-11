@@ -2,24 +2,28 @@ import React, {Component} from 'react';
 import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-import TextField from '@mui/material/TextField';
-import DialogMessage from '@iobroker/adapter-react-v5/Dialogs/Message';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Grid from '@mui/material/Grid';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
+import {
+    TextField,
+    Checkbox,
+    FormControlLabel,
+    Grid,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    InputLabel,
+    MenuItem,
+    FormControl,
+    Select,
+    IconButton,
+    Button,
+} from '@mui/material';
+import { Message as DialogMessage } from '@iobroker/adapter-react-v5';
 
 import { MdHelp as IconHelp } from 'react-icons/md';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import {
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+} from '@mui/icons-material';
 
 import { I18n, ColorPicker, Utils }  from '@iobroker/adapter-react-v5';
 

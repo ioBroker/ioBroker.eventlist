@@ -39,6 +39,7 @@ let eventListRaw;
 let textSwitchedOn;
 let textSwitchedOff;
 let textDeviceChangedStatus;
+let textDays;
 let textHours;
 let textMinutes;
 let textSeconds;
@@ -154,7 +155,7 @@ function startAdapter(options) {
                 } else {
                     // calculate duration
                     if (states[id].durationUsed) {
-                        // this event is only started and we must update the duration of previous event
+                        // this event is only started, and we must update the duration of the previous event
                         if (states[id].ts && state.ts >= states[id].ts) {
                             state.duration = state.ts - states[id].ts;
                         } else {
@@ -168,9 +169,8 @@ function startAdapter(options) {
                     }
                     states[id].val = state.val;
                 }
-            } else
-            // calculate duration
-            if (states[id].durationUsed) {
+            } else if (states[id].durationUsed) {
+                // calculate duration
                 if (states[id].ts && state.ts >= states[id].ts) {
                     state.duration = state.ts - states[id].ts;
                 } else {
@@ -296,12 +296,23 @@ function duration2text(ms, withSpaces) {
         return `${isFloatComma ? Math.round(ms / 1000).toString().replace('.', ',') : Math.round(ms / 1000).toString()}${withSpaces ? ' ' : ''}${textSeconds}`;
     } else if (ms < 3600000) {
         return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${textMinutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${textSeconds}`;
-    } else {
-        const hours   = Math.floor(ms / 3600000);
-        const minutes = Math.floor(ms / 60000) % 60;
-        const seconds = Math.round(Math.floor(ms % 60000) / 1000);
-        return `${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes} ${seconds}${withSpaces ? ' ' : ''}${textSeconds}`;
     }
+    let hours   = Math.floor(ms / 3600000);
+    const minutes = Math.floor(ms / 60000) % 60;
+    const seconds = Math.round(Math.floor(ms % 60000) / 1000);
+    if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        hours %= 24;
+        if (days > 2) {
+            return `${days}${withSpaces ? ' ' : ''}${textDays} ${hours}${withSpaces ? ' ' : ''}${textHours}`;
+        }
+        return `${days}${withSpaces ? ' ' : ''}${textDays} ${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes}`;
+    }
+
+    if (hours > 2) {
+        return `${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes}`;
+    }
+    return `${hours}${withSpaces ? ' ' : ''}${textHours} ${minutes}${withSpaces ? ' ' : ''}${textMinutes} ${seconds}${withSpaces ? ' ' : ''}${textSeconds}`;
 }
 
 function formatEvent(state, allowRelative) {
@@ -1052,16 +1063,22 @@ async function updateMomentTimes(table) {
 }
 
 async function main() {
+    let obj = await adapter.getForeignObjectAsync('system.config');
+    obj = obj || {};
+    obj.common = obj.common || {};
+    systemLang = adapter.config.language || obj.common.language;
+    isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
+
     textSwitchedOn          = words['switched on'][systemLang]               || words['switched on'].en;
     textSwitchedOff         = words['switched off'][systemLang]              || words['switched off'].en;
     textDeviceChangedStatus = words['Device %n changed status:'][systemLang] || words['Device %n changed status:'].en;
+    textDays                = words['days'][systemLang]                      || words['days'].en;
     textHours               = words['hours'][systemLang]                     || words['hours'].en;
     textMinutes             = words['minutes'][systemLang]                   || words['minutes'].en;
     textSeconds             = words['sec'][systemLang]                       || words['sec'].en;
     textMs                  = words['ms'][systemLang]                        || words['ms'].en;
 
-    adapter.config.maxLength = parseInt(adapter.config.maxLength, 10);
-    adapter.config.maxLength = adapter.config.maxLength || 100;
+    adapter.config.maxLength = parseInt(adapter.config.maxLength, 10) || 100;
     adapter.config.deleteAlarmsByDisable = adapter.config.deleteAlarmsByDisable === true || adapter.config.deleteAlarmsByDisable === 'true';
     if (adapter.config.maxLength > 10000) {
         adapter.config.maxLength = 10000;
@@ -1069,11 +1086,7 @@ async function main() {
 
     const state = await adapter.getStateAsync('alarmMode');
     alarmMode = !!(state && state.val);
-    let obj = await adapter.getForeignObjectAsync('system.config');
-    obj = obj || {};
-    obj.common = obj.common || {};
-    systemLang = adapter.config.language || obj.common.language;
-    isFloatComma = obj.common.isFloatComma === undefined ? true : obj.common.isFloatComma;
+
 
     moment.locale(systemLang === 'en' ? 'en-gb' : systemLang);
 

@@ -2,31 +2,32 @@ import React, { Component } from 'react';
 import { withStyles } from '@mui/styles';
 import PropTypes from 'prop-types';
 
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Snackbar from '@mui/material/Snackbar';
-import IconButton from '@mui/material/IconButton';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Typography from '@mui/material/Typography';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Fab from '@mui/material/Fab';
+import {
+    TextField,
+    Button,
+    Select,
+    InputLabel,
+    MenuItem,
+    FormControl,
+    Snackbar,
+    IconButton,
+    FormControlLabel,
+    Checkbox,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Typography,
+    Fab,
+} from '@mui/material';
+
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
 import { MdClose as IconClose } from 'react-icons/md';
 import { MdHelp as IconHelp } from 'react-icons/md';
 import { MdAdd as IconAdd } from 'react-icons/md';
 import { MdDelete as IconDelete } from 'react-icons/md';
 
-import I18n from '@iobroker/adapter-react-v5/i18n';
-import Logo from '@iobroker/adapter-react-v5/Components/Logo';
-import ColorPicker from '@iobroker/adapter-react-v5/Components/ColorPicker';
+import { I18n, Logo, ColorPicker } from '@iobroker/adapter-react-v5';
 
 import MessengerSelect from  '../Components/MessengerSelect';
 
@@ -196,7 +197,7 @@ class Options extends Component {
                     className={this.props.classes.input}
                     value={this.props.native.maxLength}
                     type="number"
-                    inputProps={{ min: 1, max: 1000 }}
+                    inputProps={{ min: 1, max: 9999 }}
                     onChange={e => this.props.onChange('maxLength', e.target.value)}
                     margin="normal"
                 />
