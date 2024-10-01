@@ -20,7 +20,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.0.6",
+    "@iobroker/adapter-core": "^3.2.1",
     "moment": "^2.30.1",
     "pdfkit": "^0.14.0"
   },
