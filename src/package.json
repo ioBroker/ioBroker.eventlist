@@ -8,7 +8,7 @@
     "@mui/material": "5.14.14",
     "@mui/styles": "5.14.14",
     "babel-eslint": "^10.1.0",
-    "@sentry/browser": "^7.100.1",
+    "@sentry/browser": "^8.47.0",
     "@sentry/integrations": "^7.100.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
