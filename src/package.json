@@ -16,7 +16,7 @@
     "react-scripts": "^5.0.1",
     "moment": "^2.30.1",
     "react-color": "^2.19.3",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.3.8"
   },
   "scripts": {
     "start": "set DANGEROUSLY_DISABLE_HOST_CHECK=true&& react-scripts start",
