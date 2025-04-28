@@ -645,7 +645,7 @@ function sendPushover(event) {
             adapter.log.debug(`Send to 'pushover.${instances.join(',')}' => ${text}`);
 
             instances.forEach(num =>
-                adapter.sendTo(`pushover.${num}`, 'send', {text}));
+                adapter.sendTo(`pushover.${num}`, 'send', text));
         }
     }
 
