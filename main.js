@@ -642,10 +642,10 @@ function sendPushover(event) {
         const ev = formatEvent(event, true);
         if (ev) {
             const text = ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${states[event.id].unit || ''}` : '');
-            adapter.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
+            adapter.log.debug(`Send to 'pushover.${instances.join(',')}' => ${text}`);
 
             instances.forEach(num =>
-                adapter.sendTo(`pushover.${num}`, 'send', {text}));
+                adapter.sendTo(`pushover.${num}`, 'send', text));
         }
     }
 
