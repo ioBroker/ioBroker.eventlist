@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "eventlist",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "news": {
+      "2.1.0": {
+        "en": "Correction for handover of a message to pushover\nThe packages were updated\nGUI migrated to vite",
+        "de": "Korrektur der Übergabe einer Nachricht an Pushover\nDie Pakete wurden aktualisiert\nGUI migrated to vite",
+        "ru": "Коррекция передачи сообщения для передачи\nПакеты были обновлены\nГУИ мигрировал в Вите",
+        "pt": "Correção para entrega de uma mensagem para empurrar\nOs pacotes foram atualizados\nGUI migrado para vite",
+        "nl": "Correctie voor overdracht van een bericht aan pushover\nDe pakketten werden bijgewerkt\nGUI gemigreerd naar vite",
+        "fr": "Correction pour le transfert d'un message à pousser\nLes paquets ont été mis à jour\nGUI migré vers rite",
+        "it": "Correzione per la consegna di un messaggio a pushover\nI pacchetti sono stati aggiornati\nGUI migrato a vite",
+        "es": "Corrección para el traspaso de un mensaje para el empuje\nLos paquetes se actualizaron\nGUI migrated to vite",
+        "pl": "Korekta dla przekazania wiadomości do przepchnięcia\nPakiety zostały zaktualizowane\nGUI migrował do Vite",
+        "uk": "Корекція для передачі повідомлення\nПакети були оновлено\nГрафічний інтерфейс",
+        "zh-cn": "信件交接的更正\n软件包已经更新\nGUI 迁移到 vite"
+      },
       "2.0.1": {
         "en": "Translated the duration",
         "de": "Übersetzt die Dauer",
@@ -168,7 +181,9 @@
         "js-controller": ">=5.0.19"
       }
     ],
-    "restartAdapters": ["vis-2"],
+    "restartAdapters": [
+      "vis-2"
+    ],
     "adminUI": {
       "config": "materialize",
       "custom": "json"
