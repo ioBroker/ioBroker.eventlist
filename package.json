@@ -9,6 +9,7 @@
     "homepage": "https://github.com/bluefox/ioBroker.eventlist",
     "license": "MIT",
     "keywords": [
+        "ioBroker",
         "event list",
         "events"
     ],

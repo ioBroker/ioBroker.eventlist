@@ -92,6 +92,7 @@
       "it": "Elenco degli eventi",
       "es": "Lista de eventos",
       "pl": "Lista wydarzeń",
+      "uk": "Список подій",
       "zh-cn": "活动列表"
     },
     "desc": {
@@ -104,6 +105,7 @@
       "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
       "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
       "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
+      "uk": "Створює та відображає список подій з бажаних станів в адмінці, вебі та у вигляді віджета",
       "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
     },
     "authors": [
@@ -143,7 +145,6 @@
     "type": "visualization",
     "eraseOnUpload": true,
     "compact": true,
-    "materialize": true,
     "materializeTab": true,
     "messagebox": true,
     "adminTab": {
@@ -157,9 +158,9 @@
         "it": "Elenco degli eventi",
         "es": "Lista de eventos",
         "pl": "Lista wydarzeń",
+        "uk": "Список подій",
         "zh-cn": "活动列表"
-      },
-      "fa-icon": "flash_on"
+      }
     },
     "supportCustoms": true,
     "dependencies": [
