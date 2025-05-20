@@ -16,7 +16,6 @@ import {
     IconButton,
     Button,
 } from '@mui/material';
-import { Message as DialogMessage } from '@iobroker/adapter-react-v5';
 
 import { ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon, Help as IconHelp } from '@mui/icons-material';
 

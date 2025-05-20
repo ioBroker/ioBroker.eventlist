@@ -179,13 +179,15 @@ class SelectStateDialog extends Component {
                         variant="standard"
                         style={styles.flex}
                         label={I18n.t('Filter')}
-                        InputLabelProps={{ shrink: true }}
-                        InputProps={{
-                            endAdornment: this.state.filter ? (
-                                <IconButton onClick={() => this.setState({ filter: '' })}>
-                                    <ClearIcon />
-                                </IconButton>
-                            ) : undefined,
+                        slotProps={{
+                            inputProps: { shrink: true },
+                            input: {
+                                endAdornment: this.state.filter ? (
+                                    <IconButton onClick={() => this.setState({ filter: '' })}>
+                                        <ClearIcon />
+                                    </IconButton>
+                                ) : undefined,
+                            },
                         }}
                         autoFocus
                         value={this.state.filter}

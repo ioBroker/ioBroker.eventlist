@@ -36,7 +36,7 @@ import { FaMinus as EmptyIcon, FaWhatsapp as WhatsappIcon } from 'react-icons/fa
 import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
-import { I18n, Utils, IconPicker, Image, withWidth, ColorPicker } from '@iobroker/adapter-react-v5';
+import { I18n, IconPicker, Image, withWidth, ColorPicker } from '@iobroker/adapter-react-v5';
 
 import MessengerSelect from './MessengerSelect';
 
@@ -916,9 +916,9 @@ export class EditState extends Component {
                                 <ColorPicker
                                     disabled={this.props.reading}
                                     openAbove
-                                    color={state.color}
+                                    value={state.color}
                                     style={{ width: 250, display: 'inline-block' }}
-                                    name={I18n.t('Color')}
+                                    label={I18n.t('Color')}
                                     onChange={color => {
                                         const states = JSON.parse(JSON.stringify(this.state.settings.states));
                                         states[i].color = color;
@@ -1038,9 +1038,9 @@ export class EditState extends Component {
                         <br />
                         <ColorPicker
                             disabled={this.props.reading}
-                            color={this.state.settings.color}
+                            value={this.state.settings.color}
                             style={{ width: 250, display: 'inline-block' }}
-                            name={I18n.t('Event color')}
+                            label={I18n.t('Event color')}
                             openAbove
                             onChange={color => this.setSettings('color', color)}
                         />
