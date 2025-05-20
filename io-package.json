@@ -29,19 +29,6 @@
         "uk": "Спіймані помилки за підписом\nМінімальний вузол.js версія 16",
         "zh-cn": "投机错误\nA. 最低限度不适用。"
       },
-      "1.2.4": {
-        "en": "Just the packages were updated",
-        "de": "Nur die Pakete wurden aktualisiert",
-        "ru": "Только пакеты были обновлены",
-        "pt": "Apenas os pacotes foram atualizados",
-        "nl": "Alleen de pakketten werden geüpload",
-        "fr": "Juste les paquets ont été mis à jour",
-        "it": "Solo i pacchetti sono stati aggiornati",
-        "es": "Sólo los paquetes fueron actualizados",
-        "pl": "Tylko pakiety zostały zaktualizowane",
-        "uk": "Просто оновлені пакети",
-        "zh-cn": "仅更新了一揽子计划"
-      },
       "1.2.3": {
         "en": "Corrected the edit of the event sources\nAdded possibility to use default texts for strings values like for booleans",
         "de": "Korrektur der Bearbeitung der Ereignisquellen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
@@ -177,7 +164,7 @@
     "supportCustoms": true,
     "dependencies": [
       {
-        "js-controller": ">=2.0.0"
+        "js-controller": ">=5.0.19"
       }
     ],
     "restartAdapters": ["vis-2"],
