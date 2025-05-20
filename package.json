@@ -61,11 +61,10 @@
         "main.js"
     ],
     "scripts": {
-        "test:js": "mocha \"{!(node_modules|test)/**/*.test.js,*.test.js,test/**/test!(PackageFiles|Startup).js}\"",
         "test:package": "mocha test/package --exit",
         "test:unit": "mocha test/unit --exit",
         "test:integration": "mocha test/integration --exit",
-        "test": "npm run test:js && npm run test:package",
+        "test": "npm run test:unit && npm run test:package",
         "lint": "eslint",
         "prepublishOnly": "node tasks.js",
         "build": "node tasks.js",
