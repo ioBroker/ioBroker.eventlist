@@ -1,16 +1,16 @@
 {
-  "disabled": true,
-  "help": {
-    "en": "Please use settings of the adapter for configuration",
-    "de": "Bitte verwenden Sie die Einstellungen des Adapters für die Konfiguration",
-    "ru": "Пожалуйста, используйте настройки адаптера для настройки",
-    "pt": "Use as configurações do adaptador para configuração",
-    "nl": "Gebruik de instellingen van de adapter voor de configuratie",
-    "fr": "Veuillez utiliser les paramètres de l'adaptateur pour la configuration",
-    "it": "Utilizzare le impostazioni dell'adattatore per la configurazione",
-    "es": "Utilice la configuración del adaptador para la configuración",
-    "pl": "Do konfiguracji użyj ustawień adaptera",
-    "zh-cn": "请使用适配器的设置进行配置"
-  },
-  "hidden": true
+    "disabled": true,
+    "help": {
+        "en": "Please use settings of the adapter for configuration",
+        "de": "Bitte verwenden Sie die Einstellungen des Adapters für die Konfiguration",
+        "ru": "Пожалуйста, используйте настройки адаптера для настройки",
+        "pt": "Use as configurações do adaptador para configuração",
+        "nl": "Gebruik de instellingen van de adapter voor de configuratie",
+        "fr": "Veuillez utiliser les paramètres de l'adaptateur pour la configuration",
+        "it": "Utilizzare le impostazioni dell'adattatore per la configurazione",
+        "es": "Utilice la configuración del adaptador para la configuración",
+        "pl": "Do konfiguracji użyj ustawień adaptera",
+        "zh-cn": "请使用适配器的设置进行配置"
+    },
+    "hidden": true
 }

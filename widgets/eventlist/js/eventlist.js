@@ -8,32 +8,28 @@
 'use strict';
 
 // add translations for edit mode
-$.extend(
-    true,
-    systemDictionary,
-    {
-        // Add your translations here, e.g.:
-        // "size": {
-        // 	"en": "Size",
-        // 	"de": "Größe",
-        // 	"ru": "Размер",
-        // 	"pt": "Tamanho",
-        // 	"nl": "Grootte",
-        // 	"fr": "Taille",
-        // 	"it": "Dimensione",
-        // 	"es": "Talla",
-        // 	"pl": "Rozmiar",
-        // 	"zh-cn": "尺寸"
-        // }
-    }
-);
+$.extend(true, systemDictionary, {
+    // Add your translations here, e.g.:
+    // "size": {
+    // 	"en": "Size",
+    // 	"de": "Größe",
+    // 	"ru": "Размер",
+    // 	"pt": "Tamanho",
+    // 	"nl": "Grootte",
+    // 	"fr": "Taille",
+    // 	"it": "Dimensione",
+    // 	"es": "Talla",
+    // 	"pl": "Rozmiar",
+    // 	"zh-cn": "尺寸"
+    // }
+});
 
 // this code can be placed directly in eventlist.html
 vis.binds['eventlist'] = {
     version: '0.0.1',
     showVersion: function () {
         if (vis.binds['eventlist'].version) {
-            console.log('Version eventlist: ' + vis.binds['eventlist'].version);
+            console.log(`Version eventlist: ${vis.binds['eventlist'].version}`);
             vis.binds['eventlist'].version = null;
         }
     },
@@ -67,7 +63,7 @@ vis.binds['eventlist'] = {
             //remember onchange handler to release bound states
             $div.data('bindHandler', onChange);
         }
-    }
+    },
 };
 
 vis.binds['eventlist'].showVersion();

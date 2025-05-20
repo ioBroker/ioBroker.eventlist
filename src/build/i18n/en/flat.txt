@@ -1,0 +1,8 @@
+Device %n changed status:
+h
+m
+ms
+s
+switched off
+switched on
+undefined

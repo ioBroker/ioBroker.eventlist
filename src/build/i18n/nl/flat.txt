@@ -1,0 +1,8 @@
+Apparaat %n veranderde status:
+uren
+m
+ms
+s
+uit
+ingeschakeld
+ongedefinieerd

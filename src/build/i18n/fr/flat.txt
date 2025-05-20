@@ -1,0 +1,8 @@
+Le périphérique %n a changé d’état:
+h
+m
+ms
+s
+éteint
+allumé
+indéfini

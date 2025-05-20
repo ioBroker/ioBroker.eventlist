@@ -1,0 +1,8 @@
+Dispositivo %n mudou de status:
+h
+m
+ms
+s
+desligado
+ligado
+Indefinido
