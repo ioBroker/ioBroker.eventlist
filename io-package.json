@@ -133,9 +133,6 @@
     "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
     "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
     "loglevel": "info",
-    "restartAdapters": [
-      "vis"
-    ],
     "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
     "welcomeScreen": {
       "link": "eventlist/index.html",
@@ -181,9 +178,9 @@
     "dependencies": [
       {
         "js-controller": ">=2.0.0"
-      },
-      "vis"
+      }
     ],
+    "restartAdapters": ["vis-2"],
     "adminUI": {
       "config": "materialize",
       "custom": "json"
