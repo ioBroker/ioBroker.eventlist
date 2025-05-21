@@ -128,7 +128,10 @@
       "event list",
       "events"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "free"
+    },
     "platform": "Javascript/Node.js",
     "icon": "eventlist.png",
     "enabled": true,
