@@ -16,3 +16,6 @@ www/i18n/flat.txt
 www/i18n/*/flat.txt
 /package-lock.json
 /src/package-lock.json
+
+#ignore .commitinfo created by ioBroker release script
+.commitinfo
