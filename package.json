@@ -33,7 +33,7 @@
     "@iobroker/eslint-config": "^2.2.0",
     "@iobroker/testing": "^5.1.1",
     "@iobroker/types": "^7.0.7",
-    "@types/chai": "^4.3.20",
+    "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^10.0.10",
     "@types/moment": "^2.13.0",
