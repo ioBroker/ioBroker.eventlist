@@ -19,7 +19,8 @@ import {
     Fab,
 } from '@mui/material';
 
-import { ExpandMore as ExpandMoreIcon,
+import {
+    ExpandMore as ExpandMoreIcon,
     Close as IconClose,
     Help as IconHelp,
     Add as IconAdd,
