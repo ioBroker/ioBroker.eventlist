@@ -8,10 +8,7 @@ interface Words {
 }
 
 function loadWords(): Words {
-    const possiblePaths = [
-        path.join(__dirname, '../admin/words.js'),
-        path.join(__dirname, 'public/words.js'),
-    ];
+    const possiblePaths = [path.join(__dirname, '../admin/words.js'), path.join(__dirname, 'public/words.js')];
 
     let wordsPath = '';
     for (const p of possiblePaths) {

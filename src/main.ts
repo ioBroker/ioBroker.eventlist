@@ -1,11 +1,11 @@
 import * as utils from '@iobroker/adapter-core';
 import moment from 'moment';
-import * as fs from 'node:fs';
+
 import list2pdf from '../lib/list2pdf';
 import words from './words';
 
-import 'moment/locale/fr';
 import 'moment/locale/de';
+import 'moment/locale/fr';
 import 'moment/locale/en-gb';
 import 'moment/locale/ru';
 import 'moment/locale/it';
@@ -140,21 +140,21 @@ class EventList extends utils.Adapter {
     }
 
     async #onReady(): Promise<void> {
-        const obj = await this.getForeignObjectAsync('system.config') as ioBroker.SystemConfigObject | null;
-        const systemConfig = obj?.common || {} as any;
+        const obj = (await this.getForeignObjectAsync('system.config')) as ioBroker.SystemConfigObject | null;
+        const systemConfig = obj?.common || ({} as any);
         this.#systemLang = (this.config as any).language || systemConfig.language || 'en';
         this.#isFloatComma = systemConfig.isFloatComma === undefined ? true : systemConfig.isFloatComma;
 
-        this.#textSwitchedOn = words.default['switched on'][this.#systemLang] || words.default['switched on'].en;
-        this.#textSwitchedOff = words.default['switched off'][this.#systemLang] || words.default['switched off'].en;
+        this.#textSwitchedOn = words['switched on'][this.#systemLang] || words['switched on'].en;
+        this.#textSwitchedOff = words['switched off'][this.#systemLang] || words['switched off'].en;
         this.#textDeviceChangedStatus =
-            words.default['Device %n changed status:'][this.#systemLang] ||
-            words.default['Device %n changed status:'].en;
-        this.#textDays = words.default['days'][this.#systemLang] || words.default['days'].en;
-        this.#textHours = words.default['hours'][this.#systemLang] || words.default['hours'].en;
-        this.#textMinutes = words.default['minutes'][this.#systemLang] || words.default['minutes'].en;
-        this.#textSeconds = words.default['sec'][this.#systemLang] || words.default['sec'].en;
-        this.#textMs = words.default['ms'][this.#systemLang] || words.default['ms'].en;
+            words['Device %n changed status:'][this.#systemLang] ||
+            words['Device %n changed status:'].en;
+        this.#textDays = words['days'][this.#systemLang] || words['days'].en;
+        this.#textHours = words['hours'][this.#systemLang] || words['hours'].en;
+        this.#textMinutes = words['minutes'][this.#systemLang] || words['minutes'].en;
+        this.#textSeconds = words['sec'][this.#systemLang] || words['sec'].en;
+        this.#textMs = words['ms'][this.#systemLang] || words['ms'].en;
 
         const config = this.config as any as AdapterConfig;
         config.maxLength = parseInt(config.maxLength as any, 10) || 100;
@@ -204,12 +204,7 @@ class EventList extends utils.Adapter {
         if (id === `${this.namespace}.triggerPDF` && state && !state.ack && state.val) {
             this.#reformatJsonTable(false)
                 .then(table =>
-                    list2pdf(
-                        this as any,
-                        moment,
-                        this.instance ? `report-${this.instance}.pdf` : 'report.pdf',
-                        table,
-                    ),
+                    list2pdf(this as any, moment, this.instance ? `report-${this.instance}.pdf` : 'report.pdf', table),
                 )
                 .then(() => this.setForeignStateAsync(`${this.namespace}.triggerPDF`, false, true));
         } else if (id === `${this.namespace}.alarm` && state && !state.ack) {
@@ -230,7 +225,9 @@ class EventList extends utils.Adapter {
 
                     if (this.#eventListRaw.length !== count) {
                         this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true).then(() =>
-                            this.log.debug(`Removed ${count - this.#eventListRaw.length} from the list after the alarm is deactivated`),
+                            this.log.debug(
+                                `Removed ${count - this.#eventListRaw.length} from the list after the alarm is deactivated`,
+                            ),
                         );
                     }
                 });
@@ -329,7 +326,8 @@ class EventList extends utils.Adapter {
                 this.log.debug(`insert event: ${JSON.stringify(obj.message)}`);
 
                 this.#addEvent(obj.message).then(
-                    () => obj.callback && this.sendTo(obj.from, obj.command, { result: 'event inserted' }, obj.callback),
+                    () =>
+                        obj.callback && this.sendTo(obj.from, obj.command, { result: 'event inserted' }, obj.callback),
                 );
             } else if (obj.command === 'pdf') {
                 this.#reformatJsonTable(false)
@@ -355,8 +353,7 @@ class EventList extends utils.Adapter {
                             typeof (obj.message as any).id === 'string' ||
                             typeof (obj.message as any).ids === 'object')
                     ) {
-                        let ids: string[] | string | null =
-                            typeof obj.message === 'string' ? obj.message : null;
+                        let ids: string[] | string | null = typeof obj.message === 'string' ? obj.message : null;
                         if (!ids && typeof (obj.message as any).id === 'string') {
                             ids = (obj.message as any).id;
                         }
@@ -368,7 +365,9 @@ class EventList extends utils.Adapter {
                         }
 
                         // filter table
-                        table = table.filter(item => (!item.id && ids?.includes('custom')) || ids?.includes(item.id || ''));
+                        table = table.filter(
+                            item => (!item.id && ids?.includes('custom')) || ids?.includes(item.id || ''),
+                        );
                     }
                     if (
                         obj.message &&
@@ -519,14 +518,20 @@ class EventList extends utils.Adapter {
                             ? (this.config as any).defaultBooleanTextTrue || this.#textSwitchedOn
                             : item.text;
                     color = item.color || (this.config as any).defaultBooleanColorTrue || this.#states[id].color || '';
-                    icon = item.icon || (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) || undefined;
+                    icon =
+                        item.icon ||
+                        (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) ||
+                        undefined;
                 } else if (!this.#states[id].event && !state.val && item && item.text) {
                     eventTemplate =
                         item.text === DEFAULT_TEMPLATE
                             ? (this.config as any).defaultBooleanTextFalse || this.#textSwitchedOff
                             : item.text;
                     color = item.color || (this.config as any).defaultBooleanColorFalse || this.#states[id].color || '';
-                    icon = item.icon || (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) || undefined;
+                    icon =
+                        item.icon ||
+                        (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) ||
+                        undefined;
                 } else {
                     if (this.#states[id].event === DEFAULT_TEMPLATE) {
                         eventTemplate = (this.config as any).defaultBooleanText || this.#textDeviceChangedStatus;
@@ -611,7 +616,9 @@ class EventList extends utils.Adapter {
                     const stateText = item?.val && this.#states[id].originalStates?.[item.val];
                     const def =
                         (this.config as any).defaultStringTexts &&
-                        (this.config as any).defaultStringTexts.find((it: any) => it.value === stateText || it.value === val);
+                        (this.config as any).defaultStringTexts.find(
+                            (it: any) => it.value === stateText || it.value === val,
+                        );
 
                     if (item) {
                         if (item.disabled) {
@@ -636,7 +643,10 @@ class EventList extends utils.Adapter {
                             }
                         }
                     } else if (this.#states[id].originalStates && val !== undefined) {
-                        val = this.#states[id].originalStates?.[val] === undefined ? val : this.#states[id].originalStates?.[val] || '';
+                        val =
+                            this.#states[id].originalStates?.[val] === undefined
+                                ? val
+                                : this.#states[id].originalStates?.[val] || '';
                     }
 
                     if (!this.#states[id].event && val) {
@@ -644,9 +654,13 @@ class EventList extends utils.Adapter {
                         val = '';
                     }
                 } else if (this.#states[id].originalStates && val !== undefined) {
-                    val = this.#states[id].originalStates?.[val] === undefined ? val : this.#states[id].originalStates?.[val] || '';
+                    val =
+                        this.#states[id].originalStates?.[val] === undefined
+                            ? val
+                            : this.#states[id].originalStates?.[val] || '';
                     const def =
-                        (this.config as any).defaultStringTexts && (this.config as any).defaultStringTexts.find((it: any) => it.value === val);
+                        (this.config as any).defaultStringTexts &&
+                        (this.config as any).defaultStringTexts.find((it: any) => it.value === val);
                     if (def) {
                         val = def.text;
                         color = def.color;
@@ -654,7 +668,8 @@ class EventList extends utils.Adapter {
                     }
                 } else {
                     const def =
-                        (this.config as any).defaultStringTexts && (this.config as any).defaultStringTexts.find((it: any) => it.value === val);
+                        (this.config as any).defaultStringTexts &&
+                        (this.config as any).defaultStringTexts.find((it: any) => it.value === val);
                     if (def) {
                         val = def.text;
                         color = def.color;
@@ -739,7 +754,10 @@ class EventList extends utils.Adapter {
         }
 
         if (eventTemplate.includes('%t')) {
-            eventTemplate = eventTemplate.replace(/%t/g, moment(new Date(state.ts)).format((this.config as any).dateFormat));
+            eventTemplate = eventTemplate.replace(
+                /%t/g,
+                moment(new Date(state.ts)).format((this.config as any).dateFormat),
+            );
         }
 
         if (eventTemplate.includes('%r')) {
@@ -778,16 +796,20 @@ class EventList extends utils.Adapter {
             this.#states[event.id] &&
             (this.#alarmMode || !this.#states[event.id].messagesInAlarmsOnly) &&
             ((this.#states[event.id].defaultMessengers && (this.config as any).defaultTelegram?.length) ||
-                (!this.#states[event.id].defaultMessengers && this.#states[event.id].telegram && this.#states[event.id].telegram?.length))
+                (!this.#states[event.id].defaultMessengers &&
+                    this.#states[event.id].telegram &&
+                    this.#states[event.id].telegram?.length))
         ) {
             const instances =
                 (this.#states[event.id].defaultMessengers && (this.config as any).defaultTelegram) ||
-                (!this.#states[event.id].defaultMessengers && this.#states[event.id].telegram) || [];
+                (!this.#states[event.id].defaultMessengers && this.#states[event.id].telegram) ||
+                [];
 
             const ev = this.#formatEvent(event, true);
             if (ev) {
                 const text =
-                    ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
+                    ev.event +
+                    (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
                 this.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
                 instances.forEach(num => this.sendTo(`telegram.${num}`, 'send', { text }));
@@ -807,12 +829,14 @@ class EventList extends utils.Adapter {
         ) {
             const instances =
                 (this.#states[event.id].defaultMessengers && (this.config as any).defaultWhatsAppCMB) ||
-                (!this.#states[event.id].defaultMessengers && this.#states[event.id].whatsAppCMB) || [];
+                (!this.#states[event.id].defaultMessengers && this.#states[event.id].whatsAppCMB) ||
+                [];
 
             const ev = this.#formatEvent(event, true);
             if (ev) {
                 const text =
-                    ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
+                    ev.event +
+                    (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
                 this.log.debug(`Send to 'telegram.${instances.join(',')}' => ${text}`);
 
                 instances.forEach(num => this.sendTo(`whatsapp-cmb.${num}`, 'send', { text }));
@@ -828,16 +852,20 @@ class EventList extends utils.Adapter {
             this.#states[event.id] &&
             (this.#alarmMode || !this.#states[event.id].messagesInAlarmsOnly) &&
             ((this.#states[event.id].defaultMessengers && (this.config as any).defaultPushover?.length) ||
-                (!this.#states[event.id].defaultMessengers && this.#states[event.id].pushover && this.#states[event.id].pushover?.length))
+                (!this.#states[event.id].defaultMessengers &&
+                    this.#states[event.id].pushover &&
+                    this.#states[event.id].pushover?.length))
         ) {
             const instances =
                 (this.#states[event.id].defaultMessengers && (this.config as any).defaultPushover) ||
-                (!this.#states[event.id].defaultMessengers && this.#states[event.id].pushover) || [];
+                (!this.#states[event.id].defaultMessengers && this.#states[event.id].pushover) ||
+                [];
 
             const ev = this.#formatEvent(event, true);
             if (ev) {
                 const text =
-                    ev.event + (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
+                    ev.event +
+                    (ev.val !== undefined ? ` => ${ev.val.toString()}${this.#states[event.id].unit || ''}` : '');
                 this.log.debug(`Send to 'pushover.${instances.join(',')}' => ${text}`);
 
                 instances.forEach(num => this.sendTo(`pushover.${num}`, 'send', text));
@@ -928,7 +956,10 @@ class EventList extends utils.Adapter {
         this.log.debug(`Add ${JSON.stringify(_event)}`);
 
         if (this.#eventListRaw.length > (this.config as any).maxLength) {
-            this.#eventListRaw.splice((this.config as any).maxLength, this.#eventListRaw.length - (this.config as any).maxLength);
+            this.#eventListRaw.splice(
+                (this.config as any).maxLength,
+                this.#eventListRaw.length - (this.config as any).maxLength,
+            );
         }
 
         const ev = this.#formatEvent(_event, true);
@@ -994,7 +1025,7 @@ class EventList extends utils.Adapter {
         id = obj._id;
         const needSubscribe = !this.#states[id];
         let changed = false;
-        const settings = (obj.common.custom[this.namespace] as any) as StateSettings;
+        const settings = obj.common.custom[this.namespace] as any as StateSettings;
         if (this.#states[id]) {
             // detect relevant changes
             if (this.#states[id].event !== settings.event) {
@@ -1104,7 +1135,9 @@ class EventList extends utils.Adapter {
                     (this.#states[id].event || (this.config as any).defaultNonBooleanText).includes('%g');
 
                 if (!durationUsed) {
-                    durationUsed = !!this.#states[id].states?.find(item => item.text.includes('%d') || item.text.includes('%g'));
+                    durationUsed = !!this.#states[id].states?.find(
+                        item => item.text.includes('%d') || item.text.includes('%g'),
+                    );
                 }
             }
         } else if (!durationUsed) {
@@ -1134,7 +1167,8 @@ class EventList extends utils.Adapter {
                 oldValueUsed = oldValueUsed || !!this.#states[id].states?.find(item => item.text.includes('%o'));
             }
         } else {
-            oldValueUsed = oldValueUsed || (this.#states[id].event || (this.config as any).defaultNonBooleanText).includes('%o');
+            oldValueUsed =
+                oldValueUsed || (this.#states[id].event || (this.config as any).defaultNonBooleanText).includes('%o');
         }
 
         if (this.#states[id].oldValueUsed !== oldValueUsed) {

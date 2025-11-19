@@ -1,20 +1,13 @@
 {
     "extends": "@tsconfig/node20/tsconfig.json",
     "compilerOptions": {
-        // do not compile anything, this file is just to configure type checking
-        // the files are executed directly by ts-node
         "noEmit": true,
-
-        // check JS files
         "allowJs": true,
         "checkJs": true,
-
         "resolveJsonModule": true,
         "noEmitOnError": true,
         "sourceMap": true,
         "outDir": "./build/",
-
-        // Set this to false if you want to disable the very strict rules (not recommended)
         "strict": true,
         "noImplicitAny": false,
         "useUnknownInCatchVariables": false
