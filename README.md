@@ -141,6 +141,9 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+
+### **WORK IN PROGRESS**
+- (iobroker-bot) Adapter requires node.js >= 20 now.
 ### 2.1.0 (2025-05-20)
 * (maeb3) Correction for handover of a message to pushover
 * (bluefox) The packages were updated
