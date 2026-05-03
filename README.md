@@ -237,6 +237,8 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ### 0.0.1
 * (bluefox) initial release
 
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
 ## License
 MIT License
 
