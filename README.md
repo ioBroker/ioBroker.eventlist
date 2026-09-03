@@ -26,21 +26,21 @@ Additionally, you can send events via Telegram or WhatsApp.
 The events could be generated only in alarm mode.
 The alarm mode could be controlled by variable `eventlist.X.alarm`.
  
-Additionally, the messages to messengers could be sent only if alarm mode is ON.
+Additionally, the messages to messengers could be sent only if the alarm mode is ON.
 
 Use case:
 - E.g., door sensor can send the messages only if nobody is home. Else the events about door opening will be only collected in the event list.  
 
 ## Possible presentations
 
-### In Admin as tab
+### In the Admin as tab
 You can enable the event list as a tab in the admin.
 
 ### Web
 Event list could be shown under `http://<IP>:8082/eventlist/index.html`. (for instances > 0: `http://<IP>:8082/eventlist/index.html?X`, where X is the instance number)
 
 ### Vis Widget
-Event list can be displayed as vis widget. 
+Event list can be displayed as a vis widget. 
 
 ### PDF generation
 There is a possibility to generate a PDF document with all events.
@@ -76,7 +76,7 @@ setState('eventlist.0.insert', 'My custom text');
 setState('eventlist.0.insert', JSON.stringify({event: 'My custom text %s', val: 5}));
 ```
 
-User can request formatted JSON list for specific ID. Of course the ID must be enabled in the `eventlist` before.
+User can request a formatted JSON list for a specific ID. Of course the ID must be enabled in the `eventlist` before.
 ```js
 // add custom event to event list
 sendTo('eventlist.0', 'list', {
@@ -124,7 +124,7 @@ In the event texts and in the state texts, the following patterns could be used:
 - %g - value difference (`State was changed on %g%` => `State was changed on 1%`),
 - %o - value difference (`State changed value from %o to %` => `State was changed on 1%`)
 
-## Usage of multiple instances in web
+## Usage of multiple instances in the web
 E.g., you can show the specific list for instance 2, like `http://IP:8082/eventlist/index.htmlindex.html?2`.
 
 The generated report will be stored for instance 0 in `eventlist/report.pdf`, but for instance 1 in `eventlist/report-1.pdf`.
@@ -141,6 +141,10 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Updated packages
+* (@GermanBluefox) Minimum node.js version is 22
+
 ### 2.1.0 (2025-05-20)
 * (maeb3) Correction for handover of a message to pushover
 * (bluefox) The packages were updated
@@ -240,7 +244,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ## License
 MIT License
 
-Copyright (c) 2020-2025 ioBroker <dogafox@gmail.com>
+Copyright (c) 2020-2026 ioBroker <dogafox@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

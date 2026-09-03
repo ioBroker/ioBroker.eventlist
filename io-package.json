@@ -1,442 +1,437 @@
 {
-  "common": {
-    "name": "eventlist",
-    "version": "2.1.0",
-    "news": {
-      "2.1.0": {
-        "en": "Correction for handover of a message to pushover\nThe packages were updated\nGUI migrated to vite",
-        "de": "Korrektur der Übergabe einer Nachricht an Pushover\nDie Pakete wurden aktualisiert\nGUI migrated to vite",
-        "ru": "Коррекция передачи сообщения для передачи\nПакеты были обновлены\nГУИ мигрировал в Вите",
-        "pt": "Correção para entrega de uma mensagem para empurrar\nOs pacotes foram atualizados\nGUI migrado para vite",
-        "nl": "Correctie voor overdracht van een bericht aan pushover\nDe pakketten werden bijgewerkt\nGUI gemigreerd naar vite",
-        "fr": "Correction pour le transfert d'un message à pousser\nLes paquets ont été mis à jour\nGUI migré vers rite",
-        "it": "Correzione per la consegna di un messaggio a pushover\nI pacchetti sono stati aggiornati\nGUI migrato a vite",
-        "es": "Corrección para el traspaso de un mensaje para el empuje\nLos paquetes se actualizaron\nGUI migrated to vite",
-        "pl": "Korekta dla przekazania wiadomości do przepchnięcia\nPakiety zostały zaktualizowane\nGUI migrował do Vite",
-        "uk": "Корекція для передачі повідомлення\nПакети були оновлено\nГрафічний інтерфейс",
-        "zh-cn": "信件交接的更正\n软件包已经更新\nGUI 迁移到 vite"
-      },
-      "2.0.1": {
-        "en": "Translated the duration",
-        "de": "Übersetzt die Dauer",
-        "ru": "Перевод продолжительности",
-        "pt": "Traduzido o tempo",
-        "nl": "Vertaald de duur",
-        "fr": "Traduit la durée",
-        "it": "Tradotto la durata",
-        "es": "Traducido la duración",
-        "pl": "Przetłumaczony czas trwania",
-        "uk": "Перекладав тривалість",
-        "zh-cn": "翻译期限"
-      },
-      "2.0.0": {
-        "en": "Caught errors by subscribe\nMinimum node.js version is 16",
-        "de": "Gefangene Fehler durch abonnieren\nMinimal node.js version is 16",
-        "ru": "Поймать ошибки по подписке\nМинимальная версия node.js 16",
-        "pt": "Erros de ataque por assinatura\nNode.js mínimo versão é 16",
-        "nl": "Kreeg fouten\nMinimum node",
-        "fr": "Erreurs coquines par abonnement\nVersion minimum node.js est 16",
-        "it": "Errori ricevuti da sottoscrivere\nVersione minima node.js è 16",
-        "es": "Errores comprados por suscríbete\nVersión mínima node.js es 16",
-        "pl": "Chybać o błędy abonentów\nWersja minimalna jest 16",
-        "uk": "Спіймані помилки за підписом\nМінімальний вузол.js версія 16",
-        "zh-cn": "投机错误\nA. 最低限度不适用。"
-      },
-      "1.2.3": {
-        "en": "Corrected the edit of the event sources\nAdded possibility to use default texts for strings values like for booleans",
-        "de": "Korrektur der Bearbeitung der Ereignisquellen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
-        "ru": "Исправлена редакция источников события\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
-        "pt": "Corrigido a edição das fontes do evento\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
-        "nl": "Vertaling:\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
-        "fr": "Correction de la modification des sources de l'événement\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
-        "it": "Corretto la modifica delle fonti dell'evento\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
-        "es": "Corregido la edición de las fuentes del evento\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
-        "pl": "Wykwalifikowano edytację źródeł zdarzeń\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
-        "uk": "Виправлено редагування джерел події\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
-        "zh-cn": "修改活动来源的特性\n增加使用与假释等一系列价值观的违约案文的可能性"
-      },
-      "1.2.2": {
-        "en": "Corrected web page loading in web adapter",
-        "de": "Korrigierte Web-Seitenbeladung im Web-Adapter",
-        "ru": "Исправлена загрузка веб-страницы в web адаптере",
-        "pt": "Carregamento de página web correto no adaptador web",
-        "nl": "Vertaling:",
-        "fr": "Chargement correct de page web dans l'adaptateur web",
-        "it": "Caricamento pagina web corretto nell'adattatore web",
-        "es": "Carga de página web corregida en adaptador web",
-        "pl": "Wręcznik internetowy",
-        "uk": "Виправлено завантаження веб-сторінок в веб-переглядачі",
-        "zh-cn": "网址上装载网页"
-      },
-      "1.2.1": {
-        "en": "Updated GUI packages",
-        "de": "Aktualisierte GUI-Pakete",
-        "ru": "Обновленные пакеты GUI",
-        "pt": "Pacotes de GUI atualizados",
-        "nl": "Update GUI pakketten",
-        "fr": "Paquets GUI mis à jour",
-        "it": "Pacchetti GUI aggiornati",
-        "es": "Paquetes GUI actualizados",
-        "pl": "Pakiet GUI",
-        "uk": "Оновлені пакети GUI",
-        "zh-cn": "A. 最新古伊一揽子计划"
-      },
-      "1.2.0": {
-        "en": "Fixed error with edit of the state settings\nAdded possibility to use default texts for strings values like for booleans",
-        "de": "Fehler behoben mit der Bearbeitung der Zustandseinstellungen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
-        "ru": "Исправлена ошибка с редактированием государственных настроек\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
-        "pt": "Erro corrigido com a edição das configurações do estado\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
-        "nl": "Vergissing van de staatsinstelling\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
-        "fr": "Erreur corrigée avec la modification des paramètres de l'état\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
-        "it": "Errore fisso con modifica delle impostazioni dello stato\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
-        "es": "Error fijo con la edición de la configuración del estado\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
-        "pl": "Błędny błąd z edytacją ustawienia stanu\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
-        "uk": "Виправлена помилка з редагуванням параметрів стану\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
-        "zh-cn": "混淆国家环境的错误\n增加使用与假释等一系列价值观的违约案文的可能性"
-      }
-    },
-    "titleLang": {
-      "en": "Event list",
-      "de": "Ereignisliste",
-      "ru": "Список событий",
-      "pt": "Lista de evento",
-      "nl": "Evenementenlijst",
-      "fr": "Liste des événements",
-      "it": "Elenco degli eventi",
-      "es": "Lista de eventos",
-      "pl": "Lista wydarzeń",
-      "uk": "Список подій",
-      "zh-cn": "活动列表"
-    },
-    "desc": {
-      "en": "Builds and shows the event list from desired states in admin, web and as widget",
-      "de": "Erstellt und zeigt die Ereignisliste aus den gewünschten Status in Admin, Web und als Widget an",
-      "ru": "Создает и отображает список событий из желаемых состояний в админке, в Интернете и в виде виджета.",
-      "pt": "Constrói e mostra a lista de eventos de estados desejados em admin, web e como widget",
-      "nl": "Bouwt en toont de evenementenlijst van de gewenste staten in admin, web en als widget",
-      "fr": "Construit et affiche la liste d'événements à partir des états souhaités dans admin, Web et en tant que widget",
-      "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
-      "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
-      "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
-      "uk": "Створює та відображає список подій з бажаних станів в адмінці, вебі та у вигляді віджета",
-      "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
-    },
-    "authors": [
-      "bluefox <dogafox@gmail.com>"
-    ],
-    "keywords": [
-      "event list",
-      "events"
-    ],
-    "licenseInformation": {
-      "license": "MIT",
-      "type": "free"
-    },
-    "platform": "Javascript/Node.js",
-    "icon": "eventlist.png",
-    "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
-    "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
-    "loglevel": "info",
-    "localLink": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
-    "welcomeScreen": {
-      "link": "eventlist/index.html",
-      "name": {
-        "en": "Events list",
-        "de": "Ereignisliste",
-        "ru": "Список событий",
-        "pt": "Lista de eventos",
-        "nl": "Evenementen lijst",
-        "fr": "Liste des événements",
-        "it": "Elenco eventi",
-        "es": "Lista de eventos",
-        "pl": "Lista wydarzeń",
-        "zh-cn": "活动清单"
-      },
-      "img": "eventlist.admin/eventlist.png",
-      "color": "black",
-      "order": 5
-    },
-    "mode": "daemon",
-    "type": "visualization",
-    "eraseOnUpload": true,
-    "compact": true,
-    "materializeTab": true,
-    "messagebox": true,
-    "adminTab": {
-      "name": {
-        "en": "Event list",
-        "de": "Ereignisse",
-        "ru": "Список событий",
-        "pt": "Lista de evento",
-        "nl": "Evenementenlijst",
-        "fr": "Liste des événements",
-        "it": "Elenco degli eventi",
-        "es": "Lista de eventos",
-        "pl": "Lista wydarzeń",
-        "uk": "Список подій",
-        "zh-cn": "活动列表"
-      }
-    },
-    "supportCustoms": true,
-    "dependencies": [
-      {
-        "js-controller": ">=5.0.19"
-      }
-    ],
-    "restartAdapters": [
-      "vis-2"
-    ],
-    "adminUI": {
-      "config": "materialize",
-      "custom": "json"
-    },
-    "connectionType": "local",
-    "dataSource": "push",
-    "tier": 3,
-    "plugins": {
-      "sentry": {
-        "dsn": "https://bb1b82030b5041a68f0e065262601347@sentry.iobroker.net/191"
-      }
-    }
-  },
-  "native": {
-    "maxLength": 100,
-    "dateFormat": "MMM Do, HH:mm:ss",
-    "relativeTime": 3600,
-    "defaultBooleanTextTrue": "",
-    "defaultBooleanTextFalse": "",
-    "defaultBooleanText": "",
-    "defaultBooleanColorTrue": "",
-    "defaultBooleanColorFalse": "",
-    "defaultBooleanIconTrue": "",
-    "defaultBooleanIconFalse": "",
-    "defaultNonBooleanText": "",
-    "defaultStringTexts": [],
-    "language": "",
-    "stateId": true,
-    "icons": true,
-    "duration": true,
-    "license": "",
-    "pdfButton": false,
-    "pdfSettings": {
-      "orientation": "portrait",
-      "enabledTime": true,
-      "enabledEvent": true,
-      "enabledValue": true,
-      "enabledDuration": true,
-      "widthTime": 105,
-      "widthEvent": 200,
-      "widthValue": 110,
-      "widthDuration": 100,
-      "textTime": "Time",
-      "textEvent": "Event",
-      "textValue": "Value",
-      "textDuration": "Duration",
-      "textColor": "#000000",
-      "paddingLeft": 60,
-      "paddingTopFirst": 120,
-      "paddingTop": 60,
-      "pageWidth": 510,
-      "pageHeight": 740,
-      "fontSize": 10,
-      "colorLineOdd": "#E8E8E8",
-      "colorLineEven": "#FFFFFF",
-      "enabledHeader": true,
-      "fontSizeHeader": 13,
-      "colorHeaderBackground": "#888888",
-      "colorHeader": "#FFFFFF",
-      "titleColor": "#000000",
-      "titleText": "Event list on {{YYYY MM DD H:mm:ss}}",
-      "titleFontSize": 18,
-      "lineHeight": 18,
-      "pageNumberOffsetX": 50,
-      "pageNumberOffsetY": 10,
-      "pageNumberFontSize": 10,
-      "pageNumberColor": "#000000",
-      "pageNumberEnabled": true,
-      "margins": {
-        "top": 30,
-        "bottom": 30,
-        "left": 30,
-        "right": 30
-      }
-    },
-    "defaultWhatsAppCMB": [],
-    "defaultTelegram": [],
-    "defaultPushover": [],
-    "deleteAlarmsByDisable": false
-  },
-  "objects": [
-    {
-      "_id": "_design/custom",
-      "language": "javascript",
-      "views": {
-        "state": {
-          "map": "function(doc) { doc.type === 'state' && doc.common && doc.common.custom && emit(doc._id, doc.common.custom) }"
+    "common": {
+        "name": "eventlist",
+        "version": "2.1.0",
+        "news": {
+            "2.1.0": {
+                "en": "Correction for handover of a message to pushover\nThe packages were updated\nGUI migrated to vite",
+                "de": "Korrektur der Übergabe einer Nachricht an Pushover\nDie Pakete wurden aktualisiert\nGUI migrated to vite",
+                "ru": "Коррекция передачи сообщения для передачи\nПакеты были обновлены\nГУИ мигрировал в Вите",
+                "pt": "Correção para entrega de uma mensagem para empurrar\nOs pacotes foram atualizados\nGUI migrado para vite",
+                "nl": "Correctie voor overdracht van een bericht aan pushover\nDe pakketten werden bijgewerkt\nGUI gemigreerd naar vite",
+                "fr": "Correction pour le transfert d'un message à pousser\nLes paquets ont été mis à jour\nGUI migré vers rite",
+                "it": "Correzione per la consegna di un messaggio a pushover\nI pacchetti sono stati aggiornati\nGUI migrato a vite",
+                "es": "Corrección para el traspaso de un mensaje para el empuje\nLos paquetes se actualizaron\nGUI migrated to vite",
+                "pl": "Korekta dla przekazania wiadomości do przepchnięcia\nPakiety zostały zaktualizowane\nGUI migrował do Vite",
+                "uk": "Корекція для передачі повідомлення\nПакети були оновлено\nГрафічний інтерфейс",
+                "zh-cn": "信件交接的更正\n软件包已经更新\nGUI 迁移到 vite"
+            },
+            "2.0.1": {
+                "en": "Translated the duration",
+                "de": "Übersetzt die Dauer",
+                "ru": "Перевод продолжительности",
+                "pt": "Traduzido o tempo",
+                "nl": "Vertaald de duur",
+                "fr": "Traduit la durée",
+                "it": "Tradotto la durata",
+                "es": "Traducido la duración",
+                "pl": "Przetłumaczony czas trwania",
+                "uk": "Перекладав тривалість",
+                "zh-cn": "翻译期限"
+            },
+            "2.0.0": {
+                "en": "Caught errors by subscribe\nMinimum node.js version is 16",
+                "de": "Gefangene Fehler durch abonnieren\nMinimal node.js version is 16",
+                "ru": "Поймать ошибки по подписке\nМинимальная версия node.js 16",
+                "pt": "Erros de ataque por assinatura\nNode.js mínimo versão é 16",
+                "nl": "Kreeg fouten\nMinimum node",
+                "fr": "Erreurs coquines par abonnement\nVersion minimum node.js est 16",
+                "it": "Errori ricevuti da sottoscrivere\nVersione minima node.js è 16",
+                "es": "Errores comprados por suscríbete\nVersión mínima node.js es 16",
+                "pl": "Chybać o błędy abonentów\nWersja minimalna jest 16",
+                "uk": "Спіймані помилки за підписом\nМінімальний вузол.js версія 16",
+                "zh-cn": "投机错误\nA. 最低限度不适用。"
+            },
+            "1.2.3": {
+                "en": "Corrected the edit of the event sources\nAdded possibility to use default texts for strings values like for booleans",
+                "de": "Korrektur der Bearbeitung der Ereignisquellen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
+                "ru": "Исправлена редакция источников события\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
+                "pt": "Corrigido a edição das fontes do evento\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
+                "nl": "Vertaling:\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
+                "fr": "Correction de la modification des sources de l'événement\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
+                "it": "Corretto la modifica delle fonti dell'evento\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
+                "es": "Corregido la edición de las fuentes del evento\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
+                "pl": "Wykwalifikowano edytację źródeł zdarzeń\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
+                "uk": "Виправлено редагування джерел події\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
+                "zh-cn": "修改活动来源的特性\n增加使用与假释等一系列价值观的违约案文的可能性"
+            },
+            "1.2.2": {
+                "en": "Corrected web page loading in web adapter",
+                "de": "Korrigierte Web-Seitenbeladung im Web-Adapter",
+                "ru": "Исправлена загрузка веб-страницы в web адаптере",
+                "pt": "Carregamento de página web correto no adaptador web",
+                "nl": "Vertaling:",
+                "fr": "Chargement correct de page web dans l'adaptateur web",
+                "it": "Caricamento pagina web corretto nell'adattatore web",
+                "es": "Carga de página web corregida en adaptador web",
+                "pl": "Wręcznik internetowy",
+                "uk": "Виправлено завантаження веб-сторінок в веб-переглядачі",
+                "zh-cn": "网址上装载网页"
+            },
+            "1.2.1": {
+                "en": "Updated GUI packages",
+                "de": "Aktualisierte GUI-Pakete",
+                "ru": "Обновленные пакеты GUI",
+                "pt": "Pacotes de GUI atualizados",
+                "nl": "Update GUI pakketten",
+                "fr": "Paquets GUI mis à jour",
+                "it": "Pacchetti GUI aggiornati",
+                "es": "Paquetes GUI actualizados",
+                "pl": "Pakiet GUI",
+                "uk": "Оновлені пакети GUI",
+                "zh-cn": "A. 最新古伊一揽子计划"
+            },
+            "1.2.0": {
+                "en": "Fixed error with edit of the state settings\nAdded possibility to use default texts for strings values like for booleans",
+                "de": "Fehler behoben mit der Bearbeitung der Zustandseinstellungen\nZusätzliche Möglichkeit, Standardtexte für Strings-Werte wie für Booleans zu verwenden",
+                "ru": "Исправлена ошибка с редактированием государственных настроек\nДобавлена возможность использования текстов по умолчанию для значений строк, таких как для booleans",
+                "pt": "Erro corrigido com a edição das configurações do estado\nAdicionado possibilidade de usar textos padrão para valores de strings como para booleans",
+                "nl": "Vergissing van de staatsinstelling\nToegevoegde mogelijkheid om defecte teksten te gebruiken voor touwwaarden zoals voor booleans",
+                "fr": "Erreur corrigée avec la modification des paramètres de l'état\nAjout de la possibilité d'utiliser des textes par défaut pour des valeurs de chaîne comme pour les booleans",
+                "it": "Errore fisso con modifica delle impostazioni dello stato\nAggiunta possibilità di utilizzare i testi predefiniti per i valori delle stringhe come per i booleans",
+                "es": "Error fijo con la edición de la configuración del estado\nAñadido posibilidad de utilizar textos predeterminados para valores de cadenas como para booleanos",
+                "pl": "Błędny błąd z edytacją ustawienia stanu\nWstępna możliwość używania domyślnych tekstów dla wartości strun takich jak booleans",
+                "uk": "Виправлена помилка з редагуванням параметрів стану\nДодано можливість використовувати типові тексти для значень рядків, таких як booleans",
+                "zh-cn": "混淆国家环境的错误\n增加使用与假释等一系列价值观的违约案文的可能性"
+            }
+        },
+        "titleLang": {
+            "en": "Event list",
+            "de": "Ereignisliste",
+            "ru": "Список событий",
+            "pt": "Lista de evento",
+            "nl": "Evenementenlijst",
+            "fr": "Liste des événements",
+            "it": "Elenco degli eventi",
+            "es": "Lista de eventos",
+            "pl": "Lista wydarzeń",
+            "uk": "Список подій",
+            "zh-cn": "活动列表"
+        },
+        "desc": {
+            "en": "Builds and shows the event list from desired states in admin, web and as widget",
+            "de": "Erstellt und zeigt die Ereignisliste aus den gewünschten Status in Admin, Web und als Widget an",
+            "ru": "Создает и отображает список событий из желаемых состояний в админке, в Интернете и в виде виджета.",
+            "pt": "Constrói e mostra a lista de eventos de estados desejados em admin, web e como widget",
+            "nl": "Bouwt en toont de evenementenlijst van de gewenste staten in admin, web en als widget",
+            "fr": "Construit et affiche la liste d'événements à partir des états souhaités dans admin, Web et en tant que widget",
+            "it": "Crea e mostra l'elenco degli eventi dagli stati desiderati in admin, web e come widget",
+            "es": "Crea y muestra la lista de eventos de los estados deseados en admin, web y como widget",
+            "pl": "Tworzy i wyświetla listę wydarzeń z żądanych stanów w panelu administracyjnym, internetowym i jako widget",
+            "uk": "Створює та відображає список подій з бажаних станів в адмінці, вебі та у вигляді віджета",
+            "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
+        },
+        "authors": ["bluefox <dogafox@gmail.com>"],
+        "keywords": ["event list", "events"],
+        "licenseInformation": {
+            "license": "MIT",
+            "type": "free"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "eventlist.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.eventlist/master/admin/eventlist.png",
+        "readme": "https://github.com/ioBroker/ioBroker.eventlist/blob/master/README.md",
+        "loglevel": "info",
+        "localLinks": {
+            "_default": {
+                "link": "%web_protocol%://%ip%:%web_port%/eventlist/index.html",
+                "name": {
+                    "en": "Events list",
+                    "de": "Ereignisliste",
+                    "ru": "Список событий",
+                    "pt": "Lista de eventos",
+                    "nl": "Evenementen lijst",
+                    "fr": "Liste des événements",
+                    "it": "Elenco eventi",
+                    "es": "Lista de eventos",
+                    "pl": "Lista wydarzeń",
+                    "zh-cn": "活动清单"
+                },
+                "icon": "eventlist.admin/eventlist.png",
+                "color": "black",
+                "order": 5
+            }
+        },
+        "mode": "daemon",
+        "type": "visualization",
+        "eraseOnUpload": true,
+        "compact": true,
+        "materializeTab": true,
+        "messagebox": true,
+        "adminTab": {
+            "name": {
+                "en": "Event list",
+                "de": "Ereignisse",
+                "ru": "Список событий",
+                "pt": "Lista de evento",
+                "nl": "Evenementenlijst",
+                "fr": "Liste des événements",
+                "it": "Elenco degli eventi",
+                "es": "Lista de eventos",
+                "pl": "Lista wydarzeń",
+                "uk": "Список подій",
+                "zh-cn": "活动列表"
+            }
+        },
+        "supportCustoms": true,
+        "dependencies": [
+            {
+                "js-controller": ">=5.0.19"
+            }
+        ],
+        "restartAdapters": ["vis-2"],
+        "adminUI": {
+            "config": "materialize",
+            "custom": "json"
+        },
+        "connectionType": "local",
+        "dataSource": "push",
+        "tier": 3,
+        "plugins": {
+            "sentry": {
+                "dsn": "https://bb1b82030b5041a68f0e065262601347@sentry.iobroker.net/191"
+            }
         }
-      }
-    }
-  ],
-  "instanceObjects": [
-    {
-      "_id": "insert",
-      "common": {
-        "name": "Insert event into table",
-        "write": true,
-        "read": false,
-        "type": "json",
-        "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
-      },
-      "type": "state",
-      "native": {}
     },
-    {
-      "_id": "delete",
-      "common": {
-        "name": "Delete event from table",
-        "write": true,
-        "read": false,
-        "type": "json",
-        "desc": "* - delete all, ID - delete events from list for specific object, timestamp - delete one event from list by timestamp (number or ISO string)"
-      },
-      "type": "state",
-      "native": {}
+    "native": {
+        "maxLength": 100,
+        "dateFormat": "MMM Do, HH:mm:ss",
+        "relativeTime": 3600,
+        "defaultBooleanTextTrue": "",
+        "defaultBooleanTextFalse": "",
+        "defaultBooleanText": "",
+        "defaultBooleanColorTrue": "",
+        "defaultBooleanColorFalse": "",
+        "defaultBooleanIconTrue": "",
+        "defaultBooleanIconFalse": "",
+        "defaultNonBooleanText": "",
+        "defaultStringTexts": [],
+        "language": "",
+        "stateId": true,
+        "icons": true,
+        "duration": true,
+        "license": "",
+        "pdfButton": false,
+        "pdfSettings": {
+            "orientation": "portrait",
+            "enabledTime": true,
+            "enabledEvent": true,
+            "enabledValue": true,
+            "enabledDuration": true,
+            "widthTime": 105,
+            "widthEvent": 200,
+            "widthValue": 110,
+            "widthDuration": 100,
+            "textTime": "Time",
+            "textEvent": "Event",
+            "textValue": "Value",
+            "textDuration": "Duration",
+            "textColor": "#000000",
+            "paddingLeft": 60,
+            "paddingTopFirst": 120,
+            "paddingTop": 60,
+            "pageWidth": 510,
+            "pageHeight": 740,
+            "fontSize": 10,
+            "colorLineOdd": "#E8E8E8",
+            "colorLineEven": "#FFFFFF",
+            "enabledHeader": true,
+            "fontSizeHeader": 13,
+            "colorHeaderBackground": "#888888",
+            "colorHeader": "#FFFFFF",
+            "titleColor": "#000000",
+            "titleText": "Event list on {{YYYY MM DD H:mm:ss}}",
+            "titleFontSize": 18,
+            "lineHeight": 18,
+            "pageNumberOffsetX": 50,
+            "pageNumberOffsetY": 10,
+            "pageNumberFontSize": 10,
+            "pageNumberColor": "#000000",
+            "pageNumberEnabled": true,
+            "margins": {
+                "top": 30,
+                "bottom": 30,
+                "left": 30,
+                "right": 30
+            }
+        },
+        "defaultWhatsAppCMB": [],
+        "defaultTelegram": [],
+        "defaultPushover": [],
+        "deleteAlarmsByDisable": false
     },
-    {
-      "_id": "triggerPDF",
-      "common": {
-        "name": "Generate PDF file",
-        "write": true,
-        "read": false,
-        "def": false,
-        "role": "button",
-        "type": "boolean"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "alarm",
-      "common": {
-        "name": "Switch alarm state",
-        "write": true,
-        "read": true,
-        "type": "boolean",
-        "role": "switch",
-        "desc": "Toggle alarm state"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "eventListRaw",
-      "common": {
-        "expert": true,
-        "name": "Raw events table",
-        "write": false,
-        "read": true,
-        "def": "[]",
-        "type": "json"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "eventJSONList",
-      "common": {
-        "name": "Event JSON table",
-        "write": false,
-        "read": true,
-        "def": "[]",
-        "type": "json"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent",
-      "common": {
-        "name": "Last event"
-      },
-      "type": "channel",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.json",
-      "common": {
-        "name": "Last event as JSON",
-        "write": false,
-        "read": true,
-        "def": "{}",
-        "type": "json"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.event",
-      "common": {
-        "name": "Last event text",
-        "write": false,
-        "read": true,
-        "def": "",
-        "type": "string"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.ts",
-      "common": {
-        "name": "Last event time in ms",
-        "write": false,
-        "read": true,
-        "def": 0,
-        "role": "datetime",
-        "type": "number"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.duration",
-      "common": {
-        "name": "Last event duration",
-        "write": false,
-        "read": true,
-        "def": 0,
-        "unit": "ms",
-        "role": "state",
-        "type": "number"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.val",
-      "common": {
-        "name": "Last event value",
-        "write": false,
-        "read": true,
-        "role": "state",
-        "type": "mixed"
-      },
-      "type": "state",
-      "native": {}
-    },
-    {
-      "_id": "lastEvent.id",
-      "common": {
-        "name": "Last event state id",
-        "write": false,
-        "read": true,
-        "role": "state",
-        "def": "",
-        "type": "string"
-      },
-      "type": "state",
-      "native": {}
-    }
-  ]
+    "objects": [
+        {
+            "_id": "_design/custom",
+            "language": "javascript",
+            "type": "design",
+            "views": {
+                "state": {
+                    "map": "function(doc) { doc.type === 'state' && doc.common && doc.common.custom && emit(doc._id, doc.common.custom) }"
+                }
+            }
+        }
+    ],
+    "instanceObjects": [
+        {
+            "_id": "insert",
+            "common": {
+                "name": "Insert event into table",
+                "write": true,
+                "read": false,
+                "type": "json",
+                "desc": "Write following JSON object: {\"event\": \"My custom event\", \"ts\":1234455666, \"val\": \"optional value\"}"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "delete",
+            "common": {
+                "name": "Delete event from table",
+                "write": true,
+                "read": false,
+                "type": "json",
+                "desc": "* - delete all, ID - delete events from list for specific object, timestamp - delete one event from list by timestamp (number or ISO string)"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "triggerPDF",
+            "common": {
+                "name": "Generate PDF file",
+                "write": true,
+                "read": false,
+                "def": false,
+                "role": "button",
+                "type": "boolean"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "alarm",
+            "common": {
+                "name": "Switch alarm state",
+                "write": true,
+                "read": true,
+                "type": "boolean",
+                "role": "switch",
+                "desc": "Toggle alarm state"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "eventListRaw",
+            "common": {
+                "expert": true,
+                "name": "Raw events table",
+                "write": false,
+                "read": true,
+                "def": "[]",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "eventJSONList",
+            "common": {
+                "name": "Event JSON table",
+                "write": false,
+                "read": true,
+                "def": "[]",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent",
+            "common": {
+                "name": "Last event"
+            },
+            "type": "channel",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.json",
+            "common": {
+                "name": "Last event as JSON",
+                "write": false,
+                "read": true,
+                "def": "{}",
+                "type": "json"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.event",
+            "common": {
+                "name": "Last event text",
+                "write": false,
+                "read": true,
+                "def": "",
+                "type": "string"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.ts",
+            "common": {
+                "name": "Last event time in ms",
+                "write": false,
+                "read": true,
+                "def": 0,
+                "role": "datetime",
+                "type": "number"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.duration",
+            "common": {
+                "name": "Last event duration",
+                "write": false,
+                "read": true,
+                "def": 0,
+                "unit": "ms",
+                "role": "state",
+                "type": "number"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.val",
+            "common": {
+                "name": "Last event value",
+                "write": false,
+                "read": true,
+                "role": "state",
+                "type": "mixed"
+            },
+            "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "lastEvent.id",
+            "common": {
+                "name": "Last event state id",
+                "write": false,
+                "read": true,
+                "role": "state",
+                "def": "",
+                "type": "string"
+            },
+            "type": "state",
+            "native": {}
+        }
+    ]
 }

@@ -1,7 +1,7 @@
 import * as utils from '@iobroker/adapter-core';
 import moment from 'moment';
 
-import list2pdf from '../lib/list2pdf';
+import list2pdf from './lib/list2pdf';
 import words from './words';
 
 import 'moment/locale/de';

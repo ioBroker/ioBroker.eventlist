@@ -1,38 +1,27 @@
-import config from '@iobroker/eslint-config';
+import config, { reactConfig } from '@iobroker/eslint-config';
 
 export default [
     ...config,
+    ...reactConfig,
     {
         languageOptions: {
             parserOptions: {
                 projectService: {
-                    allowDefaultProject: ['*.mjs'],
+                    allowDefaultProject: ['*.js', '*.mjs'],
                 },
                 tsconfigRootDir: import.meta.dirname,
             },
         },
     },
     {
-        ignores: [
-            'src-admin/**/*',
-            'admin/**/*',
-            'www/**/*',
-            'widgets/**/*',
-            'node_modules/**/*',
-            'test/**/*',
-            'build/**/*',
-            'tasks.js',
-            'tmp/**/*',
-            '.**/*',
-        ],
+        // specify files to exclude from linting here
+        ignores: ['build/', 'node_modules/', '.__mf__temp/', 'vite.config.*', 'src/vite-env.d.ts', 'public/'],
     },
     {
         // disable temporary the rule 'jsdoc/require-param' and enable 'jsdoc/require-jsdoc'
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/require-param': 'off',
-
-            '@typescript-eslint/no-require-imports': 'off',
         },
     },
 ];

@@ -2,6 +2,7 @@
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
         "noEmit": true,
+        "rootDir": ".",
         "allowJs": true,
         "checkJs": true,
         "resolveJsonModule": true,

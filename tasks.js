@@ -1,5 +1,5 @@
 /*!
- * ioBroker gulpfile
+ * ioBroker build tasks
  * Date: 2019-01-28
  */
 'use strict';
@@ -8,8 +8,10 @@ const fs = require('node:fs');
 const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles, patchHtmlFile } = require('@iobroker/build-tools');
 const pkg = require('./package.json');
 const iopackage = require('./io-package.json');
-const { copyFileSync } = require('node:fs');
 const version = pkg?.version ? pkg.version : iopackage.common.version;
+
+/** Directory of the React sources */
+const SRC_ADMIN = `${__dirname}/src-admin`;
 
 //TASKS
 function clean() {
@@ -18,9 +20,9 @@ function clean() {
 }
 
 async function copyAllFiles() {
-    copyFiles(['src/build/**/*', '!src/build/index.html'], 'admin/');
-    await patchHtmlFile(`${__dirname}/src/build/index.html`);
-    copyFileSync(`${__dirname}/src/build/index.html`, `${__dirname}/admin/index_m.html`);
+    copyFiles(['src-admin/build/**/*', '!src-admin/build/index.html'], 'admin/');
+    await patchHtmlFile(`${SRC_ADMIN}/build/index.html`);
+    fs.copyFileSync(`${SRC_ADMIN}/build/index.html`, `${__dirname}/admin/index_m.html`);
 
     if (fs.existsSync(`${__dirname}/widgets/eventlist.html`)) {
         let code = fs.readFileSync(`${__dirname}/widgets/eventlist.html`).toString('utf8');
@@ -28,15 +30,15 @@ async function copyAllFiles() {
         fs.writeFileSync(`${__dirname}/widgets/eventlist.html`, code);
     }
 
-    if (fs.existsSync(`${__dirname}/src/build/index.html`)) {
-        const code = fs.readFileSync(`${__dirname}/src/build/index.html`).toString('utf8');
+    if (fs.existsSync(`${SRC_ADMIN}/build/index.html`)) {
+        const code = fs.readFileSync(`${SRC_ADMIN}/build/index.html`).toString('utf8');
         fs.writeFileSync(`${__dirname}/admin/tab_m.html`, code);
     } else if (fs.existsSync(`${__dirname}/admin/index.html`)) {
         const code = fs.readFileSync(`${__dirname}/admin/index.html`).toString('utf8');
         fs.writeFileSync(`${__dirname}/admin/tab_m.html`, code);
     }
 
-    copyFiles(['src/build/**/*'], 'www/');
+    copyFiles(['src-admin/build/**/*'], 'www/');
     if (fs.existsSync(`${__dirname}/www/index.html`)) {
         let code = fs.readFileSync(`${__dirname}/www/index.html`).toString('utf8');
         if (!code.includes('_socket/info.js')) {
@@ -52,10 +54,12 @@ async function copyAllFiles() {
         fs.writeFileSync(`${__dirname}/www/index.html`, code);
     }
 }
+
 clean();
+
 let npmPromise;
-if (!fs.existsSync(`${__dirname}/src/node_modules`)) {
-    npmPromise = npmInstall(`${__dirname}/src`).catch(e => {
+if (!fs.existsSync(`${SRC_ADMIN}/node_modules`)) {
+    npmPromise = npmInstall(SRC_ADMIN).catch(e => {
         console.log(`Cannot npm install: ${e}`);
         process.exit(2);
     });
@@ -64,7 +68,7 @@ if (!fs.existsSync(`${__dirname}/src/node_modules`)) {
 }
 
 npmPromise
-    .then(() => buildReact(`${__dirname}/src`, { rootDir: `${__dirname}/src`, vite: true }))
+    .then(() => buildReact(SRC_ADMIN, { rootDir: __dirname, vite: true }))
     .then(() => copyAllFiles())
     .catch(e => {
         console.log(`Cannot build: ${e}`);
