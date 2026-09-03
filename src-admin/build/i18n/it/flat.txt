@@ -1,8 +1,0 @@
-Stato del dispositivo %n modificato:
-ore
-m
-ms
-s
-spento
-acceso
-non definito

@@ -23,7 +23,6 @@ export default [
             'build/**/*',
             'tasks.js',
             'tmp/**/*',
-            '.**/*',
         ],
     },
     {

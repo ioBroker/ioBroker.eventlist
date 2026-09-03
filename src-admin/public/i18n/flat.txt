@@ -1,8 +1,0 @@
-Device %n changed status:
-hours
-minutes
-ms
-sec
-switched off
-switched on
-undefined

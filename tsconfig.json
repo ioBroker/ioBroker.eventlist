@@ -2,14 +2,14 @@
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
         "noEmit": true,
-        "rootDir": ".",
-        "allowJs": true,
-        "checkJs": true,
+        "rootDir": "./src/",
+        "allowJs": false,
         "resolveJsonModule": true,
         "noEmitOnError": true,
         "sourceMap": true,
         "outDir": "./build/",
         "strict": true,
+        "strictNullChecks": true,
         "noImplicitAny": false,
         "useUnknownInCatchVariables": false
     },

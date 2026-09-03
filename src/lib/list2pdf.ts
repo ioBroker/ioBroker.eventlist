@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
-import { Writable, WritableOptions } from 'node:stream';
+import { Writable, type WritableOptions } from 'node:stream';
+import type { EventList } from '../main';
 
 interface MemStore {
     [key: string]: Buffer;
@@ -141,17 +142,6 @@ interface LineData {
     duration?: string;
 }
 
-interface Adapter {
-    config: {
-        pdfSettings?: Partial<Settings>;
-    };
-    name: string;
-    writeFile: (namespace: string, fileName: string, data: Buffer, options: null, callback: () => void) => void;
-    log: {
-        debug: (message: string) => void;
-    };
-}
-
 interface Moment {
     (): MomentInstance;
 }
@@ -195,19 +185,19 @@ function pdfAddTableHeader(pdf: typeof PDFDocument, context: Context): void {
         pdf.fillColor(context.settings.colorHeader).fontSize(context.settings.fontSizeHeader);
 
         if (context.settings.enabledTime) {
-            context.settings.textTime && pdf.text(context.settings.textTime, posX, context.y!);
+            context.settings.textTime && pdf.text(context.settings.textTime, posX, context.y);
             posX += context.settings.widthTime;
         }
 
-        context.settings.textEvent && pdf.text(context.settings.textEvent, posX, context.y!);
+        context.settings.textEvent && pdf.text(context.settings.textEvent, posX, context.y);
         posX += context.settings.widthEvent;
 
         if (context.settings.enabledValue) {
-            context.settings.textValue && pdf.text(context.settings.textValue, posX, context.y!);
+            context.settings.textValue && pdf.text(context.settings.textValue, posX, context.y);
             posX += context.settings.widthValue;
         }
         if (context.settings.enabledDuration) {
-            context.settings.textDuration && pdf.text(context.settings.textDuration, posX, context.y!);
+            context.settings.textDuration && pdf.text(context.settings.textDuration, posX, context.y);
         }
         context.y! += context.settings.lineHeight;
     }
@@ -225,15 +215,15 @@ function pdfWriteOneLine(pdf: typeof PDFDocument, context: Context, data: LineDa
     }
 
     if (context.odd) {
-        pdf.rect(posX - 5, context.y! - 3, context.settings.pageWidth, context.settings.lineHeight).fill(
+        pdf.rect(posX - 5, context.y - 3, context.settings.pageWidth, context.settings.lineHeight).fill(
             context.settings.colorLineOdd,
         );
     } else if (context.settings.colorLineEven !== '#FFFFFF' && context.settings.colorLineEven) {
-        pdf.rect(posX - 5, context.y! - 3, context.settings.pageWidth, context.settings.lineHeight).fill(
+        pdf.rect(posX - 5, context.y - 3, context.settings.pageWidth, context.settings.lineHeight).fill(
             context.settings.colorLineEven,
         );
     }
-    let posY = context.y!;
+    let posY = context.y;
 
     pdf.fillColor(context.settings.textColor).fontSize(context.settings.fontSize);
 
@@ -302,7 +292,7 @@ function createPdf(fileName: string, lines: LineData[], settings: Settings, onFi
 }
 
 export default function list2pdf(
-    adapter: Adapter,
+    adapter: EventList,
     moment: Moment,
     fileName: string,
     list: LineData[],
@@ -346,7 +336,7 @@ export default function list2pdf(
                     delete memStore[FILE_NAME];
                     adapter.log.debug(`PDF generated and stored in ${adapter.name}/${fileName}`);
                 }
-                setImmediate(() => (error ? reject(error) : resolve()));
+                setImmediate(() => (error ? reject(new Error(error)) : resolve()));
             });
         }),
     );

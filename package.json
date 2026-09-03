@@ -60,7 +60,7 @@
         "check": "tsc --noEmit",
         "lint": "eslint -c eslint.config.mjs && cd src-admin && npm run lint",
         "prepublishOnly": "node tasks.js",
-        "build": "node tasks.js",
+        "build": "tsc -p tsconfig.build.json && node tasks.js",
         "release": "release-script",
         "release-patch": "release-script patch --yes",
         "release-minor": "release-script minor --yes",

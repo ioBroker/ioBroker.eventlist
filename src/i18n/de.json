@@ -1,0 +1,11 @@
+{
+  "Device %n changed status:": "Gerät %n hat den Status geändert:",
+  "days": "Tage",
+  "hours": "Std.",
+  "minutes": "Minuten",
+  "ms": "MS",
+  "sec": "Sekunde",
+  "switched off": "ausgeschaltet",
+  "switched on": "eingeschaltet",
+  "undefined": "undefiniert"
+}

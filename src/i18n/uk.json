@@ -1,0 +1,11 @@
+{
+  "Device %n changed status:": "Пристрій %n змінив статус:",
+  "days": "дні",
+  "hours": "години",
+  "minutes": "хвилин",
+  "ms": "РС",
+  "sec": "сек",
+  "switched off": "вимкнено",
+  "switched on": "увімкнено",
+  "undefined": "невизначено"
+}

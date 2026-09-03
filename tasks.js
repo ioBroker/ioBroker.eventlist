@@ -54,6 +54,10 @@ async function copyAllFiles() {
         fs.writeFileSync(`${__dirname}/www/index.html`, code);
     }
 }
+function copyI18n() {
+    copyFiles(['src/i18n/**/*'], 'build/i18n/');
+}
+
 
 clean();
 
