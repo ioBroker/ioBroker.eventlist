@@ -19,7 +19,7 @@
             href="manifest.json"
         />
         <script>
-            var script = document.createElement('script');
+            const script = document.createElement('script');
             window.registerSocketOnLoad = function (cb) {
                 window.socketLoadedHandler = cb;
             };
@@ -42,8 +42,8 @@
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
         <script
-                type="module"
-                src="./src/index.jsx"
+            type="module"
+            src="./src/index.jsx"
         ></script>
     </body>
 </html>
