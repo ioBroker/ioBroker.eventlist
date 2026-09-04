@@ -141,7 +141,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
-### **WORK IN PROGRESS**
+### 3.0.0 (2026-09-04)
 * (@GermanBluefox) Updated packages
 * (@GermanBluefox) A Minimum node.js version is 22
 * (@GermanBluefox) Migrated to TypeScript

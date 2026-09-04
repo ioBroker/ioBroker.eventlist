@@ -1,7 +1,7 @@
 {
     "name": "iobroker.eventlist-widgets",
     "private": true,
-    "version": "2.1.0",
+    "version": "3.0.0",
     "type": "module",
     "dependencies": {
         "@iobroker/types-vis-2": "~2.20.0",
