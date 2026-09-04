@@ -5,7 +5,17 @@ import { moduleFederationShared } from '@iobroker/gui-components/modulefederatio
 import pack from './package.json';
 
 const shared = moduleFederationShared(pack);
-delete shared['@iobroker/json-config'];
+
+/**
+ * `@iobroker/json-config` is only used here, never provided.
+ *
+ * Module federation builds a local fallback copy of every shared module, so that a component could
+ * run without a host. For this library that fallback costs more than an hour of build time - it is
+ * the whole package entry, not only the parts that are used - and it is pointless: this component is
+ * loaded by the JSON config of the admin, which brings the library with it. `import: false` says
+ * exactly that, and the build drops from over an hour to under a minute.
+ */
+shared['@iobroker/json-config'] = { requiredVersion: '*', singleton: true, import: false };
 
 const config = {
     plugins: [

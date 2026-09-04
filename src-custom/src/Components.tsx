@@ -1,8 +1,3 @@
-import React from 'react';
-import { Button } from '@mui/material';
+import EventlistCustom from './EventlistCustom';
 
-function Probe(): React.JSX.Element {
-    return <Button>probe</Button>;
-}
-
-export default { Probe };
+export default { EventlistCustom };
