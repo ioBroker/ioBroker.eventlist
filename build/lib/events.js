@@ -12,6 +12,7 @@ exports.applyDeleteFilter = applyDeleteFilter;
 exports.normalizeInsertValue = normalizeInsertValue;
 exports.normalizeEvent = normalizeEvent;
 exports.isValueDisabled = isValueDisabled;
+exports.isAlarmModeOn = isAlarmModeOn;
 exports.isSkippedByAlarmMode = isSkippedByAlarmMode;
 exports.removeAlarmEvents = removeAlarmEvents;
 exports.buildEventItem = buildEventItem;
@@ -446,6 +447,17 @@ function isValueDisabled(settings, val) {
         return false;
     }
     return !!settings.states.find(item => item.val === val.toString())?.disabled;
+}
+/**
+ * Read the alarm mode out of the value of the state `alarm`.
+ *
+ * The state is declared as boolean, but it is written by the users from scripts and from other
+ * adapters, so the usual spellings of "on" are accepted as well.
+ *
+ * @param val value of the state `alarm`
+ */
+function isAlarmModeOn(val) {
+    return val === true || val === 1 || val === 'true' || val === '1' || val === 'ON' || val === 'on';
 }
 /**
  * Check if the event must be ignored, because its state is only monitored in the alarm mode

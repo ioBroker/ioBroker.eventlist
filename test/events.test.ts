@@ -11,6 +11,7 @@ import {
     insertEventItem,
     isDurationUsed,
     isOldValueUsed,
+    isAlarmModeOn,
     isSkippedByAlarmMode,
     isValueDisabled,
     normalizeEvent,
@@ -403,6 +404,29 @@ describe('events engine', () => {
                 result.map(item => item.ts),
                 [200, 100],
             );
+        });
+    });
+
+    describe('isAlarmModeOn', () => {
+        it('accepts the usual spellings of on', () => {
+            for (const val of [true, 1, 'true', '1', 'ON', 'on']) {
+                assert.equal(isAlarmModeOn(val), true, `${JSON.stringify(val)} must switch the alarm mode on`);
+            }
+        });
+
+        it('treats everything else as off', () => {
+            for (const val of [false, 0, 'false', '0', 'OFF', 'off', '', null, undefined]) {
+                assert.equal(
+                    isAlarmModeOn(val as ioBroker.StateValue),
+                    false,
+                    `${JSON.stringify(val)} must switch the alarm mode off`,
+                );
+            }
+        });
+
+        it('does not fall for a truthy string', () => {
+            // the old code at the start used `!!state.val`, which read "false" as on
+            assert.equal(isAlarmModeOn('false'), false);
         });
     });
 

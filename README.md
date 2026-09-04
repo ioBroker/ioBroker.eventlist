@@ -146,6 +146,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ## Changelog
 ### **WORK IN PROGRESS**
 * (@GermanBluefox) Added devices widget
+* (@GermanBluefox) Fixed the alarm mode, that was switched off by every restart
 
 ### 3.0.0 (2026-09-04)
 * (@GermanBluefox) Updated packages

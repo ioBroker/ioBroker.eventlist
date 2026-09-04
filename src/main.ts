@@ -11,6 +11,7 @@ import {
     insertEventItem,
     isDurationUsed,
     isOldValueUsed,
+    isAlarmModeOn,
     isSkippedByAlarmMode,
     isValueDisabled,
     normalizeEvent,
@@ -111,8 +112,10 @@ export class EventList extends Adapter {
             this.config.maxLength = 10000;
         }
 
-        const state = await this.getStateAsync('alarmMode');
-        this.#alarmMode = !!state?.val;
+        // The alarm mode is switched with the state `alarm`, so it has to be read from there too.
+        // Reading `alarmMode`, which does not exist, turned the alarm mode off on every restart.
+        const state = await this.getStateAsync('alarm');
+        this.#alarmMode = isAlarmModeOn(state?.val);
 
         moment.locale(this.#systemLang === 'en' ? 'en-gb' : this.#systemLang);
 
@@ -158,13 +161,7 @@ export class EventList extends Adapter {
         } else if (id === `${this.namespace}.alarm` && state && !state.ack) {
             this.log.info(`Switch ALARM state to ${state.val}`);
 
-            this.#alarmMode =
-                state.val === true ||
-                state.val === 'true' ||
-                state.val === 1 ||
-                state.val === '1' ||
-                state.val === 'ON' ||
-                state.val === 'on';
+            this.#alarmMode = isAlarmModeOn(state.val);
             if (this.config.deleteAlarmsByDisable && !this.#alarmMode) {
                 return this.#getRawEventList().then(eventList => {
                     const count = eventList.length;

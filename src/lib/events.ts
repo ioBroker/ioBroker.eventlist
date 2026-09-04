@@ -575,6 +575,18 @@ export function isValueDisabled(settings: StateSettings, val: ioBroker.StateValu
 }
 
 /**
+ * Read the alarm mode out of the value of the state `alarm`.
+ *
+ * The state is declared as boolean, but it is written by the users from scripts and from other
+ * adapters, so the usual spellings of "on" are accepted as well.
+ *
+ * @param val value of the state `alarm`
+ */
+export function isAlarmModeOn(val: ioBroker.StateValue | undefined): boolean {
+    return val === true || val === 1 || val === 'true' || val === '1' || val === 'ON' || val === 'on';
+}
+
+/**
  * Check if the event must be ignored, because its state is only monitored in the alarm mode
  *
  * @param event the incoming event
