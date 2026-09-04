@@ -1,0 +1,13 @@
+{
+    "eventlist_delete_what": "Eliminar",
+    "eventlist_event": "Texto del evento",
+    "eventlist_icon": "Icono",
+    "eventlist_id": "ID del estado",
+    "eventlist_log": "nivel de registro",
+    "eventlist_log_debug": "depurar",
+    "eventlist_log_error": "error",
+    "eventlist_log_info": "información",
+    "eventlist_log_none": "ninguna",
+    "eventlist_log_warn": "advertencia",
+    "eventlist_value": "Valor"
+}

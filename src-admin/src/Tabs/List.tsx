@@ -2,6 +2,7 @@ import React, { Component, type ComponentType, type CSSProperties, type JSX } fr
 import { lighten, type Theme } from '@mui/material/styles';
 
 import {
+    Box,
     Table,
     TableBody,
     TableCell,
@@ -83,6 +84,8 @@ const styles: Record<string, CSSProperties> = {
         width: '100%',
         height: '100%',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
     },
     instanceNotOnline: {
         color: '#883333',
@@ -110,11 +113,13 @@ const styles: Record<string, CSSProperties> = {
         width: 1,
     },
     tableContainer: {
-        height: '100%',
+        // fill the rest of the card below the toolbar; `height: 100%` would push the bottom out of the card
+        flex: 1,
+        minHeight: 0,
         overflow: 'auto',
     },
     table: {
-        width: 'auto',
+        width: '100%',
     },
     tdIcons: {
         textAlign: 'right',
@@ -197,6 +202,30 @@ const sxEditButton = {
 
 const sxButtonAddState = {
     minWidth: '120px !important',
+};
+
+const ICON_SIZE = 28;
+
+/**
+ * Hard size limit for the event icon.
+ *
+ * The icon is provided by the user and can be an SVG without an own size or with its own `style` attribute.
+ * Such an SVG expands to the width of its container and blows up the table layout, so the icon is put into a
+ * box of a fixed size that clips whatever does not fit.
+ */
+const sxIconBox = {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    overflow: 'hidden',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    verticalAlign: 'middle',
+    '& > *': {
+        maxWidth: '100%',
+        maxHeight: '100%',
+        flexShrink: 0,
+    },
 };
 
 const sxDurationRunning = {
@@ -1013,16 +1042,18 @@ class List extends Component<ListProps, ListState> {
                                                 align="center"
                                             >
                                                 {icon ? (
-                                                    icon.endsWith('default') ? (
-                                                        <IconEvent />
-                                                    ) : (
-                                                        <Image
-                                                            imagePrefix={this.imagePrefix}
-                                                            src={icon}
-                                                            sx={{ width: 28, height: 28, verticalAlign: 'middle' }}
-                                                            color={row._style?.color || ''}
-                                                        />
-                                                    )
+                                                    <Box sx={sxIconBox}>
+                                                        {icon.endsWith('default') ? (
+                                                            <IconEvent />
+                                                        ) : (
+                                                            <Image
+                                                                imagePrefix={this.imagePrefix}
+                                                                src={icon}
+                                                                sx={{ width: ICON_SIZE, height: ICON_SIZE }}
+                                                                color={row._style?.color || ''}
+                                                            />
+                                                        )}
+                                                    </Box>
                                                 ) : null}
                                             </TableCell>
                                         ) : null}

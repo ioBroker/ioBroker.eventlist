@@ -1,0 +1,19 @@
+{
+    "eventlist": "Ereignis zur Ereignisliste hinzufügen",
+    "eventlist_delete": "Ereignisse aus der Ereignisliste löschen",
+    "eventlist_delete_all": "alle Ereignisse",
+    "eventlist_delete_filter": "Status-ID oder Zeit",
+    "eventlist_delete_tooltip": "Alle Ereignisse löschen, alle Ereignisse eines Status oder ein Ereignis anhand seiner Zeit",
+    "eventlist_delete_what": "Löschen",
+    "eventlist_event": "Ereignistext",
+    "eventlist_icon": "Symbol",
+    "eventlist_id": "Status-ID",
+    "eventlist_log": "Loglevel",
+    "eventlist_log_debug": "debug",
+    "eventlist_log_error": "error",
+    "eventlist_log_info": "info",
+    "eventlist_log_none": "keins",
+    "eventlist_log_warn": "warning",
+    "eventlist_tooltip": "Ein eigenes Ereignis zur Ereignisliste hinzufügen",
+    "eventlist_value": "Wert"
+}

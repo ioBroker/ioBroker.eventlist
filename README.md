@@ -63,9 +63,9 @@ Users can add custom events to the list via javascript:
 sendTo('eventlist.0', 'insert', {
     event: 'My custom text', 
     id: 'ID.that.linked.with.this.event',  // optional 
-    ts: new Date('2020-09-25T16:11:00',    // optional. Default is Date.now()
+    ts: new Date('2020-09-25T16:11:00'),    // optional. Default is Date.now()
     val: 5,                                // optional 
-    duration: 5                            // in ms
+    duration: 5,                           // in ms
 });
 
 // Or simple
@@ -121,18 +121,18 @@ In the event texts and in the state texts, the following patterns could be used:
 - %t - time (`State changed state on %t` => `State changed state on Sep Fr, 16:32:00`), 
 - %r - relative time (`State changed state %r` => `State changed state 5 seconds ago`),
 - %d - duration (`State was in previous state for %d` => `State was in previous state for 5s`), 
-- %g - value difference (`State was changed on %g%` => `State was changed on 1%`),
-- %o - value difference (`State changed value from %o to %` => `State was changed on 1%`)
+- %g - value difference, so the new value minus the previous one. Only for states of type `number` (`State was changed on %g%` => `State was changed on 1%`),
+- %o - previous value (`State changed value from %o to %s` => `State changed value from 4 to 5`)
 
 ## Usage of multiple instances in the web
-E.g., you can show the specific list for instance 2, like `http://IP:8082/eventlist/index.htmlindex.html?2`.
+E.g., you can show the specific list for instance 2, like `http://IP:8082/eventlist/index.html?2`.
 
 The generated report will be stored for instance 0 in `eventlist/report.pdf`, but for instance 1 in `eventlist/report-1.pdf`.
 
 ## Todo
 - Change initial texts in PDF in according language
 - Many predefined icons (minimum 100)
-- Material widget
+- Devices widget
 - Send messages to syslog (maybe splunk) https://www.npmjs.com/package/splunk-logging
 
 <!--
@@ -143,7 +143,9 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ## Changelog
 ### **WORK IN PROGRESS**
 * (@GermanBluefox) Updated packages
-* (@GermanBluefox) Minimum node.js version is 22
+* (@GermanBluefox) A Minimum node.js version is 22
+* (@GermanBluefox) Migrated to TypeScript
+* (@GermanBluefox) Added blockly und vis-2 widgets (only for vis-2 >= 2.20.0)
 
 ### 2.1.0 (2025-05-20)
 * (maeb3) Correction for handover of a message to pushover
@@ -162,7 +164,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 ### 1.2.3 (2023-03-16)
 * (bluefox) Corrected the edit of the event sources
-* (bluefox) Added possibility to use default texts for strings values like for booleans
+* (bluefox) Added possibility to use default texts for string values like for booleans
 
 ### 1.2.2 (2022-12-27)
 * (bluefox) Corrected web page loading in web adapter
@@ -172,13 +174,13 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 ### 1.2.0 (2022-11-12)
 * (bluefox) Fixed error with edit of the state settings
-* (bluefox) Added possibility to use default texts for strings values like for booleans
+* (bluefox) Added possibility to use default texts for string values like for booleans
 
 ### 1.1.1 (2022-10-12)
 * (bluefox) Fixed icons of devices
 * (bluefox) Migrated GUI to `mui5`
 * (bluefox) Allowed the editing of list name
-* (Hirsch-DE) corrected events without unit
+* (Hirsch-DE) corrected events without a unit
 
 ### 1.0.1 (2022-06-22)
 * (bluefox) Added preparations for ioBroker cloud
@@ -205,7 +207,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 ### 0.4.2 (2020-12-05)
 * (bluefox) Added possibility to add multiple states
-* (bluefox) Moved the duration to previous state
+* (bluefox) Moved the duration to the previous state
 * (bluefox) Support for multiple instances
 
 ### 0.4.0 (2020-11-10)

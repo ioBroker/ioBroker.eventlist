@@ -38,6 +38,8 @@
         "@types/node": "^26.4.1",
         "@types/pdfkit": "^0.17.6",
         "axios": "^1.20.0",
+        "blockly": "^13.2.1",
+        "esbuild": "^0.28.2",
         "ts-node": "^10.9.2",
         "typescript": "~6.0.3"
     },
@@ -54,19 +56,23 @@
     ],
     "scripts": {
         "test:package": "mocha test/package --exit --config test/mocharc.custom.json",
-        "test:unit": "mocha test/unit --exit --config test/mocharc.custom.json",
+        "test:unit": "mocha test/unit \"test/*.test.ts\" --extension ts --exit --config test/mocharc.custom.json",
+        "test:events": "mocha \"test/*.test.ts\" --extension ts --exit --config test/mocharc.custom.json",
         "test:integration": "mocha test/integration --exit --config test/mocharc.custom.json",
         "test": "npm run test:unit && npm run test:package",
         "check": "tsc --noEmit",
         "lint": "eslint -c eslint.config.mjs && cd src-admin && npm run lint",
-        "prepublishOnly": "node tasks.js",
-        "build": "tsc -p tsconfig.build.json && node tasks.js",
+        "prepublishOnly": "tsc -p tsconfig.build.json && node tasks.js && npm run build:blockly",
+        "build": "tsc -p tsconfig.build.json && node tasks.js && npm run build:blockly && npm run build:widgets && npm run build:admin",
         "release": "release-script",
         "release-patch": "release-script patch --yes",
         "release-minor": "release-script minor --yes",
         "release-major": "release-script major --yes",
         "update-packages": "npx -y npm-check-updates --upgrade && cd src-admin && npx -y npm-check-updates --upgrade",
-        "npm": "npm i && cd src-admin && npm i -f"
+        "npm": "npm i && cd src-admin && npm i -f",
+        "build:blockly": "tsc -p src-blockly/tsconfig.json && node src-blockly/build.mjs",
+        "build:widgets": "node tasks.js --widgets",
+        "build:admin": "node tasks.js --admin"
     },
     "bugs": {
         "url": "https://github.com/bluefox/ioBroker.eventlist/issues"

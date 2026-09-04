@@ -121,8 +121,13 @@
             "uk": "Створює та відображає список подій з бажаних станів в адмінці, вебі та у вигляді віджета",
             "zh-cn": "从管理员，Web和窗口小部件中的所需状态构建并显示事件列表"
         },
-        "authors": ["bluefox <dogafox@gmail.com>"],
-        "keywords": ["event list", "events"],
+        "authors": [
+            "bluefox <dogafox@gmail.com>"
+        ],
+        "keywords": [
+            "event list",
+            "events"
+        ],
         "licenseInformation": {
             "license": "MIT",
             "type": "free"
@@ -180,7 +185,9 @@
                 "js-controller": ">=5.0.19"
             }
         ],
-        "restartAdapters": ["vis-2"],
+        "restartAdapters": [
+            "vis-2"
+        ],
         "adminUI": {
             "config": "materialize",
             "custom": "json"
@@ -191,6 +198,19 @@
         "plugins": {
             "sentry": {
                 "dsn": "https://bb1b82030b5041a68f0e065262601347@sentry.iobroker.net/191"
+            }
+        },
+        "blockly": true,
+        "visWidgets": {
+            "eventlistWidgets": {
+                "i18n": "component",
+                "name": "eventlistWidgets",
+                "url": "eventlist/customWidgets.js",
+                "bundlerType": "module",
+                "components": [
+                    "Events",
+                    "PdfButton"
+                ]
             }
         }
     },

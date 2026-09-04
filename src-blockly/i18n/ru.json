@@ -1,0 +1,19 @@
+{
+    "eventlist": "добавить событие в список событий",
+    "eventlist_delete": "удалить события из списка событий",
+    "eventlist_delete_all": "все события",
+    "eventlist_delete_filter": "ID состояния или время",
+    "eventlist_delete_tooltip": "Удалить все события, все события одного состояния или одно событие по его времени",
+    "eventlist_delete_what": "Удалить",
+    "eventlist_event": "Текст события",
+    "eventlist_icon": "Иконка",
+    "eventlist_id": "ID Состояния",
+    "eventlist_log": "Протокол",
+    "eventlist_log_debug": "debug",
+    "eventlist_log_error": "ошибка",
+    "eventlist_log_info": "инфо",
+    "eventlist_log_none": "нет",
+    "eventlist_log_warn": "warning",
+    "eventlist_tooltip": "Добавить собственное событие в список событий",
+    "eventlist_value": "Значение"
+}

@@ -1,0 +1,19 @@
+{
+    "eventlist": "add event to event list",
+    "eventlist_delete": "delete events from event list",
+    "eventlist_delete_all": "all events",
+    "eventlist_delete_filter": "State ID or time",
+    "eventlist_delete_tooltip": "Delete all events, all events of one state or one event by its time",
+    "eventlist_delete_what": "Delete",
+    "eventlist_event": "Event text",
+    "eventlist_icon": "Icon",
+    "eventlist_id": "State ID",
+    "eventlist_log": "log level",
+    "eventlist_log_debug": "debug",
+    "eventlist_log_error": "error",
+    "eventlist_log_info": "info",
+    "eventlist_log_none": "none",
+    "eventlist_log_warn": "warning",
+    "eventlist_tooltip": "Add an own event to the event list",
+    "eventlist_value": "Value"
+}

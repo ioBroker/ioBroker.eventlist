@@ -1,0 +1,13 @@
+{
+    "eventlist_delete_what": "Usunąć",
+    "eventlist_event": "Tekst wydarzenia",
+    "eventlist_icon": "Ikona",
+    "eventlist_id": "Identyfikator stanu",
+    "eventlist_log": "poziom dziennika",
+    "eventlist_log_debug": "odpluskwić",
+    "eventlist_log_error": "błąd",
+    "eventlist_log_info": "informacje",
+    "eventlist_log_none": "Żaden",
+    "eventlist_log_warn": "ostrzeżenie",
+    "eventlist_value": "Wartość"
+}

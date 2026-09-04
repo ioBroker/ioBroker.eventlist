@@ -2,6 +2,29 @@ import { Adapter, type AdapterOptions, I18n } from '@iobroker/adapter-core';
 import moment from 'moment';
 
 import list2pdf from './lib/list2pdf';
+import {
+    applyDeleteFilter,
+    applyDurationToPreviousEvent,
+    buildEventItem,
+    formatEvent,
+    formatEventList,
+    insertEventItem,
+    isDurationUsed,
+    isOldValueUsed,
+    isSkippedByAlarmMode,
+    isValueDisabled,
+    normalizeEvent,
+    normalizeInsertValue,
+    parseEventList,
+    prepareStateChangeEvent,
+    removeAlarmEvents,
+    type EventItem,
+    type IncomingEvent,
+    type EventEngineContext,
+    type EventTexts,
+    type FormattedEvent,
+    type StateSettings,
+} from './lib/events';
 import type { EventListAdapterConfig } from './types';
 
 import 'moment/locale/de';
@@ -15,60 +38,6 @@ import 'moment/locale/pl';
 import 'moment/locale/pt';
 import 'moment/locale/nl';
 
-const DEFAULT_TEMPLATE = 'default';
-const MIN_VALID_DATE = new Date(2019, 0, 1).getTime();
-const MAX_VALID_DATE = new Date(2050, 0, 1).getTime();
-
-interface StateSettings {
-    enabled?: boolean;
-    event?: string;
-    color?: string;
-    icon?: string | { icon: string; color: string };
-    changesOnly?: boolean;
-    alarmsOnly?: boolean;
-    defaultMessengers?: boolean;
-    messagesInAlarmsOnly?: boolean;
-    whatsAppCMB?: string[];
-    telegram?: string[];
-    pushover?: string[];
-    states?: Array<{ val: string; text: string; color: string; icon: string; disabled?: boolean }>;
-    type?: string;
-    originalStates?: Record<string, string>;
-    unit?: string;
-    min?: number;
-    max?: number;
-    name?: string;
-    val?: any;
-    ts?: number;
-    durationUsed?: boolean;
-    oldValueUsed?: boolean;
-}
-
-interface EventItem {
-    ts: number;
-    event?: string;
-    id?: string;
-    _id?: string;
-    val?: ioBroker.StateValue;
-    oldVal?: ioBroker.StateValue;
-    icon?: string;
-    color?: string;
-    duration?: number | null;
-    diff?: number;
-}
-
-interface FormattedEvent {
-    _id: number;
-    event: string;
-    ts: string;
-    _style?: { color: string };
-    icon?: string;
-    duration?: string;
-    val?: any;
-    id?: string;
-    dr?: number;
-}
-
 export class EventList extends Adapter {
     declare config: EventListAdapterConfig;
     #states: Record<string, StateSettings> = {};
@@ -78,14 +47,7 @@ export class EventList extends Adapter {
     #systemLang!: string;
     #isFloatComma!: boolean;
     #eventListRaw!: EventItem[];
-    #textSwitchedOn!: string;
-    #textSwitchedOff!: string;
-    #textDeviceChangedStatus!: string;
-    #textDays!: string;
-    #textHours!: string;
-    #textMinutes!: string;
-    #textSeconds!: string;
-    #textMs!: string;
+    #texts!: EventTexts;
 
     public constructor(options: Partial<AdapterOptions> = {}) {
         super({
@@ -101,21 +63,21 @@ export class EventList extends Adapter {
     }
 
     #state2json(state?: ioBroker.State | null): EventItem[] {
-        state ||= {} as ioBroker.State;
-        let table: EventItem[] | string = (state.val as string) || [];
+        return parseEventList(state, text => this.log.warn(text));
+    }
 
-        if (typeof table !== 'object') {
-            try {
-                table = JSON.parse(table) as EventItem[];
-            } catch {
-                this.log.warn(`Cannot parse event list: "${JSON.stringify(table)}"`);
-                table = [];
-            }
-            table ||= [];
-            return table;
-        }
-
-        return table || [];
+    /** Collect everything the events engine requires to format an event */
+    #getEngineContext(): EventEngineContext {
+        return {
+            config: this.config,
+            states: this.#states,
+            isFloatComma: this.#isFloatComma,
+            texts: this.#texts,
+            onRelativeTimeUsed: (): void => {
+                this.#relativeCounter++;
+                this.#momentInterval ||= setInterval(() => this.#updateMomentTimes(), 10000);
+            },
+        };
     }
 
     getTranslatedWords(word: string): string {
@@ -130,14 +92,16 @@ export class EventList extends Adapter {
         this.#systemLang = this.config.language || systemConfig.language || 'en';
         this.#isFloatComma = systemConfig.isFloatComma === undefined ? true : systemConfig.isFloatComma;
 
-        this.#textSwitchedOn = this.getTranslatedWords('switched on');
-        this.#textSwitchedOff = this.getTranslatedWords('switched off');
-        this.#textDeviceChangedStatus = this.getTranslatedWords('Device %n changed status:');
-        this.#textDays = this.getTranslatedWords('days');
-        this.#textHours = this.getTranslatedWords('hours');
-        this.#textMinutes = this.getTranslatedWords('minutes');
-        this.#textSeconds = this.getTranslatedWords('sec');
-        this.#textMs = this.getTranslatedWords('ms');
+        this.#texts = {
+            switchedOn: this.getTranslatedWords('switched on'),
+            switchedOff: this.getTranslatedWords('switched off'),
+            deviceChangedStatus: this.getTranslatedWords('Device %n changed status:'),
+            days: this.getTranslatedWords('days'),
+            hours: this.getTranslatedWords('hours'),
+            minutes: this.getTranslatedWords('minutes'),
+            seconds: this.getTranslatedWords('sec'),
+            ms: this.getTranslatedWords('ms'),
+        };
 
         this.config.maxLength = parseInt(this.config.maxLength as string, 10) || 100;
         this.config.deleteAlarmsByDisable =
@@ -203,9 +167,8 @@ export class EventList extends Adapter {
                 state.val === 'on';
             if (this.config.deleteAlarmsByDisable && !this.#alarmMode) {
                 return this.#getRawEventList().then(eventList => {
-                    const alarmIds = Object.keys(this.#states).filter(id => this.#states[id].alarmsOnly);
                     const count = eventList.length;
-                    this.#eventListRaw = eventList.filter(item => !alarmIds.includes(item.id || ''));
+                    this.#eventListRaw = removeAlarmEvents(eventList, this.#states);
 
                     if (this.#eventListRaw.length !== count) {
                         this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true)
@@ -222,85 +185,22 @@ export class EventList extends Adapter {
             this.#eventListRaw = this.#state2json(state);
             this.#updateMomentTimes().catch(e => this.log.error(`Cannot update eventListRaw: ${e}`));
         } else if (id === `${this.namespace}.insert` && state && !state.ack && state.val) {
-            if (typeof state.val === 'string' && state.val.startsWith('{')) {
-                try {
-                    state.val = JSON.parse(state.val);
-                } catch {
-                    // ignore
-                }
-                this.#addEvent(state.val as string)
-                    .then(event => this.log.debug(`Event ${JSON.stringify(event)} was added`))
-                    .catch(e => this.log.error(`Cannot add event: ${e}`));
-            } else {
-                this.#addEvent(state.val.toString())
-                    .then(event => this.log.debug(`Event ${JSON.stringify(event)} was added`))
-                    .catch(e => this.log.error(`Cannot add event: ${e}`));
-            }
+            this.#addEvent(normalizeInsertValue(state.val))
+                .then(event => this.log.debug(`Event ${JSON.stringify(event)} was added`))
+                .catch(e => this.log.error(`Cannot add event: ${e}`));
         } else if (id === `${this.namespace}.delete` && state?.val && !state.ack) {
             this.#deleteEvents(state.val as string)
                 .then(count => this.log.debug(`${count} events were deleted from the list`))
                 .catch(e => this.log.error(`Cannot delete events: ${e}`));
         } else if (this.#states[id] && state) {
-            if (
-                this.#states[id].states &&
-                state.val !== null &&
-                state.val !== undefined &&
-                this.#states[id].states?.[state.val.toString()]?.disabled
-            ) {
+            if (isValueDisabled(this.#states[id], state.val)) {
                 this.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
                 return;
             }
-            const eventItem: EventItem = state;
-
-            if (this.#states[id].oldValueUsed) {
-                eventItem.oldVal = this.#states[id].val;
-            }
-
-            // ignore non-changed states
-            if (this.#states[id].changesOnly) {
-                if (state && this.#states[id].val === state.val) {
-                    return;
-                }
-                // calculate duration
-                if (this.#states[id].durationUsed) {
-                    // this event is only started, and we must update the duration of the previous event
-                    if (this.#states[id].ts && state.ts >= (this.#states[id].ts || 0)) {
-                        eventItem.duration = state.ts - (this.#states[id].ts || 0);
-                    } else {
-                        eventItem.duration = null;
-                    }
-                    this.#states[id].ts = state.ts;
-
-                    if (
-                        this.#states[id].type === 'number' &&
-                        this.#states[id].val !== null &&
-                        this.#states[id].val !== undefined &&
-                        state.val !== null &&
-                        state.val !== undefined
-                    ) {
-                        eventItem.diff = (state.val as number) - (this.#states[id].val as number);
-                    }
-                }
-                this.#states[id].val = state.val;
-            } else if (this.#states[id].durationUsed) {
-                // calculate duration
-                if (this.#states[id].ts && state.ts >= (this.#states[id].ts || 0)) {
-                    eventItem.duration = state.ts - (this.#states[id].ts || 0);
-                } else {
-                    eventItem.duration = null;
-                }
-                this.#states[id].ts = state.ts;
-
-                if (
-                    this.#states[id].type === 'number' &&
-                    this.#states[id].val !== null &&
-                    this.#states[id].val !== undefined &&
-                    state.val !== null &&
-                    state.val !== undefined
-                ) {
-                    eventItem.diff = (state.val as number) - (this.#states[id].val as number);
-                }
-                this.#states[id].val = state.val;
+            const eventItem = prepareStateChangeEvent(state, this.#states[id]);
+            if (!eventItem) {
+                // the value was not changed
+                return;
             }
 
             eventItem.id = id;
@@ -418,377 +318,18 @@ export class EventList extends Adapter {
 
     async #deleteEvents(filter: number | string): Promise<number> {
         const eventList = await this.#getRawEventList();
-        const count = eventList.length;
-        if (!filter || filter === '*') {
-            // delete all
-            this.#eventListRaw = [];
-            await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
-            return count;
-        }
-        if (
-            typeof filter === 'number' ||
-            (filter.toString()[0] === '2' && filter.length === new Date().toISOString().length)
-        ) {
-            // Delete it by timestamp
-            // Attention: this will stop work in 3000.01.01 :)
-            const ts = new Date(filter).getTime();
-            this.#eventListRaw = eventList.filter(item => item.ts !== ts);
-            if (this.#eventListRaw.length !== count) {
-                await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
-                return count - this.#eventListRaw.length;
-            }
-            return 0;
-        }
-        // Delete it by State ID
-        this.#eventListRaw = eventList.filter(item => item.id !== filter);
-        if (this.#eventListRaw.length !== count) {
-            await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
-            return count - this.#eventListRaw.length;
-        }
-        return 0;
-    }
+        const result = applyDeleteFilter(eventList, filter);
+        this.#eventListRaw = result.list;
 
-    #duration2text(ms: number, withSpaces?: boolean): string {
-        if (ms < 1000) {
-            return `${ms}${withSpaces ? ' ' : ''}${this.#textMs}`;
-        }
-        if (ms < 10000) {
-            return `${this.#isFloatComma ? (Math.round(ms / 100) / 10).toString().replace('.', ',') : (Math.round(ms / 100) / 10).toString()}${withSpaces ? ' ' : ''}${this.#textSeconds}`;
-        }
-        if (ms < 90000) {
-            return `${
-                this.#isFloatComma
-                    ? Math.round(ms / 1000)
-                          .toString()
-                          .replace('.', ',')
-                    : Math.round(ms / 1000).toString()
-            }${withSpaces ? ' ' : ''}${this.#textSeconds}`;
-        }
-        if (ms < 3600000) {
-            return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${this.#textMinutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${this.#textSeconds}`;
-        }
-        let hours = Math.floor(ms / 3600000);
-        const minutes = Math.floor(ms / 60000) % 60;
-        const seconds = Math.round(Math.floor(ms % 60000) / 1000);
-        if (hours > 24) {
-            const days = Math.floor(hours / 24);
-            hours %= 24;
-            if (days > 2) {
-                return `${days}${withSpaces ? ' ' : ''}${this.#textDays} ${hours}${withSpaces ? ' ' : ''}${this.#textHours}`;
-            }
-            return `${days}${withSpaces ? ' ' : ''}${this.#textDays} ${hours}${withSpaces ? ' ' : ''}${this.#textHours} ${minutes}${withSpaces ? ' ' : ''}${this.#textMinutes}`;
+        if (result.deleteAll || result.deleted) {
+            await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
         }
 
-        if (hours > 2) {
-            return `${hours}${withSpaces ? ' ' : ''}${this.#textHours} ${minutes}${withSpaces ? ' ' : ''}${this.#textMinutes}`;
-        }
-        return `${hours}${withSpaces ? ' ' : ''}${this.#textHours} ${minutes}${withSpaces ? ' ' : ''}${this.#textMinutes} ${seconds}${withSpaces ? ' ' : ''}${this.#textSeconds}`;
+        return result.deleted;
     }
 
     #formatEvent(state: EventItem, allowRelative: boolean): FormattedEvent | null {
-        const event: Partial<FormattedEvent> = {};
-        let eventTemplate = '';
-        let val: string | undefined;
-        let valWithUnit: string | undefined;
-        let color = state.color || '';
-        let icon: string | undefined = '';
-
-        const date = new Date(state.ts);
-        let time: string;
-
-        if (allowRelative && Date.now() - date.getTime() < this.config.relativeTime * 1000) {
-            this.#relativeCounter++;
-            if (!this.#momentInterval) {
-                this.#momentInterval = setInterval(() => this.#updateMomentTimes(), 10000);
-            }
-            time = moment(date).fromNow();
-        } else {
-            time = moment(date).format(this.config.dateFormat);
-        }
-
-        event._id = date.getTime();
-
-        if (!state.event) {
-            const id = state.id || (state as any)._id;
-            if (!id || !this.#states[id]) {
-                return null;
-            }
-            if (this.#states[id].type === 'boolean') {
-                val = state.val ? 'true' : 'false';
-
-                const item = this.#states[id].states?.find(item => item.val === val);
-
-                if (item && item.disabled) {
-                    return null;
-                }
-
-                if (!this.#states[id].event && state.val && item && item.text) {
-                    eventTemplate =
-                        item.text === DEFAULT_TEMPLATE
-                            ? this.config.defaultBooleanTextTrue || this.#textSwitchedOn
-                            : item.text;
-                    color = item.color || this.config.defaultBooleanColorTrue || this.#states[id].color || '';
-                    icon =
-                        item.icon ||
-                        (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) ||
-                        undefined;
-                } else if (!this.#states[id].event && !state.val && item && item.text) {
-                    eventTemplate =
-                        item.text === DEFAULT_TEMPLATE
-                            ? this.config.defaultBooleanTextFalse || this.#textSwitchedOff
-                            : item.text;
-                    color = item.color || this.config.defaultBooleanColorFalse || this.#states[id].color || '';
-                    icon =
-                        item.icon ||
-                        (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined) ||
-                        undefined;
-                } else {
-                    if (this.#states[id].event === DEFAULT_TEMPLATE) {
-                        eventTemplate = this.config.defaultBooleanText || this.#textDeviceChangedStatus;
-                    } else {
-                        eventTemplate = (this.#states[id].event as any) || '';
-                    }
-
-                    if (eventTemplate === null || eventTemplate === undefined) {
-                        eventTemplate = '';
-                    } else if (typeof eventTemplate !== 'string') {
-                        eventTemplate = (eventTemplate as any).toString();
-                    }
-
-                    eventTemplate = eventTemplate.replace(/%u/g, this.#states[id].unit || '');
-                    eventTemplate = eventTemplate.replace(/%n/g, this.#states[id].name || id);
-                    if (item) {
-                        val = state.val
-                            ? item.text === DEFAULT_TEMPLATE
-                                ? this.config.defaultBooleanTextTrue || this.#textSwitchedOn
-                                : item.text || this.#textSwitchedOn
-                            : item.text === DEFAULT_TEMPLATE
-                              ? this.config.defaultBooleanTextFalse || this.#textSwitchedOff
-                              : item.text || this.#textSwitchedOff;
-
-                        const iconStr = typeof this.#states[id].icon === 'string' ? this.#states[id].icon : '';
-                        icon = state.val
-                            ? item.icon === DEFAULT_TEMPLATE
-                                ? this.config.defaultBooleanIconTrue || iconStr || ''
-                                : item.icon || iconStr || ''
-                            : item.icon === DEFAULT_TEMPLATE
-                              ? this.config.defaultBooleanIconFalse || iconStr || ''
-                              : item.icon || iconStr || '';
-
-                        color = state.val
-                            ? item.color === DEFAULT_TEMPLATE
-                                ? this.config.defaultBooleanColorTrue || this.#states[id].color || ''
-                                : item.color || this.#states[id].color || ''
-                            : item.color === DEFAULT_TEMPLATE
-                              ? this.config.defaultBooleanColorFalse || this.#states[id].color || ''
-                              : item.color || this.#states[id].color || '';
-                    } else {
-                        val = state.val
-                            ? this.config.defaultBooleanTextTrue || this.#textSwitchedOn
-                            : this.config.defaultBooleanTextFalse || this.#textSwitchedOff;
-
-                        const iconStr = typeof this.#states[id].icon === 'string' ? this.#states[id].icon : '';
-                        icon = state.val
-                            ? this.config.defaultBooleanIconTrue || iconStr || ''
-                            : this.config.defaultBooleanIconFalse || iconStr || '';
-
-                        color = state.val
-                            ? this.config.defaultBooleanColorTrue || this.#states[id].color || ''
-                            : this.config.defaultBooleanColorFalse || this.#states[id].color || '';
-                    }
-
-                    valWithUnit = val;
-                }
-            } else {
-                eventTemplate =
-                    this.#states[id].event === DEFAULT_TEMPLATE
-                        ? this.config.defaultNonBooleanText || this.#textDeviceChangedStatus
-                        : this.#states[id].event || this.#textDeviceChangedStatus;
-                eventTemplate = eventTemplate.replace(/%u/g, this.#states[id].unit || '');
-                eventTemplate = eventTemplate.replace(/%n/g, this.#states[id].name || id);
-
-                const tempVal: any = state.val !== undefined ? state.val : '';
-
-                if (tempVal === null) {
-                    val = 'null';
-                } else if (typeof tempVal === 'number') {
-                    val = tempVal.toString();
-                    if (this.#isFloatComma) {
-                        val = val.replace('.', ',');
-                    }
-                } else {
-                    val = tempVal.toString();
-                }
-
-                if (this.#states[id].states) {
-                    // try to find text for value in states
-                    const item = this.#states[id].states?.find(item => item.val === val);
-                    const stateText = item?.val && this.#states[id].originalStates?.[item.val];
-                    const def =
-                        this.config.defaultStringTexts &&
-                        this.config.defaultStringTexts.find((it: any) => it.value === stateText || it.value === val);
-
-                    if (item) {
-                        if (item.disabled) {
-                            return null;
-                        }
-                        if (item.text) {
-                            val = item.text;
-                            if (val === DEFAULT_TEMPLATE && def) {
-                                val = def.text;
-                            }
-                        }
-                        if (item.color) {
-                            color = item.color;
-                            if (color === DEFAULT_TEMPLATE && def) {
-                                color = def.color;
-                            }
-                        }
-                        if (item.icon) {
-                            icon = item.icon;
-                            if (icon === DEFAULT_TEMPLATE && def) {
-                                icon = def.icon;
-                            }
-                        }
-                    } else if (this.#states[id].originalStates && val !== undefined) {
-                        val =
-                            this.#states[id].originalStates?.[val] === undefined
-                                ? val
-                                : this.#states[id].originalStates?.[val] || '';
-                    }
-
-                    if (!this.#states[id].event && val) {
-                        eventTemplate = val;
-                        val = '';
-                    }
-                } else if (this.#states[id].originalStates && val !== undefined) {
-                    val =
-                        this.#states[id].originalStates?.[val] === undefined
-                            ? val
-                            : this.#states[id].originalStates?.[val] || '';
-                    const def =
-                        this.config.defaultStringTexts &&
-                        this.config.defaultStringTexts.find((it: any) => it.value === val);
-                    if (def) {
-                        val = def.text;
-                        color = def.color;
-                        icon = def.icon;
-                    }
-                } else {
-                    const def =
-                        this.config.defaultStringTexts &&
-                        this.config.defaultStringTexts.find((it: any) => it.value === val);
-                    if (def) {
-                        val = def.text;
-                        color = def.color;
-                        icon = def.icon;
-                    }
-                }
-
-                if (val !== '' && this.#states[id].unit) {
-                    valWithUnit = val + this.#states[id].unit;
-                } else {
-                    valWithUnit = val;
-                }
-
-                icon = icon || (typeof this.#states[id].icon === 'string' ? this.#states[id].icon : undefined);
-                color = color || this.#states[id].color || '';
-                // todo => change bright of icon depends on value and min/max
-            }
-        } else {
-            eventTemplate = state.event;
-            icon = state.icon || undefined;
-            color = state.color || '';
-
-            if (state.val !== undefined) {
-                const tempVal2: any = state.val;
-                if (tempVal2 === null) {
-                    val = 'null';
-                } else if (typeof tempVal2 === 'number') {
-                    val = tempVal2.toString();
-                    if (this.#isFloatComma) {
-                        val = val.replace('.', ',');
-                    }
-                } else {
-                    val = tempVal2.toString();
-                }
-            }
-        }
-
-        if (icon) {
-            color = color || (typeof icon === 'object' ? (icon as any).color : '');
-            icon = typeof icon === 'object' ? (icon as any).icon : icon;
-        }
-
-        let durationText: string;
-        if (state.duration != null) {
-            durationText = this.#duration2text(state.duration);
-        } else {
-            durationText = this.#duration2text(Date.now() - state.ts);
-            event.dr = 1; // duration running
-            this.#relativeCounter++;
-            this.#momentInterval ||= setInterval(() => this.#updateMomentTimes(), 10000);
-        }
-
-        if (eventTemplate.includes('%d')) {
-            eventTemplate = eventTemplate.replace(/%d/g, durationText);
-        }
-
-        if (eventTemplate.includes('%g')) {
-            eventTemplate = eventTemplate.replace(
-                /%g/g,
-                this.#isFloatComma ? (state.diff || 0).toString().replace('.', ',') : (state.diff || 0).toString(),
-            );
-        }
-
-        if (eventTemplate.includes('%o')) {
-            eventTemplate = eventTemplate.replace(
-                /%o/g,
-                this.#isFloatComma
-                    ? (state.oldVal == null ? '_' : state.oldVal).toString().replace('.', ',')
-                    : state.oldVal == null
-                      ? '_'
-                      : state.oldVal.toString(),
-            );
-        }
-
-        if (eventTemplate.includes('%s')) {
-            eventTemplate = eventTemplate.replace(/%s/g, val === undefined ? '' : val);
-            valWithUnit = '';
-        }
-
-        if (eventTemplate.includes('%t')) {
-            eventTemplate = eventTemplate.replace(/%t/g, moment(new Date(state.ts)).format(this.config.dateFormat));
-        }
-
-        if (eventTemplate.includes('%r')) {
-            eventTemplate = eventTemplate.replace(/%r/g, moment(new Date(state.ts)).fromNow());
-        }
-
-        event.event = eventTemplate;
-        event.ts = time;
-
-        if (color) {
-            event._style = { color };
-        }
-        if (icon && this.config.icons) {
-            event.icon = icon;
-        }
-        if (durationText && this.config.duration) {
-            event.duration = durationText;
-        }
-
-        if (valWithUnit !== '' && valWithUnit !== undefined) {
-            event.val = valWithUnit;
-        } else {
-            event.val = val;
-        }
-        // because of filter add event.id
-        if (state.id) {
-            event.id = state.id;
-        }
-
-        return event as FormattedEvent;
+        return formatEvent(state, allowRelative, this.#getEngineContext());
     }
 
     async #sendTelegram(event: EventItem): Promise<void> {
@@ -889,107 +430,64 @@ export class EventList extends Adapter {
         });
     }
 
-    async #addEvent(event: string | EventItem): Promise<EventItem | undefined> {
+    async #addEvent(incoming: string | IncomingEvent): Promise<EventItem | undefined> {
         await this.#getRawEventList();
-        const eventItem: EventItem = {} as EventItem;
 
-        if (typeof event === 'string') {
-            event = { event, ts: Date.now() };
-        }
+        const event = normalizeEvent(incoming, Date.now());
 
         if (!event.event && !event.id) {
             this.log.warn('Cannot add empty event to the list');
             return;
         }
 
-        if (!this.#alarmMode && event.id && this.#states[event.id] && this.#states[event.id].alarmsOnly) {
+        if (isSkippedByAlarmMode(event, this.#alarmMode, this.#states)) {
             this.log.debug(`State ${event.id} => ${event.val} skipped because only in alarm mode`);
             return;
         }
 
-        eventItem.ts ||= Date.now();
+        const eventItem = buildEventItem(event, Date.now(), text => this.log.warn(text));
 
-        if (typeof eventItem.ts !== 'number') {
-            eventItem.ts = new Date(eventItem.ts).getTime();
-        } else {
-            if (eventItem.ts < MIN_VALID_DATE || eventItem.ts > MAX_VALID_DATE) {
-                this.log.warn(`Invalid date provided in event: ${new Date(eventItem.ts).toISOString()}`);
-                eventItem.ts = new Date(eventItem.ts).getTime();
-            }
-        }
+        applyDurationToPreviousEvent(this.#eventListRaw, event);
 
-        if (event.event) {
-            eventItem.event = event.event;
-        }
-
-        if (event.id || event._id) {
-            eventItem.id = event.id || event._id;
-        }
-
-        if (event.val !== undefined) {
-            eventItem.val = event.val;
-        }
-
-        if (event.oldVal !== undefined) {
-            eventItem.oldVal = event.oldVal;
-        }
-
-        if (event.icon) {
-            eventItem.icon = event.icon;
-        }
-
-        if (event.duration != null) {
-            // This is duration of previous event
-            const prevEvent = this.#eventListRaw.find(item => item.id === event.id);
-            if (prevEvent) {
-                prevEvent.duration = event.duration;
-            }
-        }
-
-        // time must be unique
-        while (this.#eventListRaw.find(item => item.ts === eventItem.ts)) {
-            eventItem.ts++;
-        }
-
-        this.#eventListRaw.unshift(eventItem);
-        this.#eventListRaw.sort((a, b) => (a.ts > b.ts ? -1 : a.ts < b.ts ? 1 : 0));
+        insertEventItem(this.#eventListRaw, eventItem, this.config.maxLength as number);
 
         this.log.debug(`Add ${JSON.stringify(eventItem)}`);
 
-        if (this.#eventListRaw.length > (this.config.maxLength as number)) {
-            this.#eventListRaw.splice(
-                this.config.maxLength as number,
-                this.#eventListRaw.length - (this.config.maxLength as number),
-            );
-        }
-
         const ev = this.#formatEvent(eventItem, true);
 
-        if (ev) {
-            await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
-            await this.#updateMomentTimes();
-            await this.setForeignStateAsync(`${this.namespace}.lastEvent.event`, ev.event, true);
-            await this.setForeignStateAsync(
-                `${this.namespace}.lastEvent.id`,
-                eventItem.id === undefined || eventItem.id === null ? null : eventItem.id.toString(),
-                true,
-            );
-            await this.setForeignStateAsync(`${this.namespace}.lastEvent.ts`, eventItem.ts, true);
-            await this.setForeignStateAsync(
-                `${this.namespace}.lastEvent.val`,
-                eventItem.val === undefined ? null : eventItem.val,
-                true,
-            );
-            await this.setForeignStateAsync(
-                `${this.namespace}.lastEvent.duration`,
-                eventItem.duration === undefined ? null : eventItem.duration,
-                true,
-            );
-            await this.setForeignStateAsync(`${this.namespace}.lastEvent.json`, JSON.stringify(eventItem), true);
-            await this.#sendTelegram(eventItem);
-            await this.#sendWhatsApp(eventItem);
-            await this.#sendPushover(eventItem);
+        if (!ev) {
+            // The event is not shown, e.g. because this value is disabled. It must not stay in the
+            // list either, otherwise it would be written together with the next event.
+            const pos = this.#eventListRaw.indexOf(eventItem);
+            if (pos !== -1) {
+                this.#eventListRaw.splice(pos, 1);
+            }
+            return;
         }
+
+        await this.setStateAsync('eventListRaw', JSON.stringify(this.#eventListRaw), true);
+        await this.#updateMomentTimes();
+        await this.setForeignStateAsync(`${this.namespace}.lastEvent.event`, ev.event, true);
+        await this.setForeignStateAsync(
+            `${this.namespace}.lastEvent.id`,
+            eventItem.id === undefined || eventItem.id === null ? null : eventItem.id.toString(),
+            true,
+        );
+        await this.setForeignStateAsync(`${this.namespace}.lastEvent.ts`, eventItem.ts, true);
+        await this.setForeignStateAsync(
+            `${this.namespace}.lastEvent.val`,
+            eventItem.val === undefined ? null : eventItem.val,
+            true,
+        );
+        await this.setForeignStateAsync(
+            `${this.namespace}.lastEvent.duration`,
+            eventItem.duration === undefined ? null : eventItem.duration,
+            true,
+        );
+        await this.setForeignStateAsync(`${this.namespace}.lastEvent.json`, JSON.stringify(eventItem), true);
+        await this.#sendTelegram(eventItem);
+        await this.#sendWhatsApp(eventItem);
+        await this.#sendPushover(eventItem);
 
         return eventItem;
     }
@@ -1108,68 +606,8 @@ export class EventList extends Adapter {
             changed = true;
         }
 
-        let durationUsed = this.config.duration;
-
-        if (!durationUsed && this.#states[id].states) {
-            if (this.#states[id].type === 'boolean') {
-                durationUsed =
-                    (this.#states[id].event || this.config.defaultBooleanText).includes('%d') ||
-                    (this.#states[id].event || this.config.defaultBooleanText).includes('%g');
-
-                if (!durationUsed) {
-                    const item = this.#states[id].states?.find(item => item.val === 'true');
-
-                    durationUsed =
-                        ((item && item.text) || this.config.defaultBooleanTextTrue).includes('%d') ||
-                        ((item && item.text) || this.config.defaultBooleanTextTrue).includes('%d');
-                }
-                if (!durationUsed) {
-                    const item = this.#states[id].states?.find(item => item.val === 'false');
-
-                    durationUsed =
-                        ((item && item.text) || this.config.defaultBooleanTextFalse).includes('%d') ||
-                        ((item && item.text) || this.config.defaultBooleanTextFalse).includes('%g');
-                }
-            } else {
-                durationUsed =
-                    (this.#states[id].event || this.config.defaultNonBooleanText).includes('%d') ||
-                    (this.#states[id].event || this.config.defaultNonBooleanText).includes('%g');
-
-                if (!durationUsed) {
-                    durationUsed = !!this.#states[id].states?.find(
-                        item => item.text.includes('%d') || item.text.includes('%g'),
-                    );
-                }
-            }
-        } else if (!durationUsed) {
-            durationUsed =
-                (this.#states[id].event || this.config.defaultNonBooleanText).includes('%d') ||
-                (this.#states[id].event || this.config.defaultNonBooleanText).includes('%g');
-        }
-
-        let oldValueUsed = false;
-
-        if (this.#states[id].states) {
-            if (this.#states[id].type === 'boolean') {
-                oldValueUsed = (this.#states[id].event || this.config.defaultBooleanText).includes('%o');
-
-                if (!oldValueUsed) {
-                    const item = this.#states[id].states?.find(item => item.val === 'true');
-
-                    oldValueUsed = ((item && item.text) || this.config.defaultBooleanTextTrue).includes('%o');
-                }
-                if (!oldValueUsed) {
-                    const item = this.#states[id].states?.find(item => item.val === 'false');
-
-                    oldValueUsed = ((item && item.text) || this.config.defaultBooleanTextFalse).includes('%o');
-                }
-            } else {
-                oldValueUsed = (this.#states[id].event || this.config.defaultNonBooleanText).includes('%o');
-                oldValueUsed = oldValueUsed || !!this.#states[id].states?.find(item => item.text.includes('%o'));
-            }
-        } else {
-            oldValueUsed = oldValueUsed || (this.#states[id].event || this.config.defaultNonBooleanText).includes('%o');
-        }
+        const durationUsed = isDurationUsed(this.#states[id], this.config);
+        const oldValueUsed = isOldValueUsed(this.#states[id], this.config);
 
         if (this.#states[id].oldValueUsed !== oldValueUsed) {
             this.#states[id].oldValueUsed = oldValueUsed;
@@ -1253,7 +691,7 @@ export class EventList extends Adapter {
             table ||= this.#eventListRaw;
         }
 
-        return table.map(ev => this.#formatEvent(ev, allowRelative)).filter((ev): ev is FormattedEvent => ev !== null);
+        return formatEventList(table, allowRelative, this.#getEngineContext());
     }
 
     async #getIconAndColor(

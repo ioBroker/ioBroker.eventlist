@@ -1,7 +1,7 @@
-import React, { type CSSProperties, type JSX } from 'react';
+import React, { createRef, type CSSProperties, type JSX } from 'react';
 import { ThemeProvider, StyledEngineProvider, type Theme } from '@mui/material/styles';
 
-import { AppBar, Tabs, Tab } from '@mui/material';
+import { AppBar, Tabs, Tab, CssBaseline } from '@mui/material';
 
 import {
     ColorPicker,
@@ -9,6 +9,7 @@ import {
     Loader,
     I18n,
     GenericApp,
+    ScrollbarStyles,
     type GenericAppProps,
     type GenericAppSettings,
     type GenericAppState,
@@ -32,15 +33,20 @@ import TabPDF from './Tabs/PdfSettings';
 import type { EventListNative } from './types';
 
 const styles: Record<string, CSSProperties> = {
+    app: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
     tabContent: {
         padding: 10,
-        height: 'calc(100% - 64px - 48px - 20px)',
+        flex: 1,
+        minHeight: 0,
         overflow: 'auto',
     },
-    tabContentIFrame: {
-        padding: 10,
-        height: 'calc(100% - 64px - 48px - 20px - 38px)',
-        overflow: 'auto',
+    tabOnlyContent: {
+        flex: 1,
+        minHeight: 0,
     },
 };
 
@@ -57,11 +63,17 @@ const TABS: AppTab[] = ['options', 'list', 'pdf'];
 
 interface AppState extends GenericAppState {
     native: EventListNative;
+    /** Space that must be kept free for the absolutely positioned save/close bar */
+    saveBarHeight: number;
 }
 
-class App extends GenericApp<GenericAppProps, AppState> {
+export default class App extends GenericApp<GenericAppProps, AppState> {
     private readonly isTab: boolean;
     private readonly isWeb: boolean;
+    private readonly appRef = createRef<HTMLDivElement>();
+    private readonly saveBarRef = createRef<HTMLDivElement>();
+    private saveBarObserver: ResizeObserver | null = null;
+    private observedSaveBar: HTMLElement | null = null;
 
     constructor(props: GenericAppProps) {
         const extendedProps: GenericAppSettings = { ...props };
@@ -95,7 +107,60 @@ class App extends GenericApp<GenericAppProps, AppState> {
 
         this.isTab = !extendedProps.bottomButtons;
         this.isWeb = window.socketUrl !== undefined;
+
+        this.state = { ...this.state, saveBarHeight: 0 };
     }
+
+    componentDidMount(): void {
+        super.componentDidMount();
+
+        if (typeof ResizeObserver !== 'undefined') {
+            this.saveBarObserver = new ResizeObserver(() => this.measureSaveBar());
+        }
+        this.measureSaveBar();
+    }
+
+    componentDidUpdate(): void {
+        this.measureSaveBar();
+    }
+
+    componentWillUnmount(): void {
+        this.saveBarObserver?.disconnect();
+        this.saveBarObserver = null;
+        this.observedSaveBar = null;
+
+        super.componentWillUnmount();
+    }
+
+    /**
+     * The save/close bar of `GenericApp` is positioned absolutely and therefore takes no space in the flow.
+     * Measure how much space it covers at the bottom and reserve exactly that much, so no gap and no overlap
+     * can appear if the theme or the MUI version changes the height of the bar.
+     */
+    measureSaveBar = (): void => {
+        const bar = this.saveBarRef.current?.querySelector<HTMLElement>('.MuiToolbar-root') || null;
+
+        if (bar !== this.observedSaveBar) {
+            if (this.observedSaveBar) {
+                this.saveBarObserver?.unobserve(this.observedSaveBar);
+            }
+            if (bar) {
+                this.saveBarObserver?.observe(bar);
+            }
+            this.observedSaveBar = bar;
+        }
+
+        const app = this.appRef.current;
+        // The bar can be lifted from the bottom edge (in an iframe), so measure up to the bottom of the app
+        const saveBarHeight =
+            app && bar
+                ? Math.max(0, Math.round(app.getBoundingClientRect().bottom - bar.getBoundingClientRect().top))
+                : 0;
+
+        if (saveBarHeight !== this.state.saveBarHeight) {
+            this.setState({ saveBarHeight });
+        }
+    };
 
     getSelectedTab(): AppTab {
         const tab = this.state.selectedTab as AppTab;
@@ -159,7 +224,7 @@ class App extends GenericApp<GenericAppProps, AppState> {
                     </Tabs>
                 </AppBar>
 
-                <div style={this.isIFrame ? styles.tabContentIFrame : styles.tabContent}>
+                <div style={styles.tabContent}>
                     {selectedTab === 'options' && (
                         <TabOptions
                             key="options"
@@ -187,7 +252,12 @@ class App extends GenericApp<GenericAppProps, AppState> {
                         />
                     )}
                 </div>
-                {this.renderSaveCloseButtons()}
+                <div
+                    ref={this.saveBarRef}
+                    style={{ flex: 'none', height: this.state.saveBarHeight }}
+                >
+                    {this.renderSaveCloseButtons()}
+                </div>
             </>
         );
     }
@@ -218,6 +288,7 @@ class App extends GenericApp<GenericAppProps, AppState> {
             return (
                 <StyledEngineProvider injectFirst>
                     <ThemeProvider theme={this.state.theme}>
+                        <CssBaseline />
                         <Loader themeType={this.state.themeType} />
                     </ThemeProvider>
                 </StyledEngineProvider>
@@ -227,14 +298,22 @@ class App extends GenericApp<GenericAppProps, AppState> {
         return (
             <StyledEngineProvider injectFirst>
                 <ThemeProvider theme={this.state.theme}>
+                    <CssBaseline />
+                    <ScrollbarStyles theme={this.state.theme} />
                     <div
                         className="App"
+                        ref={this.appRef}
                         style={{
+                            ...styles.app,
                             background: this.state.theme.palette.background.default,
                             color: this.state.theme.palette.text.primary,
                         }}
                     >
-                        {!this.isTab ? this.renderTabsForConfig() : this.renderEventList()}
+                        {!this.isTab ? (
+                            this.renderTabsForConfig()
+                        ) : (
+                            <div style={styles.tabOnlyContent}>{this.renderEventList()}</div>
+                        )}
                         {this.renderError()}
                     </div>
                 </ThemeProvider>
@@ -242,5 +321,3 @@ class App extends GenericApp<GenericAppProps, AppState> {
         );
     }
 }
-
-export default App;

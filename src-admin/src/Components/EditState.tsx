@@ -13,6 +13,7 @@ import 'moment/locale/pl';
 import 'moment/locale/nl';
 
 import {
+    Box,
     TextField,
     FormControlLabel,
     Checkbox,
@@ -105,6 +106,13 @@ const styles: Record<string, CSSProperties> = {
     width100minus32: {
         width: 'calc(100% - 32px)',
     },
+    /**
+     * The colour picker above is an inline block, so its lower edge would sit directly on the label
+     * of the icon picker. A line break alone does not separate them.
+     */
+    iconBlock: {
+        marginTop: 24,
+    },
     iconOpenAll: {
         float: 'right',
         marginRight: 4,
@@ -118,6 +126,25 @@ const sxExamplePaper = (theme: Theme): { marginBottom: number; background: strin
     marginBottom: 2,
     background: theme.palette.mode === 'dark' ? '#5f5f5f' : '#d8d8d8',
 });
+
+const EXAMPLE_ICON_SIZE = 32;
+
+/** Same hard size limit as in the event list, so a user icon cannot blow up the example line */
+const sxExampleIconBox = {
+    width: EXAMPLE_ICON_SIZE,
+    height: EXAMPLE_ICON_SIZE,
+    marginRight: '8px',
+    overflow: 'hidden',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    verticalAlign: 'middle',
+    '& > *': {
+        maxWidth: '100%',
+        maxHeight: '100%',
+        flexShrink: 0,
+    },
+};
 
 const DEFAULT_TEMPLATE = 'default';
 const DISABLED_TEXT = '-------------';
@@ -921,28 +948,29 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                     onChange={color => this.updateStateValue(i, { color })}
                                 />
                             ) : null}
-                            <br />
-                            {isBoolean ? (
-                                <FormControlLabel
-                                    disabled={this.props.reading}
-                                    control={
-                                        <Checkbox
-                                            checked={!!state.defIcon}
-                                            onChange={e => this.updateStateValue(i, { defIcon: e.target.checked })}
-                                        />
-                                    }
-                                    label={I18n.t('Use default icon', state.val.toUpperCase())}
-                                />
-                            ) : null}
-                            {!isBoolean || !state.defIcon ? (
-                                <IconPicker
-                                    disabled={this.props.reading}
-                                    key={this.props.id + this.state.settings.type + state.original}
-                                    label={I18n.t('Icon')}
-                                    value={state.icon}
-                                    onChange={icon => this.updateStateValue(i, { icon })}
-                                />
-                            ) : null}
+                            <div style={styles.iconBlock}>
+                                {isBoolean ? (
+                                    <FormControlLabel
+                                        disabled={this.props.reading}
+                                        control={
+                                            <Checkbox
+                                                checked={!!state.defIcon}
+                                                onChange={e => this.updateStateValue(i, { defIcon: e.target.checked })}
+                                            />
+                                        }
+                                        label={I18n.t('Use default icon', state.val.toUpperCase())}
+                                    />
+                                ) : null}
+                                {!isBoolean || !state.defIcon ? (
+                                    <IconPicker
+                                        disabled={this.props.reading}
+                                        key={this.props.id + this.state.settings.type + state.original}
+                                        label={I18n.t('Icon')}
+                                        value={state.icon}
+                                        onChange={icon => this.updateStateValue(i, { icon })}
+                                    />
+                                ) : null}
+                            </div>
                         </Paper>
                     </AccordionDetails>
                 )}
@@ -1010,10 +1038,10 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                 helperText={
                                     this.state.settings.type === 'number'
                                         ? I18n.t(
-                                              'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference',
+                                              'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %g - value difference, %o - previous value',
                                           )
                                         : I18n.t(
-                                              'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration',
+                                              'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %o - previous value',
                                           )
                                 }
                                 fullWidth
@@ -1027,14 +1055,15 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                             label={I18n.t('Event color')}
                             onChange={color => this.setSettings('color', color)}
                         />
-                        <br />
-                        <IconPicker
-                            disabled={this.props.reading}
-                            key={this.props.id + this.state.settings.type}
-                            label={I18n.t('Event icon')}
-                            value={this.state.settings.icon}
-                            onChange={icon => this.setSettings('icon', icon)}
-                        />
+                        <div style={styles.iconBlock}>
+                            <IconPicker
+                                disabled={this.props.reading}
+                                key={this.props.id + this.state.settings.type}
+                                label={I18n.t('Event icon')}
+                                value={this.state.settings.icon}
+                                onChange={icon => this.setSettings('icon', icon)}
+                            />
+                        </div>
                     </Paper>
                 </AccordionDetails>
             </Accordion>
@@ -1172,12 +1201,14 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                         <span style={styles.exampleTitle}>{I18n.t('Example event:')}</span>
                         <span style={{ ...styles.exampleText, color: exampleColor }}>
                             {this.props.native.icons ? (
-                                <Image
-                                    src={this.getExampleIcon()}
-                                    sx={{ maxWidth: 32, maxHeight: 32, marginRight: '8px' }}
-                                    color={exampleColor}
-                                    imagePrefix={this.imagePrefix}
-                                />
+                                <Box sx={sxExampleIconBox}>
+                                    <Image
+                                        src={this.getExampleIcon()}
+                                        sx={{ width: EXAMPLE_ICON_SIZE, height: EXAMPLE_ICON_SIZE }}
+                                        color={exampleColor}
+                                        imagePrefix={this.imagePrefix}
+                                    />
+                                </Box>
                             ) : null}
                             {this.buildExample()}
                         </span>

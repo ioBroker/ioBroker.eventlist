@@ -397,7 +397,7 @@ class Options extends Component<OptionsProps, OptionsState> {
                                 onChange={e => this.props.onChange('defaultBooleanText', e.target.value)}
                                 margin="normal"
                                 helperText={I18n.t(
-                                    'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration',
+                                    'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %o - previous value',
                                 )}
                             />
                             <br />
@@ -448,7 +448,7 @@ class Options extends Component<OptionsProps, OptionsState> {
                         onChange={e => this.props.onChange('defaultNonBooleanText', e.target.value)}
                         margin="normal"
                         helperText={I18n.t(
-                            'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration',
+                            'You can use patterns: %s - value, %u - unit, %n - name, %t - time, %d - duration, %o - previous value',
                         )}
                     />
                     <br />

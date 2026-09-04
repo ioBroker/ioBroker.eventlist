@@ -6,7 +6,7 @@ export default [
         languageOptions: {
             parserOptions: {
                 projectService: {
-                    allowDefaultProject: ['*.mjs'],
+                    allowDefaultProject: ['*.mjs', 'src-blockly/*.mjs'],
                 },
                 tsconfigRootDir: import.meta.dirname,
             },
@@ -16,6 +16,7 @@ export default [
         ignores: [
             'src-admin/**/*',
             'admin/**/*',
+            'src-widgets/**/*',
             'www/**/*',
             'widgets/**/*',
             'node_modules/**/*',

@@ -1,0 +1,1 @@
+var e=class extends window.visRxWidget{static getI18nPrefix(){return`eventlist_`}getInstance(){return parseInt(this.state.rxData.instance,10)||0}getStateId(e){return`eventlist.${this.getInstance()}.${e}`}};export{e as t};

@@ -1,0 +1,13 @@
+{
+    "eventlist_delete_what": "Verwijderen",
+    "eventlist_event": "Gebeurtenistekst",
+    "eventlist_icon": "Icoon",
+    "eventlist_id": "Staat-ID",
+    "eventlist_log": "Log niveau",
+    "eventlist_log_debug": "Debug",
+    "eventlist_log_error": "fout",
+    "eventlist_log_info": "Info",
+    "eventlist_log_none": "geen",
+    "eventlist_log_warn": "waarschuwing",
+    "eventlist_value": "Waarde"
+}

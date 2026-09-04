@@ -2,8 +2,11 @@
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
         "noEmit": true,
-        "rootDir": "./src/",
+        // The sources and the tests are checked, so the root is the project directory.
+        // tsconfig.build.json overrides it with "./src" to build the adapter.
+        "rootDir": "./",
         "allowJs": false,
+        "types": ["node", "mocha"],
         "resolveJsonModule": true,
         "noEmitOnError": true,
         "sourceMap": true,

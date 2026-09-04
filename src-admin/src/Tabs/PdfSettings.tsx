@@ -27,14 +27,13 @@ const styles: Record<string, CSSProperties> = {
     tab: {
         width: '100%',
         height: '100%',
-    },
-    gridContainer: {
-        width: '100%',
-        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
     },
     iframePdfLandscape: {
         width: '100%',
         height: '100%',
+        border: 0,
     },
     field: {
         width: 100,
@@ -68,6 +67,28 @@ const styles: Record<string, CSSProperties> = {
         marginRight: 8,
         marginTop: 8,
     },
+};
+
+/** Side by side the two columns fill the tab exactly. Stacked they keep their natural height and the tab scrolls. */
+const sxGridContainer = {
+    width: '100%',
+    flex: { xs: 'none', lg: 1 },
+    minHeight: 0,
+};
+
+/**
+ * The settings are longer than the screen, so they scroll inside their own column instead of pushing the tab.
+ * Without the explicit height the column would grow with its content and drag the whole tab along.
+ */
+const sxSettingsColumn = {
+    minHeight: 0,
+    height: { xs: 'auto', lg: '100%' },
+    overflowY: { xs: 'visible', lg: 'auto' },
+};
+
+const sxPreviewColumn = {
+    minHeight: 0,
+    height: { xs: 500, lg: '100%' },
 };
 
 const SETTINGS: PdfSettingsType = {
@@ -875,7 +896,10 @@ class PdfSettings extends Component<PdfSettingsProps, PdfSettingsState> {
         const settings: PdfSettingsType = { ...SETTINGS, ...this.props.native.pdfSettings };
 
         return (
-            <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+            <Grid
+                size={{ xs: 12, md: 12, lg: 6 }}
+                sx={sxSettingsColumn}
+            >
                 <Grid container>
                     <FormControlLabel
                         key="pdfButton"
@@ -919,7 +943,10 @@ class PdfSettings extends Component<PdfSettingsProps, PdfSettingsState> {
 
     renderPdfFile(): JSX.Element {
         return (
-            <Grid size={{ xs: 12, md: 12, lg: 6 }}>
+            <Grid
+                size={{ xs: 12, md: 12, lg: 6 }}
+                sx={sxPreviewColumn}
+            >
                 <iframe
                     title="pdf"
                     style={styles.iframePdfLandscape}
@@ -935,7 +962,7 @@ class PdfSettings extends Component<PdfSettingsProps, PdfSettingsState> {
                 <Grid
                     container
                     spacing={1}
-                    style={styles.gridContainer}
+                    sx={sxGridContainer}
                 >
                     {this.renderSettings()}
                     {this.renderPdfFile()}

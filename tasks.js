@@ -7,11 +7,13 @@
 const fs = require('node:fs');
 const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles, patchHtmlFile } = require('@iobroker/build-tools');
 const pkg = require('./package.json');
-const iopackage = require('./io-package.json');
-const version = pkg?.version ? pkg.version : iopackage.common.version;
+const ioPackage = require('./io-package.json');
+const version = pkg?.version || ioPackage.common.version;
 
-/** Directory of the React sources */
+/** Directory of the admin/web React sources */
 const SRC_ADMIN = `${__dirname}/src-admin`;
+/** Directory of the vis-2 widget sources */
+const SRC_WIDGETS = `${__dirname}/src-widgets`;
 
 //TASKS
 function clean() {
@@ -58,23 +60,55 @@ function copyI18n() {
     copyFiles(['src/i18n/**/*'], 'build/i18n/');
 }
 
-
-clean();
-
-let npmPromise;
-if (!fs.existsSync(`${SRC_ADMIN}/node_modules`)) {
-    npmPromise = npmInstall(SRC_ADMIN).catch(e => {
-        console.log(`Cannot npm install: ${e}`);
-        process.exit(2);
-    });
-} else {
-    npmPromise = Promise.resolve();
+/**
+ * Copies the built vis-2 widgets into `widgets/eventlist/`.
+ *
+ * The vis-1 widget set lives in the same place - `widgets/eventlist.html` and the `css/` and `img/`
+ * folders next to it - and must survive, so only the bundle of the previous build is removed.
+ */
+function copyWidgets() {
+    deleteFoldersRecursive(`${__dirname}/widgets/eventlist/assets`);
+    copyFiles(
+        ['src-widgets/build/**/*', '!src-widgets/build/index.html', '!src-widgets/build/mf-manifest.json'],
+        'widgets/eventlist/',
+    );
 }
 
-npmPromise
-    .then(() => buildReact(SRC_ADMIN, { rootDir: __dirname, vite: true }))
-    .then(() => copyAllFiles())
-    .catch(e => {
-        console.log(`Cannot build: ${e}`);
-        process.exit(2);
-    });
+async function installIfNeeded(dir) {
+    if (!fs.existsSync(`${dir}/node_modules`)) {
+        await npmInstall(dir);
+    }
+}
+
+async function buildAdmin() {
+    clean();
+    await installIfNeeded(SRC_ADMIN);
+    await buildReact(SRC_ADMIN, { rootDir: __dirname, vite: true });
+    await copyAllFiles();
+}
+
+async function buildWidgets() {
+    deleteFoldersRecursive(`${SRC_WIDGETS}/build`);
+    await installIfNeeded(SRC_WIDGETS);
+    await buildReact(SRC_WIDGETS, { rootDir: __dirname, vite: true });
+    copyWidgets();
+}
+
+async function main() {
+    const onlyAdmin = process.argv.includes('--admin');
+    const onlyWidgets = process.argv.includes('--widgets');
+
+    copyI18n();
+
+    if (!onlyWidgets) {
+        await buildAdmin();
+    }
+    if (!onlyAdmin) {
+        await buildWidgets();
+    }
+}
+
+main().catch(e => {
+    console.log(`Cannot build: ${e}`);
+    process.exit(2);
+});
