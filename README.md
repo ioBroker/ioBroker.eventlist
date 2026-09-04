@@ -42,6 +42,10 @@ Event list could be shown under `http://<IP>:8082/eventlist/index.html`. (for in
 ### Vis Widget
 Event list can be displayed as a vis widget. 
 
+### Device manager
+The device manager shows a tile with the newest event. A click on it opens the whole list in a
+dialog. The tile can be limited to the events of one state, so every device can have its own tile.
+
 ### PDF generation
 There is a possibility to generate a PDF document with all events.
 
@@ -132,7 +136,6 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 ## Todo
 - Change initial texts in PDF in according language
 - Many predefined icons (minimum 100)
-- Devices widget
 - Send messages to syslog (maybe splunk) https://www.npmjs.com/package/splunk-logging
 
 <!--
@@ -141,6 +144,9 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 -->
 
 ## Changelog
+### **WORK IN PROGRESS**
+* (@GermanBluefox) Added devices widget
+
 ### 3.0.0 (2026-09-04)
 * (@GermanBluefox) Updated packages
 * (@GermanBluefox) A Minimum node.js version is 22

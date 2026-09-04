@@ -14,6 +14,8 @@ const version = pkg?.version || ioPackage.common.version;
 const SRC_ADMIN = `${__dirname}/src-admin`;
 /** Directory of the vis-2 widget sources */
 const SRC_WIDGETS = `${__dirname}/src-widgets`;
+/** Directory of the device manager widget sources */
+const SRC_DEVICES = `${__dirname}/src-devices`;
 
 //TASKS
 function clean() {
@@ -74,6 +76,18 @@ function copyWidgets() {
     );
 }
 
+/**
+ * Copies the built device manager widget into `admin/dm-widgets/`.
+ *
+ * `clean()` keeps only `blockly.js` and `jsonCustom.json` in `admin/`, so this has to run after the
+ * admin build, not before it.
+ */
+function copyDevices() {
+    copyFiles(['src-devices/build/**/*', '!src-devices/build/index.html'], 'admin/dm-widgets/');
+    copyFiles(['src-devices/img/**/*'], 'admin/dm-widgets/');
+    copyFiles(['src-devices/src/i18n/*.json'], 'admin/dm-widgets/i18n/');
+}
+
 async function installIfNeeded(dir) {
     if (!fs.existsSync(`${dir}/node_modules`)) {
         await npmInstall(dir);
@@ -94,17 +108,29 @@ async function buildWidgets() {
     copyWidgets();
 }
 
+async function buildDevices() {
+    deleteFoldersRecursive(`${SRC_DEVICES}/build`);
+    await installIfNeeded(SRC_DEVICES);
+    await buildReact(SRC_DEVICES, { rootDir: __dirname, vite: true });
+    copyDevices();
+}
+
 async function main() {
     const onlyAdmin = process.argv.includes('--admin');
     const onlyWidgets = process.argv.includes('--widgets');
+    const onlyDevices = process.argv.includes('--devices');
+    const all = !onlyAdmin && !onlyWidgets && !onlyDevices;
 
     copyI18n();
 
-    if (!onlyWidgets) {
+    if (all || onlyAdmin) {
         await buildAdmin();
     }
-    if (!onlyAdmin) {
+    if (all || onlyWidgets) {
         await buildWidgets();
+    }
+    if (all || onlyDevices) {
+        await buildDevices();
     }
 }
 
