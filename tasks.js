@@ -16,6 +16,8 @@ const SRC_ADMIN = `${__dirname}/src-admin`;
 const SRC_WIDGETS = `${__dirname}/src-widgets`;
 /** Directory of the device manager widget sources */
 const SRC_DEVICES = `${__dirname}/src-devices`;
+/** Directory of the JSON config custom component sources */
+const SRC_CUSTOM = `${__dirname}/src-custom`;
 
 //TASKS
 function clean() {
@@ -88,6 +90,22 @@ function copyDevices() {
     copyFiles(['src-devices/src/i18n/*.json'], 'admin/dm-widgets/i18n/');
 }
 
+/**
+ * Copies the built custom component into `admin/custom/`.
+ *
+ * The component is loaded by the JSON config of the objects, together with the words of the admin
+ * GUI - it uses the same labels. `clean()` keeps only `blockly.js` and `jsonCustom.json` in
+ * `admin/`, so this has to run after the admin build, not before it.
+ */
+function copyCustom() {
+    // vite puts the chunks into 'assets', and 'customComponents.js' loads them from there
+    copyFiles(['src-custom/build/assets/*.js', 'src-custom/build/assets/*.map'], 'admin/custom/assets');
+    copyFiles(['src-custom/build/customComponents.js*'], 'admin/custom');
+    // the admin reads the manifest to see which component library this was built against
+    copyFiles(['src-custom/build/mf-manifest.json'], 'admin/custom');
+    copyFiles(['src-admin/src/i18n/*.json'], 'admin/custom/i18n');
+}
+
 async function installIfNeeded(dir) {
     if (!fs.existsSync(`${dir}/node_modules`)) {
         await npmInstall(dir);
@@ -115,11 +133,19 @@ async function buildDevices() {
     copyDevices();
 }
 
+async function buildCustom() {
+    deleteFoldersRecursive(`${SRC_CUSTOM}/build`);
+    await installIfNeeded(SRC_CUSTOM);
+    await buildReact(SRC_CUSTOM, { rootDir: __dirname, vite: true });
+    copyCustom();
+}
+
 async function main() {
     const onlyAdmin = process.argv.includes('--admin');
     const onlyWidgets = process.argv.includes('--widgets');
     const onlyDevices = process.argv.includes('--devices');
-    const all = !onlyAdmin && !onlyWidgets && !onlyDevices;
+    const onlyCustom = process.argv.includes('--custom');
+    const all = !onlyAdmin && !onlyWidgets && !onlyDevices && !onlyCustom;
 
     copyI18n();
 
@@ -131,6 +157,9 @@ async function main() {
     }
     if (all || onlyDevices) {
         await buildDevices();
+    }
+    if (all || onlyCustom) {
+        await buildCustom();
     }
 }
 

@@ -1,0 +1,13 @@
+{
+    "evl_duration": "Looptijd",
+    "evl_event": "Evenement",
+    "evl_filter": "Filter-ID's",
+    "evl_icon": "Icoon",
+    "evl_instance": "Instance",
+    "evl_show_duration": "Looptijd",
+    "evl_show_value": "Waarde",
+    "evl_time": "Tijd",
+    "evl_title": "Evenementenlijst",
+    "evl_tooltip_filter": "U kunt meerdere ID's opgeven, gescheiden door komma's.",
+    "evl_value": "Waarde"
+}

@@ -64,4 +64,12 @@ export interface EventListAdapterConfig {
     defaultTelegram: string[];
     defaultPushover: string[];
     deleteAlarmsByDisable: boolean;
+    /** From which level on the horn sounds. Empty switches it off. */
+    hornLevel: '' | 'fatal' | 'error' | 'warning' | 'info';
+    /** More transitions than this inside the window count as flapping. 0 switches the protection off. */
+    flappingCount: number | string;
+    /** Length of the flapping window in minutes */
+    flappingInterval: number | string;
+    /** Duration of a suppression in minutes, if none is given */
+    suppressDefault: number | string;
 }

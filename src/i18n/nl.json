@@ -1,11 +1,18 @@
 {
-  "Device %n changed status:": "Apparaat %n heeft status gewijzigd:",
-  "days": "dagen",
-  "hours": "uren",
-  "minutes": "notulen",
-  "ms": "mevrouw",
-  "sec": "sec",
-  "switched off": "uitgeschakeld",
-  "switched on": "ingeschakeld",
-  "undefined": "niet gedefinieerd"
+    "Device %n changed status:": "Apparaat %n heeft status gewijzigd:",
+    "acknowledged": "bevestigd",
+    "came": "gekomen",
+    "days": "dagen",
+    "flapping": "flappert",
+    "gone": "gegaan",
+    "hours": "uren",
+    "minutes": "notulen",
+    "ms": "mevrouw",
+    "released": "vrijgegeven",
+    "sec": "sec",
+    "settled": "gestabiliseerd",
+    "suppressed": "onderdrukt",
+    "switched off": "uitgeschakeld",
+    "switched on": "ingeschakeld",
+    "undefined": "niet gedefinieerd"
 }

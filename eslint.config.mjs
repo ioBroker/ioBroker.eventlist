@@ -18,6 +18,7 @@ export default [
             'admin/**/*',
             'src-widgets/**/*',
             'src-devices/**/*',
+            'src-custom/**/*',
             'www/**/*',
             'widgets/**/*',
             'node_modules/**/*',

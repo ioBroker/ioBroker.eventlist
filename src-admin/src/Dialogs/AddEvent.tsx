@@ -16,6 +16,8 @@ import { Cancel as CancelIcon, Add as AddIcon } from '@mui/icons-material';
 
 import { I18n, IconPicker } from '@iobroker/gui-components';
 
+import { ICON_PICKER_STYLES } from '../Components/iconPickerStyles';
+
 import type { InsertEvent } from '../types';
 
 interface AddEventDialogProps {
@@ -137,6 +139,7 @@ class AddEventDialog extends Component<AddEventDialogProps, AddEventDialogState>
                     ) : null}
                     <IconPicker
                         label={I18n.t('Icon')}
+                        customStyles={ICON_PICKER_STYLES}
                         value={this.state.icon}
                         onChange={icon => this.setState({ icon })}
                     />

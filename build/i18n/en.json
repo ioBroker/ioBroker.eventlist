@@ -1,10 +1,17 @@
 {
     "Device %n changed status:": "Device %n changed status:",
+    "acknowledged": "acknowledged",
+    "came": "came",
     "days": "days",
+    "flapping": "flapping",
+    "gone": "gone",
     "hours": "hours",
     "minutes": "minutes",
     "ms": "ms",
+    "released": "released",
     "sec": "sec",
+    "settled": "settled",
+    "suppressed": "suppressed",
     "switched off": "switched off",
     "switched on": "switched on",
     "undefined": "undefined"

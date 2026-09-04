@@ -51,13 +51,22 @@ import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
 import MessengerSelect from './MessengerSelect';
-import type {
-    DefaultStringText,
-    EditStateSettings,
-    EventListNative,
-    StateValueSettings,
-    StoredStateSettings,
-    StoredStateValueSettings,
+import { ICON_PICKER_STYLES } from './iconPickerStyles';
+import {
+    DEFAULT_ACK,
+    LEVEL_COLORS,
+    MESSAGE_LEVELS,
+    MESSAGE_OPERATORS,
+    type DefaultStringText,
+    type EditStateSettings,
+    type EventListNative,
+    type MessageCondition,
+    type MessageLevel,
+    type MessageOperator,
+    type MessageSettings,
+    type StateValueSettings,
+    type StoredStateSettings,
+    type StoredStateValueSettings,
 } from '../types';
 
 const styles: Record<string, CSSProperties> = {
@@ -112,6 +121,34 @@ const styles: Record<string, CSSProperties> = {
      */
     iconBlock: {
         marginTop: 24,
+    },
+    levelSelect: {
+        width: 200,
+        marginRight: 16,
+    },
+    operatorSelect: {
+        width: 90,
+        marginRight: 16,
+    },
+    limitField: {
+        width: 140,
+    },
+    priorityField: {
+        width: 200,
+    },
+    messageText: {
+        marginBottom: 8,
+    },
+    messageBlock: {
+        marginTop: 16,
+    },
+    delayField: {
+        width: 240,
+        marginRight: 16,
+    },
+    hint: {
+        opacity: 0.75,
+        fontStyle: 'italic',
     },
     iconOpenAll: {
         float: 'right',
@@ -226,6 +263,20 @@ export class EditState extends Component<EditStateProps, EditStateState> {
 
     onStateChanged = (_id: string, state: ioBroker.State | null | undefined): void =>
         this.setState({ state: state || null });
+
+    /**
+     * The delays are entered in seconds and stored in milliseconds, like everywhere else in ioBroker
+     *
+     * @param value what the user typed
+     * @returns the delay in ms, or undefined if the field is empty
+     */
+    static toMilliseconds(value: string): number | undefined {
+        if (value === '') {
+            return undefined;
+        }
+        const seconds = parseFloat(value);
+        return isNaN(seconds) || seconds <= 0 ? undefined : Math.round(seconds * 1000);
+    }
 
     /**
      * Converts the "default" markers of text/color/icon into the defText/defColor/defIcon flags
@@ -461,6 +512,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
             settings.pushover = custom.pushover || [];
             settings.telegram = custom.telegram || [];
             settings.changesOnly = custom.changesOnly;
+            settings.message = custom.message;
 
             settings.defaultMessengers = custom.defaultMessengers === undefined ? true : custom.defaultMessengers;
         } else {
@@ -760,9 +812,22 @@ export class EditState extends Component<EditStateProps, EditStateState> {
             curSettings.whatsAppCMB = settings.whatsAppCMB;
         }
 
+        // The standing message is only stored once a level exists, either at the state or at one of
+        // its values, otherwise the section would be noise. With levels per value the shared part
+        // still counts: text, group and delays belong to all of them.
+        const hasLevel = !!settings.message?.level || !!settings.states?.some(item => item.level);
+        if (hasLevel && settings.message) {
+            curSettings.message = settings.message;
+        }
+
         settings.states?.forEach(item => {
             curSettings.states = curSettings.states || [];
             const it: StoredStateValueSettings = { val: item.val };
+
+            // the level of a value survives even a disabled value, so switching it back keeps it
+            if (item.level) {
+                it.level = item.level;
+            }
 
             if (item.disabled) {
                 it.disabled = true;
@@ -966,10 +1031,16 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                         disabled={this.props.reading}
                                         key={this.props.id + this.state.settings.type + state.original}
                                         label={I18n.t('Icon')}
+                                        customStyles={ICON_PICKER_STYLES}
                                         value={state.icon}
                                         onChange={icon => this.updateStateValue(i, { icon })}
                                     />
                                 ) : null}
+                            </div>
+                            <div style={styles.iconBlock}>
+                                {this.renderLevelSelect(I18n.t('Message level'), state.level, level =>
+                                    this.updateStateValue(i, { level: level || undefined }),
+                                )}
                             </div>
                         </Paper>
                     </AccordionDetails>
@@ -1060,10 +1131,257 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                 disabled={this.props.reading}
                                 key={this.props.id + this.state.settings.type}
                                 label={I18n.t('Event icon')}
+                                customStyles={ICON_PICKER_STYLES}
                                 value={this.state.settings.icon}
                                 onChange={icon => this.setSettings('icon', icon)}
                             />
                         </div>
+                    </Paper>
+                </AccordionDetails>
+            </Accordion>
+        );
+    }
+
+    /** Dropdown for a level, used for the whole state and for a single value */
+    renderLevelSelect(
+        label: string,
+        value: MessageLevel | '' | undefined,
+        onChange: (level: MessageLevel | '') => void,
+    ): JSX.Element {
+        return (
+            <FormControl
+                variant="standard"
+                style={styles.levelSelect}
+                disabled={this.props.reading}
+            >
+                <InputLabel shrink>{label}</InputLabel>
+                <Select
+                    variant="standard"
+                    displayEmpty
+                    value={value || ''}
+                    onChange={(e: SelectChangeEvent<string>) => onChange(e.target.value as MessageLevel | '')}
+                >
+                    <MenuItem value="">
+                        <em>{I18n.t('No message')}</em>
+                    </MenuItem>
+                    {MESSAGE_LEVELS.map(level => (
+                        <MenuItem
+                            key={level}
+                            value={level}
+                        >
+                            <span style={{ color: LEVEL_COLORS[level], fontWeight: 'bold' }}>
+                                {level.toUpperCase()}
+                            </span>
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+        );
+    }
+
+    /** The condition that decides when the message stands. Only for states without a list of values. */
+    renderCondition(message: MessageSettings): JSX.Element {
+        const condition = message.condition || {};
+        const update = (patch: Partial<MessageCondition>): void =>
+            this.setSettings('message', { ...message, condition: { ...condition, ...patch } });
+
+        if (this.state.settings.type === 'number') {
+            return (
+                <>
+                    <FormControl
+                        variant="standard"
+                        style={styles.operatorSelect}
+                        disabled={this.props.reading}
+                    >
+                        <InputLabel>{I18n.t('Condition')}</InputLabel>
+                        <Select
+                            variant="standard"
+                            value={condition.operator || '>'}
+                            onChange={(e: SelectChangeEvent<string>) =>
+                                update({ operator: e.target.value as MessageOperator })
+                            }
+                        >
+                            {MESSAGE_OPERATORS.map(operator => (
+                                <MenuItem
+                                    key={operator}
+                                    value={operator}
+                                >
+                                    {operator}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        variant="standard"
+                        disabled={this.props.reading}
+                        label={I18n.t('Limit')}
+                        type="number"
+                        style={styles.limitField}
+                        value={condition.limit ?? ''}
+                        onChange={e =>
+                            update({ limit: e.target.value === '' ? undefined : parseFloat(e.target.value) })
+                        }
+                    />
+                    <TextField
+                        variant="standard"
+                        disabled={this.props.reading}
+                        label={I18n.t('Hysteresis')}
+                        type="number"
+                        style={styles.limitField}
+                        value={message.hysteresis ?? ''}
+                        helperText={I18n.t('The message goes only when the value has come back this far')}
+                        onChange={e =>
+                            this.setSettings('message', {
+                                ...message,
+                                hysteresis: e.target.value === '' ? undefined : parseFloat(e.target.value),
+                            })
+                        }
+                    />
+                </>
+            );
+        }
+
+        return (
+            <TextField
+                variant="standard"
+                disabled={this.props.reading}
+                label={I18n.t('Value that raises the message')}
+                type="text"
+                style={styles.textField}
+                value={condition.value === undefined ? '' : condition.value.toString()}
+                onChange={e => update({ value: e.target.value })}
+            />
+        );
+    }
+
+    /**
+     * The standing message of this state.
+     *
+     * A state with a list of values gets its level per value, further down in the dialog, because
+     * every value can mean something else. Everything else has one condition for the whole state.
+     */
+    renderMessage(): JSX.Element {
+        const message: MessageSettings = this.state.settings.message || {};
+        const perValue = !!this.state.settings.states?.length;
+        const levelsOfValues = (this.state.settings.states || []).filter(item => item.level);
+        const level = message.level;
+
+        const update = (patch: Partial<MessageSettings>): void => this.setSettings('message', { ...message, ...patch });
+
+        const active = perValue ? !!levelsOfValues.length : !!level;
+        // the acknowledgement duty follows the level, with values it follows the most severe one
+        const effectiveLevel = level || MESSAGE_LEVELS.find(item => levelsOfValues.find(value => value.level === item));
+        const summary = perValue
+            ? levelsOfValues.map(item => `${item.original ?? item.val}: ${item.level}`).join(', ')
+            : level;
+
+        return (
+            <Accordion
+                expanded={this.state.expanded.includes('state_message')}
+                onChange={() => this.onToggle('state_message')}
+            >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>
+                        {I18n.t('Message')}
+                        {active ? (
+                            <span
+                                style={{
+                                    color: effectiveLevel ? LEVEL_COLORS[effectiveLevel] : undefined,
+                                    fontStyle: 'italic',
+                                }}
+                            >{` - ${summary}`}</span>
+                        ) : null}
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails style={{ display: 'block' }}>
+                    <Paper style={styles.paper}>
+                        {perValue ? (
+                            <Typography
+                                variant="body2"
+                                style={styles.hint}
+                            >
+                                {I18n.t('The level is set below, at every single value')}
+                            </Typography>
+                        ) : (
+                            <div>
+                                {this.renderLevelSelect(I18n.t('Level'), level, newLevel =>
+                                    update({ level: newLevel || undefined }),
+                                )}
+                                {level ? this.renderCondition(message) : null}
+                            </div>
+                        )}
+
+                        {active ? (
+                            <div style={styles.messageBlock}>
+                                <TextField
+                                    variant="standard"
+                                    disabled={this.props.reading}
+                                    label={I18n.t('Message text')}
+                                    type="text"
+                                    style={styles.messageText}
+                                    value={message.text || ''}
+                                    onChange={e => update({ text: e.target.value })}
+                                    helperText={I18n.t(
+                                        'You can use patterns: %s - value, %u - unit, %n - name, %l - level',
+                                    )}
+                                    fullWidth
+                                />
+                                <FormControlLabel
+                                    disabled={this.props.reading}
+                                    control={
+                                        <Checkbox
+                                            checked={message.requiresAck ?? DEFAULT_ACK[effectiveLevel || 'error']}
+                                            onChange={e => update({ requiresAck: e.target.checked })}
+                                        />
+                                    }
+                                    label={I18n.t('Must be acknowledged')}
+                                />
+                                <TextField
+                                    variant="standard"
+                                    disabled={this.props.reading}
+                                    label={I18n.t('Priority within the level')}
+                                    type="number"
+                                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                                    style={styles.priorityField}
+                                    value={message.priority ?? 50}
+                                    onChange={e => update({ priority: parseInt(e.target.value, 10) })}
+                                />
+                                <div style={styles.messageBlock}>
+                                    <TextField
+                                        variant="standard"
+                                        disabled={this.props.reading}
+                                        label={I18n.t('Delay when coming (s)')}
+                                        type="number"
+                                        slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                                        style={styles.delayField}
+                                        value={message.delay ? message.delay / 1000 : ''}
+                                        helperText={I18n.t('The condition has to hold that long')}
+                                        onChange={e => update({ delay: EditState.toMilliseconds(e.target.value) })}
+                                    />
+                                    <TextField
+                                        variant="standard"
+                                        disabled={this.props.reading}
+                                        label={I18n.t('Delay when going (s)')}
+                                        type="number"
+                                        slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                                        style={styles.delayField}
+                                        value={message.delayGone ? message.delayGone / 1000 : ''}
+                                        helperText={I18n.t('A fault that stops for a moment is not repaired')}
+                                        onChange={e => update({ delayGone: EditState.toMilliseconds(e.target.value) })}
+                                    />
+                                    <TextField
+                                        variant="standard"
+                                        disabled={this.props.reading}
+                                        label={I18n.t('Group')}
+                                        type="text"
+                                        style={styles.textField}
+                                        value={message.group || ''}
+                                        helperText={I18n.t('Acknowledged together, and the first one is marked')}
+                                        onChange={e => update({ group: e.target.value || undefined })}
+                                    />
+                                </div>
+                            </div>
+                        ) : null}
                     </Paper>
                 </AccordionDetails>
             </Accordion>
@@ -1305,6 +1623,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                     </div>
                 ) : null}
                 {this.renderStateSettings(narrowWidth)}
+                {this.renderMessage()}
                 {states && sortedStates ? sortedStates.map(item => this.renderState(states.indexOf(item))) : null}
                 {this.renderMessengers(narrowWidth)}
             </>

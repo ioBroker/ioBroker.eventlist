@@ -1,0 +1,18 @@
+{
+    "EventlistLastEvent": "Letztes Ereignis",
+    "evl_duration": "Dauer",
+    "evl_event": "Ereignis",
+    "evl_filter": "Filter-IDs",
+    "evl_icon": "Symbol",
+    "evl_instance": "Instanz",
+    "evl_max_rows": "Max. Zeilen",
+    "evl_name": "Name",
+    "evl_no_events": "Keine Ereignisse",
+    "evl_open_hint": "Klicken, um alle Ereignisse zu sehen",
+    "evl_show_duration": "Dauer",
+    "evl_show_value": "Wert",
+    "evl_time": "Zeit",
+    "evl_title": "Ereignisliste",
+    "evl_tooltip_filter": "Sie können mehrere durch Komma getrennte IDs angeben.",
+    "evl_value": "Wert"
+}

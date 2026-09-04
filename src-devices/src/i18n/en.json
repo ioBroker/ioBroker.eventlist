@@ -1,0 +1,18 @@
+{
+    "EventlistLastEvent": "Last event",
+    "evl_duration": "Duration",
+    "evl_event": "Event",
+    "evl_filter": "Filter IDs",
+    "evl_icon": "Icon",
+    "evl_instance": "Instance",
+    "evl_max_rows": "Max. rows",
+    "evl_name": "Name",
+    "evl_no_events": "No events",
+    "evl_open_hint": "Click to see all events",
+    "evl_show_duration": "Duration",
+    "evl_show_value": "Value",
+    "evl_time": "Time",
+    "evl_title": "Event list",
+    "evl_tooltip_filter": "You can provide multiple IDs divided by comma.",
+    "evl_value": "Value"
+}

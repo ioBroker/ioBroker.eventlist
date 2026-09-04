@@ -1,0 +1,18 @@
+{
+    "EventlistLastEvent": "Последнее событие",
+    "evl_duration": "Продолжительность",
+    "evl_event": "Мероприятие",
+    "evl_filter": "Идентификаторы фильтра",
+    "evl_icon": "Иконка",
+    "evl_instance": "Инстанция",
+    "evl_max_rows": "Макс. строк",
+    "evl_name": "Имя",
+    "evl_no_events": "Нет событий",
+    "evl_open_hint": "Нажмите, чтобы увидеть все события",
+    "evl_show_duration": "Продолжительность",
+    "evl_show_value": "Значение",
+    "evl_time": "Время",
+    "evl_title": "Список событий",
+    "evl_tooltip_filter": "Вы можете указать несколько идентификаторов, разделенных запятыми.",
+    "evl_value": "Значение"
+}

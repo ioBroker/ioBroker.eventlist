@@ -302,7 +302,11 @@
         "defaultWhatsAppCMB": [],
         "defaultTelegram": [],
         "defaultPushover": [],
-        "deleteAlarmsByDisable": false
+        "deleteAlarmsByDisable": false,
+        "hornLevel": "error",
+        "flappingCount": 10,
+        "flappingInterval": 5,
+        "suppressDefault": 60
     },
     "objects": [
         {
@@ -474,6 +478,239 @@
                 "type": "string"
             },
             "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "messages",
+            "type": "channel",
+            "common": {
+                "name": {
+                    "en": "Standing messages",
+                    "de": "Anstehende Meldungen",
+                    "ru": "Текущие сообщения"
+                }
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.list",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages as JSON",
+                    "de": "Anstehende Meldungen als JSON",
+                    "ru": "Текущие сообщения как JSON"
+                },
+                "type": "json",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.raw",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages, raw",
+                    "de": "Anstehende Meldungen, roh",
+                    "ru": "Текущие сообщения, сырые"
+                },
+                "type": "json",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.count",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Number of standing messages",
+                    "de": "Anzahl anstehender Meldungen",
+                    "ru": "Количество текущих сообщений"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.countFatal",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages of level fatal",
+                    "de": "Anstehende Meldungen der Stufe fatal",
+                    "ru": "Текущие сообщения уровня fatal"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.countError",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages of level error",
+                    "de": "Anstehende Meldungen der Stufe error",
+                    "ru": "Текущие сообщения уровня error"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.countWarning",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages of level warning",
+                    "de": "Anstehende Meldungen der Stufe warning",
+                    "ru": "Текущие сообщения уровня warning"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.countInfo",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Standing messages of level info",
+                    "de": "Anstehende Meldungen der Stufe info",
+                    "ru": "Текущие сообщения уровня info"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.unacknowledged",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Unacknowledged messages",
+                    "de": "Unquittierte Meldungen",
+                    "ru": "Неквитированные сообщения"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.highest",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Highest standing level",
+                    "de": "Höchste anstehende Stufe",
+                    "ru": "Высший текущий уровень"
+                },
+                "type": "string",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.ack",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Acknowledge a message, a group or * for all",
+                    "de": "Meldung, Gruppe quittieren oder * für alle",
+                    "ru": "Квитировать сообщение, группу или * для всех"
+                },
+                "type": "string",
+                "role": "text",
+                "read": true,
+                "write": true,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.horn",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "An unacknowledged message stands",
+                    "de": "Eine unquittierte Meldung steht an",
+                    "ru": "Есть неквитированное сообщение"
+                },
+                "type": "boolean",
+                "role": "indicator.alarm",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.suppress",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Suppress a message or a group, as \"target:minutes\"",
+                    "de": "Meldung oder Gruppe unterdrücken, als \"Ziel:Minuten\"",
+                    "ru": "Подавить сообщение или группу, как \"цель:минуты\""
+                },
+                "type": "string",
+                "role": "text",
+                "read": true,
+                "write": true,
+                "def": ""
+            },
+            "native": {}
+        },
+        {
+            "_id": "messages.suppressed",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Suppressed messages and groups as JSON",
+                    "de": "Unterdrückte Meldungen und Gruppen als JSON",
+                    "ru": "Подавленные сообщения и группы как JSON"
+                },
+                "type": "json",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": ""
+            },
             "native": {}
         }
     ]

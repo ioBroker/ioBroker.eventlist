@@ -7,6 +7,7 @@ import {
     InputLabel,
     MenuItem,
     FormControl,
+    FormHelperText,
     Snackbar,
     IconButton,
     FormControlLabel,
@@ -30,7 +31,7 @@ import {
 import { I18n, Logo, ColorPicker, withWidth, type AdminConnection, type Width } from '@iobroker/gui-components';
 
 import MessengerSelect from '../Components/MessengerSelect';
-import type { DefaultStringText, EventListNative } from '../types';
+import { LEVEL_COLORS, MESSAGE_LEVELS, type DefaultStringText, type EventListNative } from '../types';
 
 const styles: Record<string, CSSProperties> = {
     tab: {
@@ -510,6 +511,81 @@ class Options extends Component<OptionsProps, OptionsState> {
                                 selected={this.props.native.defaultPushover}
                                 onChange={values => this.props.onChange('defaultPushover', values)}
                                 socket={this.props.socket}
+                            />
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion
+                        expanded={this.state.expanded.includes('state_messages')}
+                        onChange={() => this.onToggle('state_messages')}
+                    >
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography style={styles.heading}>{I18n.t('Message settings')}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails style={{ display: 'block' }}>
+                            <FormControl
+                                variant="standard"
+                                style={styles.input}
+                            >
+                                <InputLabel shrink>{I18n.t('Horn from level')}</InputLabel>
+                                <Select
+                                    variant="standard"
+                                    displayEmpty
+                                    value={this.props.native.hornLevel || ''}
+                                    onChange={(e: SelectChangeEvent<string>) =>
+                                        this.props.onChange('hornLevel', e.target.value)
+                                    }
+                                >
+                                    <MenuItem value="">
+                                        <em>{I18n.t('No horn')}</em>
+                                    </MenuItem>
+                                    {MESSAGE_LEVELS.map(level => (
+                                        <MenuItem
+                                            key={level}
+                                            value={level}
+                                        >
+                                            <span style={{ color: LEVEL_COLORS[level], fontWeight: 'bold' }}>
+                                                {level.toUpperCase()}
+                                            </span>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                                <FormHelperText>
+                                    {I18n.t('The horn stays on while an unacknowledged message of this level stands')}
+                                </FormHelperText>
+                            </FormControl>
+                            {narrowWidth && <br />}
+                            <TextField
+                                variant="standard"
+                                label={I18n.t('Flapping from transitions')}
+                                style={styles.input}
+                                type="number"
+                                slotProps={{ htmlInput: { min: 0 } }}
+                                value={this.props.native.flappingCount ?? 10}
+                                helperText={I18n.t('0 switches the flapping protection off')}
+                                onChange={e => this.props.onChange('flappingCount', parseInt(e.target.value, 10) || 0)}
+                            />
+                            {narrowWidth && <br />}
+                            <TextField
+                                variant="standard"
+                                label={I18n.t('Flapping window in minutes')}
+                                style={styles.input}
+                                type="number"
+                                slotProps={{ htmlInput: { min: 0 } }}
+                                value={this.props.native.flappingInterval ?? 5}
+                                helperText={I18n.t('Within this time the transitions are counted')}
+                                onChange={e => this.props.onChange('flappingInterval', parseFloat(e.target.value) || 0)}
+                            />
+                            {narrowWidth && <br />}
+                            <TextField
+                                variant="standard"
+                                label={I18n.t('Suppression in minutes')}
+                                style={styles.input}
+                                type="number"
+                                slotProps={{ htmlInput: { min: 1 } }}
+                                value={this.props.native.suppressDefault ?? 60}
+                                helperText={I18n.t('Used if the suppression brings no duration of its own')}
+                                onChange={e => this.props.onChange('suppressDefault', parseFloat(e.target.value) || 0)}
                             />
                         </AccordionDetails>
                     </Accordion>

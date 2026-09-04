@@ -1,11 +1,18 @@
 {
-  "Device %n changed status:": "设备 %n 状态已更改：",
-  "days": "天",
-  "hours": "小时",
-  "minutes": "分钟",
-  "ms": "多发性硬化症",
-  "sec": "秒",
-  "switched off": "已关闭",
-  "switched on": "开启",
-  "undefined": "不明确的"
+    "Device %n changed status:": "设备 %n 状态已更改：",
+    "acknowledged": "已确认",
+    "came": "出现",
+    "days": "天",
+    "flapping": "抖动",
+    "gone": "消失",
+    "hours": "小时",
+    "minutes": "分钟",
+    "ms": "多发性硬化症",
+    "released": "已释放",
+    "sec": "秒",
+    "settled": "已稳定",
+    "suppressed": "已抑制",
+    "switched off": "已关闭",
+    "switched on": "开启",
+    "undefined": "不明确的"
 }

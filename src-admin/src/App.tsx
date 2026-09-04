@@ -29,6 +29,7 @@ import zhLang from './i18n/zh-cn.json';
 
 import TabOptions from './Tabs/Options';
 import TabList from './Tabs/List';
+import TabMessages from './Tabs/Messages';
 import TabPDF from './Tabs/PdfSettings';
 import type { EventListNative } from './types';
 
@@ -58,8 +59,8 @@ const sxIndicator = (theme: Theme): { backgroundColor: string } => ({
     backgroundColor: theme.palette.mode === 'dark' ? theme.palette.secondary.main : '#FFF',
 });
 
-type AppTab = 'options' | 'list' | 'pdf';
-const TABS: AppTab[] = ['options', 'list', 'pdf'];
+type AppTab = 'options' | 'list' | 'messages' | 'pdf';
+const TABS: AppTab[] = ['options', 'list', 'messages', 'pdf'];
 
 interface AppState extends GenericAppState {
     native: EventListNative;
@@ -218,6 +219,11 @@ export default class App extends GenericApp<GenericAppProps, AppState> {
                         />
                         <Tab
                             sx={{ '&.Mui-selected': sxSelected }}
+                            label={I18n.t('Messages')}
+                            value="messages"
+                        />
+                        <Tab
+                            sx={{ '&.Mui-selected': sxSelected }}
                             label={I18n.t('PDF')}
                             value="pdf"
                         />
@@ -240,6 +246,16 @@ export default class App extends GenericApp<GenericAppProps, AppState> {
                         />
                     )}
                     {selectedTab === 'list' && this.renderEventList()}
+                    {selectedTab === 'messages' && (
+                        <TabMessages
+                            key="messages"
+                            socket={this.socket}
+                            native={this.state.native}
+                            instance={this.instance}
+                            adapterName={this.adapterName}
+                            imagePrefix={this.isWeb ? '../' : '../..'}
+                        />
+                    )}
                     {selectedTab === 'pdf' && (
                         <TabPDF
                             key="pdf"

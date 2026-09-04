@@ -1,0 +1,13 @@
+{
+    "evl_duration": "持续时间",
+    "evl_event": "事件",
+    "evl_filter": "过滤器ID",
+    "evl_icon": "图标",
+    "evl_instance": "实例",
+    "evl_show_duration": "持续时间",
+    "evl_show_value": "值",
+    "evl_time": "时间",
+    "evl_title": "活动列表",
+    "evl_tooltip_filter": "您可以提供多个ID，以逗号分隔。",
+    "evl_value": "值"
+}

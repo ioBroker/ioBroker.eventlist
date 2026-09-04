@@ -1,0 +1,13 @@
+{
+    "evl_duration": "Durata",
+    "evl_event": "Evento",
+    "evl_filter": "ID filtro",
+    "evl_icon": "Icona",
+    "evl_instance": "Instance",
+    "evl_show_duration": "Durata",
+    "evl_show_value": "Valore",
+    "evl_time": "Tempo",
+    "evl_title": "Elenco degli eventi",
+    "evl_tooltip_filter": "Puoi fornire più ID divisi da virgole.",
+    "evl_value": "Valore"
+}

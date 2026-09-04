@@ -1,11 +1,18 @@
 {
-  "Device %n changed status:": "Urządzenie %n zmieniło status:",
-  "days": "dni",
-  "hours": "godziny",
-  "minutes": "protokół",
-  "ms": "SM",
-  "sec": "sek",
-  "switched off": "wyłączony",
-  "switched on": "włączony",
-  "undefined": "niezdefiniowany"
+    "Device %n changed status:": "Urządzenie %n zmieniło status:",
+    "acknowledged": "potwierdzone",
+    "came": "pojawiło się",
+    "days": "dni",
+    "flapping": "migocze",
+    "gone": "ustąpiło",
+    "hours": "godziny",
+    "minutes": "protokół",
+    "ms": "SM",
+    "released": "zwolnione",
+    "sec": "sek",
+    "settled": "uspokojone",
+    "suppressed": "stłumione",
+    "switched off": "wyłączony",
+    "switched on": "włączony",
+    "undefined": "niezdefiniowany"
 }

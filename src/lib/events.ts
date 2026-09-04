@@ -1,6 +1,7 @@
 import moment from 'moment';
 
 import type { EventListAdapterConfig } from '../types';
+import type { MessageLevel, MessageSettings, MessageTransition } from './messages';
 
 export const DEFAULT_TEMPLATE = 'default';
 export const MIN_VALID_DATE = new Date(2019, 0, 1).getTime();
@@ -18,7 +19,16 @@ export interface StateSettings {
     whatsAppCMB?: string[];
     telegram?: string[];
     pushover?: string[];
-    states?: Array<{ val: string; text: string; color: string; icon: string; disabled?: boolean }>;
+    states?: Array<{
+        val: string;
+        text: string;
+        color: string;
+        icon: string;
+        disabled?: boolean;
+        level?: MessageLevel;
+    }>;
+    /** Settings of the standing message this state raises */
+    message?: MessageSettings;
     type?: string;
     originalStates?: Record<string, string>;
     unit?: string;
@@ -43,6 +53,12 @@ export interface EventItem {
     color?: string;
     duration?: number | null;
     diff?: number;
+    /** Level, if the event comes from a standing message */
+    level?: MessageLevel;
+    /** The message this event belongs to */
+    messageId?: string;
+    /** What happened to the message */
+    transition?: MessageTransition;
 }
 
 /**
@@ -66,6 +82,9 @@ export interface FormattedEvent {
     val?: any;
     id?: string;
     dr?: number;
+    /** Level, if the event comes from a standing message */
+    level?: MessageLevel;
+    messageId?: string;
 }
 
 /** Translated texts, that are used to build the duration string */
@@ -481,6 +500,11 @@ export function formatEvent(state: EventItem, allowRelative: boolean, ctx: Event
     if (state.id) {
         event.id = state.id;
     }
+    // the level travels with the event, so the lists can be filtered by it
+    if (state.level) {
+        event.level = state.level;
+        event.messageId = state.messageId;
+    }
 
     return event as FormattedEvent;
 }
@@ -660,6 +684,13 @@ export function buildEventItem(event: IncomingEvent, now: number, onWarn?: (text
 
     if (event.color) {
         eventItem.color = event.color;
+    }
+
+    // an event that comes from a standing message carries where it came from
+    if (event.level) {
+        eventItem.level = event.level;
+        eventItem.messageId = event.messageId;
+        eventItem.transition = event.transition;
     }
 
     return eventItem;

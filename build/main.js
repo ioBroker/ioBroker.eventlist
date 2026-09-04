@@ -8,6 +8,7 @@ const adapter_core_1 = require("@iobroker/adapter-core");
 const moment_1 = __importDefault(require("moment"));
 const list2pdf_1 = __importDefault(require("./lib/list2pdf"));
 const events_1 = require("./lib/events");
+const messages_1 = require("./lib/messages");
 require("moment/locale/de");
 require("moment/locale/fr");
 require("moment/locale/en-gb");
@@ -27,6 +28,22 @@ class EventList extends adapter_core_1.Adapter {
     #isFloatComma;
     #eventListRaw;
     #texts;
+    /** The standing messages */
+    #messages = [];
+    /** What is suppressed at the moment, and until when */
+    #suppressions = [];
+    /** When a message counts as flapping, undefined if the protection is switched off */
+    #flapping;
+    /** Running delays of messages, keyed with `came:<id>` and `gone:<id>` */
+    #messageTimers = new Map();
+    /** The messages that are waiting for their delay, with the newest text and value */
+    #delayedRaise = new Map();
+    /** The last transitions per message, so a message that left the list keeps its restlessness */
+    #changes = new Map();
+    /** Looks after the flapping messages and the end of the suppressions */
+    #messageHousekeeping = null;
+    /** Translated words for the events a transition writes */
+    #transitionTexts;
     constructor(options = {}) {
         super({
             ...options,
@@ -74,6 +91,21 @@ class EventList extends adapter_core_1.Adapter {
             seconds: this.getTranslatedWords('sec'),
             ms: this.getTranslatedWords('ms'),
         };
+        this.#transitionTexts = {
+            came: this.getTranslatedWords('came'),
+            gone: this.getTranslatedWords('gone'),
+            acknowledged: this.getTranslatedWords('acknowledged'),
+            flapping: this.getTranslatedWords('flapping'),
+            settled: this.getTranslatedWords('settled'),
+            suppressed: this.getTranslatedWords('suppressed'),
+            released: this.getTranslatedWords('released'),
+        };
+        const flappingCount = parseInt(this.config.flappingCount, 10);
+        const flappingInterval = parseFloat(this.config.flappingInterval);
+        this.#flapping =
+            flappingCount > 0 && flappingInterval > 0
+                ? { count: flappingCount, interval: Math.round(flappingInterval * 60000) }
+                : undefined;
         this.config.maxLength = parseInt(this.config.maxLength, 10) || 100;
         this.config.deleteAlarmsByDisable =
             this.config.deleteAlarmsByDisable === true ||
@@ -87,6 +119,7 @@ class EventList extends adapter_core_1.Adapter {
         this.#alarmMode = (0, events_1.isAlarmModeOn)(state?.val);
         moment_1.default.locale(this.#systemLang === 'en' ? 'en-gb' : this.#systemLang);
         await this.#readStates();
+        await this.#loadMessages();
         await this.#updateMomentTimes(); // Update table according to new settings
         try {
             await this.subscribeStatesAsync('insert');
@@ -108,6 +141,18 @@ class EventList extends adapter_core_1.Adapter {
         }
         try {
             await this.subscribeStatesAsync('alarm');
+        }
+        catch (e) {
+            this.log.error(`Cannot subscribe on states: ${e}`);
+        }
+        try {
+            await this.subscribeStatesAsync('messages.ack');
+        }
+        catch (e) {
+            this.log.error(`Cannot subscribe on states: ${e}`);
+        }
+        try {
+            await this.subscribeStatesAsync('messages.suppress');
         }
         catch (e) {
             this.log.error(`Cannot subscribe on states: ${e}`);
@@ -156,7 +201,18 @@ class EventList extends adapter_core_1.Adapter {
                 .then(count => this.log.debug(`${count} events were deleted from the list`))
                 .catch(e => this.log.error(`Cannot delete events: ${e}`));
         }
+        else if (id === `${this.namespace}.messages.ack` && state && !state.ack && state.val) {
+            await this.#acknowledge(state.val.toString());
+            await this.setStateAsync('messages.ack', '', true);
+        }
+        else if (id === `${this.namespace}.messages.suppress` && state && !state.ack && state.val) {
+            await this.#suppress(state.val.toString());
+            await this.setStateAsync('messages.suppress', '', true);
+        }
         else if (this.#states[id] && state) {
+            // The standing messages are evaluated before the event handling, because a value that is
+            // not logged still changes the condition of a message.
+            await this.#evaluateMessages(id, state.val);
             if ((0, events_1.isValueDisabled)(this.#states[id], state.val)) {
                 this.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
                 return;
@@ -233,6 +289,65 @@ class EventList extends adapter_core_1.Adapter {
                     }
                 }
             }
+            else if (obj.command === 'message') {
+                // A message from a script: it comes, or it goes if state is "gone"
+                const request = obj.message;
+                try {
+                    if (!request?.id) {
+                        throw new Error('The message needs an id');
+                    }
+                    if (request.state === 'gone') {
+                        await this.#applyMessageChange((0, messages_1.clearMessage)(this.#messages, request.id, Date.now(), this.#flapping));
+                    }
+                    else {
+                        await this.#applyMessageChange(this.#raise(this.#messages, {
+                            id: request.id,
+                            level: request.level,
+                            severity: request.severity,
+                            text: request.text,
+                            priority: request.priority,
+                            requiresAck: request.requiresAck,
+                            val: request.val,
+                            icon: request.icon,
+                            color: request.color,
+                            group: request.group,
+                        }, Date.now()));
+                    }
+                    if (obj.callback) {
+                        this.sendTo(obj.from, obj.command, { result: 'ok' }, obj.callback);
+                    }
+                }
+                catch (e) {
+                    this.log.error(`Cannot set message: ${e}`);
+                    if (obj.callback) {
+                        this.sendTo(obj.from, obj.command, { error: e.toString() }, obj.callback);
+                    }
+                }
+            }
+            else if (obj.command === 'ack') {
+                const request = obj.message;
+                const filter = typeof request === 'string' ? request : request?.id || '*';
+                const user = typeof request === 'string' ? undefined : request?.user;
+                const acknowledged = await this.#acknowledge(filter, user);
+                if (obj.callback) {
+                    this.sendTo(obj.from, obj.command, { acknowledged }, obj.callback);
+                }
+            }
+            else if (obj.command === 'messages') {
+                if (obj.callback) {
+                    this.sendTo(obj.from, obj.command, (0, messages_1.formatMessageList)(this.#visibleMessages()), obj.callback);
+                }
+            }
+            else if (obj.command === 'suppress') {
+                // Take a message or a group out of the list for a while, for a maintenance
+                const request = obj.message;
+                const suppression = await this.#suppress(request);
+                if (obj.callback) {
+                    this.sendTo(obj.from, obj.command, suppression
+                        ? { target: suppression.target, until: suppression.until }
+                        : { error: 'Cannot read the message or the group to suppress' }, obj.callback);
+                }
+            }
             else if (obj.command === 'delete') {
                 try {
                     const count = await this.#deleteEvents(obj.message);
@@ -260,6 +375,15 @@ class EventList extends adapter_core_1.Adapter {
             clearInterval(this.#momentInterval);
             this.#momentInterval = null;
         }
+        if (this.#messageHousekeeping) {
+            clearInterval(this.#messageHousekeeping);
+            this.#messageHousekeeping = null;
+        }
+        for (const timer of this.#messageTimers.values()) {
+            clearTimeout(timer);
+        }
+        this.#messageTimers.clear();
+        this.#delayedRaise.clear();
         callback?.();
     }
     async #deleteEvents(filter) {
@@ -386,6 +510,330 @@ class EventList extends adapter_core_1.Adapter {
         await this.#sendPushover(eventItem);
         return eventItem;
     }
+    /**
+     * Read the standing messages and bring them in line with the current values.
+     *
+     * A message whose condition is no longer true went while the adapter was down. It does not
+     * simply disappear: it goes now and stays in the list until somebody acknowledges it, otherwise
+     * nobody would ever learn that the fault happened.
+     */
+    async #loadMessages() {
+        const state = await this.getStateAsync('messages.raw');
+        this.#messages = (0, messages_1.parseMessageList)(state?.val, text => this.log.warn(text));
+        // a suppression that was still running keeps running, the rest of it is over
+        const suppressed = await this.getStateAsync('messages.suppressed');
+        this.#suppressions = (0, messages_1.expireSuppressions)(this.#parseSuppressions(suppressed?.val), Date.now());
+        for (const id of Object.keys(this.#states)) {
+            try {
+                const value = await this.getForeignStateAsync(id);
+                if (value) {
+                    await this.#evaluateMessages(id, value.val);
+                }
+            }
+            catch (e) {
+                this.log.warn(`Cannot read ${id} for the messages: ${e}`);
+            }
+        }
+        await this.#publishMessages();
+        this.#updateHousekeeping();
+    }
+    /**
+     * Read the suppressions out of the state `messages.suppressed`
+     *
+     * @param val the value of the state
+     */
+    #parseSuppressions(val) {
+        let parsed = val;
+        if (typeof val === 'string') {
+            if (!val) {
+                return [];
+            }
+            try {
+                parsed = JSON.parse(val);
+            }
+            catch {
+                this.log.warn(`Cannot parse the suppressions: "${val}"`);
+                return [];
+            }
+        }
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+        return parsed.filter(item => item && typeof item.target === 'string' && item.until > 0);
+    }
+    /**
+     * Work out which messages the new value of a state raises and which it clears
+     *
+     * @param id the state
+     * @param val its new value
+     */
+    async #evaluateMessages(id, val) {
+        const settings = this.#states[id];
+        if (!settings) {
+            return;
+        }
+        const { raise, clear } = (0, messages_1.evaluateStateMessages)(id, settings, val, {
+            isFloatComma: this.#isFloatComma,
+            isActive: messageId => this.#isMessageActive(messageId),
+        });
+        if (!raise.length && !clear.length) {
+            return;
+        }
+        const now = Date.now();
+        let list = this.#messages;
+        const transitions = [];
+        for (const message of raise) {
+            // the condition is true again, so a delayed going is off
+            this.#cancelMessageTimer(`gone:${message.id}`);
+            if (message.delay && !this.#isMessageActive(message.id)) {
+                // it comes only if the condition holds long enough. The newest text goes with it.
+                this.#delayedRaise.set(message.id, message);
+                this.#delayMessage(`came:${message.id}`, message.delay, () => this.#raiseDelayed(message.id));
+                continue;
+            }
+            this.#cancelMessageTimer(`came:${message.id}`);
+            const next = this.#raise(list, message, now);
+            list = next.list;
+            transitions.push(...next.transitions);
+        }
+        const delayGone = settings.message?.delayGone;
+        for (const messageId of clear) {
+            // the condition is false again, so a delayed coming is off
+            this.#cancelMessageTimer(`came:${messageId}`);
+            if (delayGone && this.#isMessageActive(messageId)) {
+                // a fault that stops for a moment is not repaired
+                this.#delayMessage(`gone:${messageId}`, delayGone, () => this.#clearDelayed(messageId));
+                continue;
+            }
+            this.#cancelMessageTimer(`gone:${messageId}`);
+            const next = (0, messages_1.clearMessage)(list, messageId, now, this.#flapping);
+            list = next.list;
+            transitions.push(...next.transitions);
+        }
+        await this.#applyMessageChange({ list, transitions });
+    }
+    /** Whether the message stands at the moment */
+    #isMessageActive(id) {
+        return this.#messages.some(item => item.id === id && item.active);
+    }
+    /**
+     * Let a message come, together with the transitions it made before it last left the list. Only
+     * with them a message that nobody has to acknowledge can ever count as flapping.
+     *
+     * @param list the standing messages
+     * @param incoming the message that comes
+     * @param now the current time
+     */
+    #raise(list, incoming, now) {
+        const changes = this.#changes.get(incoming.id);
+        return (0, messages_1.raiseMessage)(list, changes?.length ? { ...incoming, changes } : incoming, now, this.#flapping);
+    }
+    /**
+     * Wait before the message comes or goes. A delay that is already running is not started again,
+     * otherwise a restless signal would postpone it for ever.
+     *
+     * @param key `came:<id>` or `gone:<id>`
+     * @param delay how long to wait in ms
+     * @param action what to do afterwards
+     */
+    #delayMessage(key, delay, action) {
+        if (this.#messageTimers.has(key)) {
+            return;
+        }
+        const timer = setTimeout(() => {
+            this.#messageTimers.delete(key);
+            action().catch(e => this.log.error(`Cannot apply the delayed message ${key}: ${e}`));
+        }, delay);
+        this.#messageTimers.set(key, timer);
+    }
+    /**
+     * Stop a running delay
+     *
+     * @param key `came:<id>` or `gone:<id>`
+     */
+    #cancelMessageTimer(key) {
+        const timer = this.#messageTimers.get(key);
+        if (timer) {
+            clearTimeout(timer);
+            this.#messageTimers.delete(key);
+        }
+        if (key.startsWith('came:')) {
+            this.#delayedRaise.delete(key.substring(5));
+        }
+    }
+    /**
+     * Let a message come whose delay is over
+     *
+     * @param id the message
+     */
+    async #raiseDelayed(id) {
+        const incoming = this.#delayedRaise.get(id);
+        this.#delayedRaise.delete(id);
+        if (!incoming) {
+            return;
+        }
+        await this.#applyMessageChange(this.#raise(this.#messages, incoming, Date.now()));
+    }
+    /**
+     * Let a message go whose delay is over
+     *
+     * @param id the message
+     */
+    async #clearDelayed(id) {
+        await this.#applyMessageChange((0, messages_1.clearMessage)(this.#messages, id, Date.now(), this.#flapping));
+    }
+    /**
+     * Take a message or a group out of the list for a while, and write down that it happened.
+     *
+     * @param request the message, the group or `*`, with the duration in minutes
+     * @returns what is suppressed now, or null if the request could not be read
+     */
+    async #suppress(request) {
+        const now = Date.now();
+        const defaultMinutes = parseFloat(this.config.suppressDefault) || 60;
+        const suppression = (0, messages_1.parseSuppression)(request, now, defaultMinutes);
+        if (!suppression) {
+            this.log.warn(`Cannot read what should be suppressed: ${JSON.stringify(request)}`);
+            return null;
+        }
+        this.#suppressions = (0, messages_1.addSuppression)((0, messages_1.expireSuppressions)(this.#suppressions, now), suppression);
+        // the suppression goes into the event list, so the gap in the history has a reason
+        const minutes = Math.round((suppression.until - now) / 60000);
+        const event = suppression.until
+            ? `${suppression.target} - ${this.#transitionTexts.suppressed} (${minutes} ${this.#texts.minutes})`
+            : `${suppression.target} - ${this.#transitionTexts.released}`;
+        try {
+            await this.#addEvent({ event });
+        }
+        catch (e) {
+            this.log.error(`Cannot add the event of the suppression: ${e}`);
+        }
+        await this.#publishMessages();
+        this.#updateHousekeeping();
+        return suppression;
+    }
+    /** The messages that are shown and counted, without the suppressed ones */
+    #visibleMessages() {
+        return (0, messages_1.visibleMessages)(this.#messages, this.#suppressions, Date.now());
+    }
+    /**
+     * Start or stop the timer that looks after the flapping messages and the end of the
+     * suppressions. Both are changes that no state change announces.
+     */
+    #updateHousekeeping() {
+        const needed = !!this.#suppressions.length || !!this.#changes.size || this.#messages.some(item => item.flapping);
+        if (needed && !this.#messageHousekeeping) {
+            this.#messageHousekeeping = setInterval(() => {
+                this.#houseKeeping().catch(e => this.log.error(`Cannot look after the messages: ${e}`));
+            }, 30000);
+        }
+        else if (!needed && this.#messageHousekeeping) {
+            clearInterval(this.#messageHousekeeping);
+            this.#messageHousekeeping = null;
+        }
+    }
+    /** Let calmed down messages out of the flapping protection and end the suppressions that are over */
+    async #houseKeeping() {
+        const now = Date.now();
+        if (this.#flapping) {
+            const change = (0, messages_1.settleMessages)(this.#messages, now, this.#flapping);
+            if (change.transitions.length) {
+                await this.#applyMessageChange(change);
+            }
+            // forget the messages that have been quiet for a whole window
+            for (const [id, times] of this.#changes) {
+                if (!times.length || times[times.length - 1] <= now - this.#flapping.interval) {
+                    this.#changes.delete(id);
+                }
+            }
+        }
+        else if (this.#changes.size) {
+            this.#changes.clear();
+        }
+        const left = (0, messages_1.expireSuppressions)(this.#suppressions, now);
+        if (left.length !== this.#suppressions.length) {
+            this.#suppressions = left;
+            await this.#publishMessages();
+        }
+        this.#updateHousekeeping();
+    }
+    /**
+     * Acknowledge messages
+     *
+     * @param filter one message id or `*` for everything that can be acknowledged
+     * @param user who acknowledged
+     * @returns how many messages were acknowledged
+     */
+    async #acknowledge(filter, user) {
+        const change = (0, messages_1.acknowledgeMessages)(this.#messages, filter, Date.now(), user);
+        await this.#applyMessageChange(change);
+        return change.transitions.length;
+    }
+    /**
+     * Take over a changed message list: every transition writes an event, then the states follow
+     *
+     * @param change the new list and what happened
+     */
+    async #applyMessageChange(change) {
+        const listChanged = change.list !== this.#messages;
+        this.#messages = change.list;
+        const now = Date.now();
+        for (const { transition, message } of change.transitions) {
+            // keep the restlessness of the message, even if it just left the list
+            if (message.changes?.length) {
+                this.#changes.set(message.id, message.changes);
+            }
+            else {
+                this.#changes.delete(message.id);
+            }
+            if ((0, messages_1.isSuppressed)(message, this.#suppressions, now)) {
+                // during a maintenance the message writes nothing, that is what it was suppressed for
+                continue;
+            }
+            const { event, color } = (0, messages_1.buildTransitionEvent)(transition, message, this.#transitionTexts);
+            try {
+                await this.#addEvent({
+                    event,
+                    id: message.stateId,
+                    val: message.val,
+                    icon: message.icon,
+                    color,
+                    level: message.level,
+                    messageId: message.id,
+                    transition,
+                });
+            }
+            catch (e) {
+                this.log.error(`Cannot add the event of the message ${message.id}: ${e}`);
+            }
+        }
+        if (listChanged || change.transitions.length) {
+            await this.#publishMessages();
+            this.#updateHousekeeping();
+        }
+    }
+    /** Write the standing messages, the counters and the horn */
+    async #publishMessages() {
+        const visible = this.#visibleMessages();
+        const summary = (0, messages_1.summarizeMessages)(visible);
+        try {
+            // the raw list keeps the suppressed messages, they are only out of sight
+            await this.setStateAsync('messages.raw', JSON.stringify(this.#messages), true);
+            await this.setStateAsync('messages.list', JSON.stringify((0, messages_1.formatMessageList)(visible)), true);
+            await this.setStateAsync('messages.count', summary.total, true);
+            await this.setStateAsync('messages.unacknowledged', summary.unacknowledged, true);
+            await this.setStateAsync('messages.highest', summary.highest, true);
+            await this.setStateAsync('messages.horn', (0, messages_1.isHornOn)(visible, this.config.hornLevel), true);
+            await this.setStateAsync('messages.suppressed', JSON.stringify(this.#suppressions), true);
+            for (const level of messages_1.LEVELS) {
+                const name = `count${level[0].toUpperCase()}${level.substring(1)}`;
+                await this.setStateAsync(`messages.${name}`, summary.byLevel[level], true);
+            }
+        }
+        catch (e) {
+            this.log.error(`Cannot update the messages: ${e}`);
+        }
+    }
     #getName(obj) {
         let name = obj.common.name;
         if (typeof name === 'object') {
@@ -461,6 +909,10 @@ class EventList extends adapter_core_1.Adapter {
             const st = this.#parseStates(settings.states || undefined);
             if (JSON.stringify(this.#states[id].states) !== JSON.stringify(st)) {
                 this.#states[id].states = st;
+                changed = true;
+            }
+            if (JSON.stringify(this.#states[id].message) !== JSON.stringify(settings.message)) {
+                this.#states[id].message = settings.message;
                 changed = true;
             }
         }

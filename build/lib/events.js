@@ -367,6 +367,11 @@ function formatEvent(state, allowRelative, ctx) {
     if (state.id) {
         event.id = state.id;
     }
+    // the level travels with the event, so the lists can be filtered by it
+    if (state.level) {
+        event.level = state.level;
+        event.messageId = state.messageId;
+    }
     return event;
 }
 /**
@@ -521,6 +526,12 @@ function buildEventItem(event, now, onWarn) {
     }
     if (event.color) {
         eventItem.color = event.color;
+    }
+    // an event that comes from a standing message carries where it came from
+    if (event.level) {
+        eventItem.level = event.level;
+        eventItem.messageId = event.messageId;
+        eventItem.transition = event.transition;
     }
     return eventItem;
 }

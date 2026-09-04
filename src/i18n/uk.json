@@ -1,11 +1,18 @@
 {
-  "Device %n changed status:": "Пристрій %n змінив статус:",
-  "days": "дні",
-  "hours": "години",
-  "minutes": "хвилин",
-  "ms": "РС",
-  "sec": "сек",
-  "switched off": "вимкнено",
-  "switched on": "увімкнено",
-  "undefined": "невизначено"
+    "Device %n changed status:": "Пристрій %n змінив статус:",
+    "acknowledged": "квитовано",
+    "came": "прийшло",
+    "days": "дні",
+    "flapping": "деренчить",
+    "gone": "зникло",
+    "hours": "години",
+    "minutes": "хвилин",
+    "ms": "РС",
+    "released": "звільнено",
+    "sec": "сек",
+    "settled": "заспокоїлось",
+    "suppressed": "придушено",
+    "switched off": "вимкнено",
+    "switched on": "увімкнено",
+    "undefined": "невизначено"
 }

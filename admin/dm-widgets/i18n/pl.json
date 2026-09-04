@@ -1,0 +1,13 @@
+{
+    "evl_duration": "Trwanie",
+    "evl_event": "Zdarzenie",
+    "evl_filter": "Filtruj identyfikatory",
+    "evl_icon": "Ikona",
+    "evl_instance": "Instancja",
+    "evl_show_duration": "Trwanie",
+    "evl_show_value": "Wartość",
+    "evl_time": "Czas",
+    "evl_title": "Lista wydarzeń",
+    "evl_tooltip_filter": "Możesz podać wiele identyfikatorów rozdzielonych przecinkami.",
+    "evl_value": "Wartość"
+}
