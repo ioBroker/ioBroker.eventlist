@@ -73,7 +73,7 @@ function copyI18n() {
 function copyWidgets() {
     deleteFoldersRecursive(`${__dirname}/widgets/eventlist/assets`);
     copyFiles(
-        ['src-widgets/build/**/*', '!src-widgets/build/index.html', '!src-widgets/build/mf-manifest.json'],
+        ['src-widgets/build/**/*', '!src-widgets/build/index.html'],
         'widgets/eventlist/',
     );
 }
