@@ -41,7 +41,7 @@
         "blockly": "^13.3.0",
         "esbuild": "^0.28.2",
         "ts-node": "^10.9.2",
-        "typescript": "~6.0.3"
+        "typescript": "~7.0.2"
     },
     "main": "build/main.js",
     "files": [
