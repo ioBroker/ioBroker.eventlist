@@ -208,6 +208,7 @@
                 "url": "eventlist/customWidgets.js",
                 "bundlerType": "module",
                 "components": [
+                    "Alarms",
                     "Events",
                     "PdfButton"
                 ]
@@ -230,6 +231,24 @@
                         "pl": "Pokazuje ostatnie zdarzenie, kliknięcie otwiera całą listę",
                         "uk": "Показує останню подію, клік відкриває весь список",
                         "zh-cn": "显示最后一个事件，点击打开整个列表"
+                    },
+                    "icon": "lastEvent.png"
+                },
+                {
+                    "name": "EventlistAlarmsComponent",
+                    "label": "Alarms",
+                    "description": {
+                        "en": "Shows the worst standing alarm, the click opens the alarms and the events",
+                        "de": "Zeigt den schlimmsten anstehenden Alarm, der Klick öffnet Alarme und Ereignisse",
+                        "ru": "Показывает самую тяжёлую активную аварию, по клику открываются аварии и события",
+                        "pt": "Mostra o alarme ativo mais grave, o clique abre os alarmes e os eventos",
+                        "nl": "Toont het ernstigste openstaande alarm, de klik opent de alarmen en de gebeurtenissen",
+                        "fr": "Affiche l'alarme présente la plus grave, le clic ouvre les alarmes et les événements",
+                        "it": "Mostra l'allarme attivo più grave, il clic apre gli allarmi e gli eventi",
+                        "es": "Muestra la alarma activa más grave, el clic abre las alarmas y los eventos",
+                        "pl": "Pokazuje najpoważniejszy aktywny alarm, kliknięcie otwiera alarmy i zdarzenia",
+                        "uk": "Показує найважчу активну аварію, клік відкриває аварії та події",
+                        "zh-cn": "显示最严重的存在报警，点击可打开报警与事件"
                     },
                     "icon": "lastEvent.png"
                 }
@@ -303,7 +322,10 @@
         "defaultTelegram": [],
         "defaultPushover": [],
         "deleteAlarmsByDisable": false,
-        "hornLevel": "error",
+        "hornLevel": "alarm",
+        "journalLength": 1000,
+        "journalArchive": true,
+        "alarmClasses": [],
         "flappingCount": 10,
         "flappingInterval": 5,
         "suppressDefault": 60
@@ -394,6 +416,23 @@
                 "type": "json"
             },
             "type": "state",
+            "native": {}
+        },
+        {
+            "_id": "eventCount",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Number of entries in the event list",
+                    "de": "Anzahl der Einträge in der Ereignisliste",
+                    "ru": "Количество записей в списке событий"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
             "native": {}
         },
         {
@@ -510,6 +549,23 @@
             "native": {}
         },
         {
+            "_id": "messages.journal",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Alarm journal: one entry per alarm cycle",
+                    "de": "Alarmjournal: ein Eintrag je Alarmzyklus",
+                    "ru": "Журнал аварий: одна запись на цикл аварии"
+                },
+                "type": "string",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": "[]"
+            },
+            "native": {}
+        },
+        {
             "_id": "messages.raw",
             "type": "state",
             "common": {
@@ -544,6 +600,23 @@
             "native": {}
         },
         {
+            "_id": "messages.active",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Alarms whose condition is true right now",
+                    "de": "Alarme, deren Bedingung gerade erfüllt ist",
+                    "ru": "Аварии, условие которых выполняется сейчас"
+                },
+                "type": "number",
+                "role": "value",
+                "read": true,
+                "write": false,
+                "def": 0
+            },
+            "native": {}
+        },
+        {
             "_id": "messages.countFatal",
             "type": "state",
             "common": {
@@ -561,13 +634,13 @@
             "native": {}
         },
         {
-            "_id": "messages.countError",
+            "_id": "messages.countAlarm",
             "type": "state",
             "common": {
                 "name": {
-                    "en": "Standing messages of level error",
-                    "de": "Anstehende Meldungen der Stufe error",
-                    "ru": "Текущие сообщения уровня error"
+                    "en": "Standing messages of level alarm",
+                    "de": "Anstehende Meldungen der Stufe alarm",
+                    "ru": "Текущие сообщения уровня alarm"
                 },
                 "type": "number",
                 "role": "value",

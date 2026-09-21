@@ -19,11 +19,10 @@
  * So the rule is: a message stands as long as it is active OR still unacknowledged.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_SUPPRESSION_MINUTES = exports.LEVEL_COLORS = exports.LEVELS = void 0;
-exports.isLevel = isLevel;
+exports.MAX_SUPPRESSION_MINUTES = exports.SUB_LEVELS = exports.sortAlarmClasses = exports.severityToLevel = exports.SEVERITY_BANDS = exports.resolveAlarmClass = exports.LEVELS = exports.LEVEL_COLORS = exports.isSubLevel = exports.isLevel = exports.DEFAULT_SEVERITY = exports.buildClassId = exports.builtInId = exports.builtInClasses = exports.buildAlarmClasses = exports.ACK_BY_DEFAULT = void 0;
 exports.requiresAckByDefault = requiresAckByDefault;
-exports.severityToLevel = severityToLevel;
 exports.isConditionMet = isConditionMet;
+exports.findMatchingLimit = findMatchingLimit;
 exports.formatMessageText = formatMessageText;
 exports.isPending = isPending;
 exports.getMessageState = getMessageState;
@@ -37,58 +36,37 @@ exports.expireSuppressions = expireSuppressions;
 exports.isSuppressed = isSuppressed;
 exports.visibleMessages = visibleMessages;
 exports.isHornOn = isHornOn;
+exports.hasMessage = hasMessage;
 exports.evaluateStateMessages = evaluateStateMessages;
 exports.sortMessages = sortMessages;
 exports.summarizeMessages = summarizeMessages;
 exports.formatMessageList = formatMessageList;
 exports.parseMessageList = parseMessageList;
 exports.buildTransitionEvent = buildTransitionEvent;
-/** Levels, ordered from the most to the least severe */
-exports.LEVELS = ['fatal', 'error', 'warning', 'info'];
-/** Colour of a level, used for the event entry when the message brings no colour of its own */
-exports.LEVEL_COLORS = {
-    fatal: '#B3122B',
-    error: '#D9601A',
-    warning: '#E0A800',
-    info: '#4A7FA5',
-};
-/** Levels that have to be acknowledged unless the message says otherwise */
-const ACK_BY_DEFAULT = {
-    fatal: true,
-    error: true,
-    warning: false,
-    info: false,
-};
-function isLevel(value) {
-    return typeof value === 'string' && exports.LEVELS.includes(value);
-}
+const levels_1 = require("./levels");
+var levels_2 = require("./levels");
+Object.defineProperty(exports, "ACK_BY_DEFAULT", { enumerable: true, get: function () { return levels_2.ACK_BY_DEFAULT; } });
+Object.defineProperty(exports, "buildAlarmClasses", { enumerable: true, get: function () { return levels_2.buildAlarmClasses; } });
+Object.defineProperty(exports, "builtInClasses", { enumerable: true, get: function () { return levels_2.builtInClasses; } });
+Object.defineProperty(exports, "builtInId", { enumerable: true, get: function () { return levels_2.builtInId; } });
+Object.defineProperty(exports, "buildClassId", { enumerable: true, get: function () { return levels_2.buildClassId; } });
+Object.defineProperty(exports, "DEFAULT_SEVERITY", { enumerable: true, get: function () { return levels_2.DEFAULT_SEVERITY; } });
+Object.defineProperty(exports, "isLevel", { enumerable: true, get: function () { return levels_2.isLevel; } });
+Object.defineProperty(exports, "isSubLevel", { enumerable: true, get: function () { return levels_2.isSubLevel; } });
+Object.defineProperty(exports, "LEVEL_COLORS", { enumerable: true, get: function () { return levels_2.LEVEL_COLORS; } });
+Object.defineProperty(exports, "LEVELS", { enumerable: true, get: function () { return levels_2.LEVELS; } });
+Object.defineProperty(exports, "resolveAlarmClass", { enumerable: true, get: function () { return levels_2.resolveAlarmClass; } });
+Object.defineProperty(exports, "SEVERITY_BANDS", { enumerable: true, get: function () { return levels_2.SEVERITY_BANDS; } });
+Object.defineProperty(exports, "severityToLevel", { enumerable: true, get: function () { return levels_2.severityToLevel; } });
+Object.defineProperty(exports, "sortAlarmClasses", { enumerable: true, get: function () { return levels_2.sortAlarmClasses; } });
+Object.defineProperty(exports, "SUB_LEVELS", { enumerable: true, get: function () { return levels_2.SUB_LEVELS; } });
 /**
  * Whether a message of this level has to be acknowledged if the message does not say
  *
  * @param level level of the message
  */
 function requiresAckByDefault(level) {
-    return ACK_BY_DEFAULT[level];
-}
-/**
- * Map the severity of a foreign system onto a level.
- *
- * Fixed bands and not configurable on purpose: the same number has to mean the same thing in every
- * installation. The range 1 to 1000 is the one OPC UA uses.
- *
- * @param severity severity of the foreign system
- */
-function severityToLevel(severity) {
-    if (severity > 800) {
-        return 'fatal';
-    }
-    if (severity > 500) {
-        return 'error';
-    }
-    if (severity > 200) {
-        return 'warning';
-    }
-    return 'info';
+    return levels_1.ACK_BY_DEFAULT[level];
 }
 /**
  * Check if the value raises the message.
@@ -151,6 +129,32 @@ function isConditionMet(condition, val, options) {
     return val.toString() === condition.value.toString();
 }
 /**
+ * The most severe limit the value has reached, or null if it has reached none.
+ *
+ * The message that stands is one, not one per limit, and its level follows the value up and down
+ * the ladder. The hysteresis of a limit counts as long as the message stands at that limit or at a
+ * more severe one - only then does a value that falls back leave the band it is in.
+ *
+ * @param limits the configured limits, in any order
+ * @param val the current value of the state
+ * @param classes the alarm classes of this installation
+ * @param standingSeverity severity at which the message stands at the moment, if it stands
+ */
+function findMatchingLimit(limits, val, classes, standingSeverity) {
+    const withClass = limits
+        .map(item => ({ item, cls: (0, levels_1.resolveAlarmClass)(item.alarmClass, classes) }))
+        .filter((entry) => !!entry.cls);
+    withClass.sort((a, b) => b.cls.severity - a.cls.severity);
+    for (const { item, cls } of withClass) {
+        const standing = standingSeverity !== undefined && standingSeverity >= cls.severity;
+        const condition = { operator: item.operator || '>', limit: item.limit };
+        if (isConditionMet(condition, val, { standing, hysteresis: item.hysteresis })) {
+            return item;
+        }
+    }
+    return null;
+}
+/**
  * Replace the patterns in the text of a message.
  *
  * Only the patterns that make sense without an event: value, unit, name and level. The event list
@@ -176,6 +180,10 @@ function formatMessageText(text, ctx) {
     }
     if (result.includes('%l')) {
         result = result.replace(/%l/g, ctx.level);
+    }
+    if (result.includes('%c')) {
+        // the class of the plant, and the level as the fallback of a built-in class without a name
+        result = result.replace(/%c/g, ctx.alarmName || ctx.level);
     }
     return result;
 }
@@ -247,7 +255,7 @@ function getMessageState(message) {
  * @param flapping when a message counts as flapping, undefined switches the protection off
  */
 function raiseMessage(list, incoming, now, flapping) {
-    const level = incoming.level || (incoming.severity ? severityToLevel(incoming.severity) : 'info');
+    const level = incoming.level || (incoming.severity ? (0, levels_1.severityToLevel)(incoming.severity).level : 'info');
     const result = [...list];
     const index = result.findIndex(item => item.id === incoming.id);
     if (index === -1) {
@@ -258,17 +266,30 @@ function raiseMessage(list, incoming, now, flapping) {
             text: incoming.text || incoming.id,
             active: true,
             acked: false,
-            requiresAck: incoming.requiresAck ?? requiresAckByDefault(level),
+            // a message that only writes its coming has nothing anybody could acknowledge
+            requiresAck: incoming.oneShot ? false : (incoming.requiresAck ?? requiresAckByDefault(level)),
             ts: now,
             lastTs: now,
             count: 1,
         };
         // only what is really there, so the stored list stays free of empty fields
+        if (incoming.alarmClass) {
+            message.alarmClass = incoming.alarmClass;
+        }
+        if (incoming.alarmName) {
+            message.alarmName = incoming.alarmName;
+        }
+        if (incoming.oneShot) {
+            message.oneShot = true;
+        }
         if (incoming.stateId !== undefined) {
             message.stateId = incoming.stateId;
         }
         if (incoming.val !== undefined) {
             message.val = incoming.val;
+        }
+        if (incoming.unit) {
+            message.unit = incoming.unit;
         }
         if (incoming.icon) {
             message.icon = incoming.icon;
@@ -295,19 +316,56 @@ function raiseMessage(list, incoming, now, flapping) {
     if (incoming.val !== undefined) {
         existing.val = incoming.val;
     }
+    if (incoming.unit) {
+        existing.unit = incoming.unit;
+    }
     if (incoming.text) {
         existing.text = incoming.text;
     }
     if (incoming.level) {
         existing.level = incoming.level;
     }
+    if (incoming.alarmClass) {
+        // the ladder climbs from one class to the next, and colour and icon follow it
+        existing.alarmClass = incoming.alarmClass;
+        existing.alarmName = incoming.alarmName;
+        existing.icon = incoming.icon;
+        existing.color = incoming.color;
+    }
+    if (incoming.severity !== undefined) {
+        existing.severity = incoming.severity;
+    }
+    if (incoming.priority !== undefined) {
+        // with a ladder of limits every step may sort differently inside its level
+        existing.priority = incoming.priority;
+    }
     if (incoming.group) {
         existing.group = incoming.group;
     }
     if (existing.active) {
-        // it already stands, so this is no new occurrence
+        // a message that comes without a severity - a script that only names a level - is compared
+        // by the severity its level stands for, otherwise an escalation would go unnoticed
+        const severityOf = (item) => item.severity ?? levels_1.DEFAULT_SEVERITY[item.level].normal;
+        if (severityOf(existing) === severityOf(result[index]) && existing.alarmClass === result[index].alarmClass) {
+            // it already stands at the same class, so this is no new occurrence
+            result[index] = existing;
+            return { list: result, transitions: [] };
+        }
+        // A pressure that climbs from the warning limit to the fatal one is a new event: the text
+        // and the colour change, and an acknowledgement of the milder state must not cover it. The
+        // duty to acknowledge follows the new level, so a message that falls back to a warning stops
+        // asking for one instead of demanding a second acknowledgement.
+        existing.lastTs = now;
+        existing.count++;
+        existing.acked = false;
+        existing.requiresAck = existing.oneShot
+            ? false
+            : (incoming.requiresAck ?? requiresAckByDefault(existing.level));
+        delete existing.ackTs;
+        delete existing.ackUser;
+        const escalated = recordChange(existing, now, flapping);
         result[index] = existing;
-        return { list: result, transitions: [] };
+        return { list: result, transitions: transitionsOf('came', existing, escalated) };
     }
     // it had gone and was not acknowledged, so it comes again
     existing.active = true;
@@ -524,55 +582,114 @@ function visibleMessages(list, suppressions, now) {
  * @param level from which level on the horn sounds, empty switches it off
  */
 function isHornOn(list, level) {
-    if (!level || !isLevel(level)) {
+    if (!level || !(0, levels_1.isLevel)(level)) {
         return false;
     }
-    const limit = exports.LEVELS.indexOf(level);
-    return list.some(item => item.requiresAck && !item.acked && exports.LEVELS.indexOf(item.level) <= limit);
+    const limit = levels_1.LEVELS.indexOf(level);
+    return list.some(item => !item.oneShot && item.requiresAck && !item.acked && levels_1.LEVELS.indexOf(item.level) <= limit);
+}
+/**
+ * Whether this state raises a message at all: at the state itself, as one class or a ladder of
+ * limits, or at one of its values.
+ *
+ * A state without one must keep writing its value changes, whatever `messagesOnly` says - otherwise
+ * a class that was removed would silently switch the state off.
+ *
+ * @param settings the settings of the state
+ * @param settings.message the message of the state itself
+ * @param settings.states the settings of the single values
+ */
+function hasMessage(settings) {
+    return (!!settings.message?.alarmClass ||
+        !!settings.message?.limits?.length ||
+        !!settings.states?.some(item => !!item.alarmClass));
+}
+/**
+ * What the alarm class contributes to every message that is raised with it.
+ *
+ * The class is the single place where level, severity, colour, icon and the two flags come from, so
+ * that a plant which renames `alarm high` into `Boiler pressure` changes one entry and not fifty
+ * states.
+ *
+ * @param cls the alarm class
+ */
+function fromClass(cls) {
+    return {
+        alarmClass: cls.id,
+        alarmName: cls.name,
+        level: cls.level,
+        severity: cls.severity,
+        oneShot: !cls.standing,
+        icon: cls.icon,
+        color: cls.color,
+    };
+}
+/**
+ * Whether this message has to be acknowledged: what was configured for it wins, then its class.
+ *
+ * `fatal` is the exception and is always acknowledged - a fault of that level that nobody has seen
+ * must not be able to leave the list.
+ *
+ * @param configured what the limit or the state says, if it says anything
+ * @param cls the alarm class
+ */
+function acknowledgeDuty(configured, cls) {
+    if (cls.level === 'fatal') {
+        return true;
+    }
+    return configured ?? cls.requiresAck;
 }
 /**
  * Work out which messages a state raises and which it clears.
  *
- * Two ways to configure it. Either single values of the state carry a level, then every such value
- * is its own message and only the current one stands. Or the state has one condition, then there is
- * one message for the whole state.
+ * Three ways to configure it. Either single values of the state carry an alarm class, then every
+ * such value is its own message and only the current one stands. Or the state carries a ladder of
+ * limits, then there is one message whose class follows the value. Or it carries one single
+ * condition.
  *
  * @param stateId the state
- * @param settings the message settings of the state, and the values with their levels
- * @param settings.message the condition and the level of the whole state
- * @param settings.states the single values, each of which may carry a level
+ * @param settings the message settings of the state, and the values with their classes
+ * @param settings.message the limits or the condition and the class of the whole state
+ * @param settings.states the single values, each of which may carry a class
  * @param settings.unit unit of the state, for the text
  * @param settings.name name of the state, for the text
  * @param val the new value
- * @param ctx unit, name and number format for the text
+ * @param ctx the classes of this installation and what the text and the hysteresis need
  * @param ctx.isFloatComma if the comma is the decimal separator
- * @param ctx.isActive tells whether a message stands at the moment, for the hysteresis
+ * @param ctx.classes all alarm classes of this installation
+ * @param ctx.activeSeverity severity at which the message of a state stands, for the hysteresis
  */
 function evaluateStateMessages(stateId, settings, val, ctx) {
     const raise = [];
     const clear = [];
     const valText = val === null || val === undefined ? '' : val.toString();
-    const valuesWithLevel = (settings.states || []).filter(item => isLevel(item.level));
-    if (valuesWithLevel.length) {
-        for (const item of valuesWithLevel) {
+    const classes = ctx.classes || [];
+    const valuesWithClass = (settings.states || [])
+        .map(item => ({ item, cls: (0, levels_1.resolveAlarmClass)(item.alarmClass, classes) }))
+        .filter((entry) => !!entry.cls);
+    if (valuesWithClass.length) {
+        for (const { item, cls } of valuesWithClass) {
             const id = `${stateId}#${item.val}`;
             if (item.val === valText) {
                 raise.push({
                     id,
                     stateId,
-                    level: item.level,
+                    ...fromClass(cls),
                     val,
-                    icon: item.icon,
-                    color: item.color,
+                    unit: settings.unit,
+                    // what the value brings wins over the colour and the icon of the class
+                    icon: item.icon || cls.icon,
+                    color: item.color || cls.color,
                     text: formatMessageText(item.text || settings.message?.text || settings.name || stateId, {
                         val,
                         unit: settings.unit,
                         name: settings.name,
-                        level: item.level,
+                        level: cls.level,
+                        alarmName: cls.name,
                         isFloatComma: ctx.isFloatComma,
                     }),
                     priority: settings.message?.priority,
-                    requiresAck: settings.message?.requiresAck,
+                    requiresAck: acknowledgeDuty(settings.message?.requiresAck, cls),
                     group: settings.message?.group,
                     delay: settings.message?.delay,
                     delayGone: settings.message?.delayGone,
@@ -585,19 +702,59 @@ function evaluateStateMessages(stateId, settings, val, ctx) {
         return { raise, clear };
     }
     const message = settings.message;
-    if (!message || !isLevel(message.level)) {
+    if (!message || (!message.alarmClass && !message.limits?.length)) {
         return { raise, clear };
     }
-    // with a hysteresis the answer depends on whether the message already stands
-    const standing = ctx.isActive ? ctx.isActive(stateId) : false;
-    if (isConditionMet(message.condition, val, { standing, hysteresis: message.hysteresis })) {
+    // with a hysteresis the answer depends on whether the message already stands, and with a ladder
+    // of limits also on the class it stands at
+    const standingSeverity = ctx.activeSeverity?.(stateId);
+    if (message.limits?.length) {
+        const reached = findMatchingLimit(message.limits, val, classes, standingSeverity);
+        const cls = reached ? (0, levels_1.resolveAlarmClass)(reached.alarmClass, classes) : null;
+        if (reached && cls) {
+            raise.push({
+                id: stateId,
+                stateId,
+                ...fromClass(cls),
+                val,
+                unit: settings.unit,
+                // what the limit says wins, then the state, and only then what the class says
+                priority: reached.priority ?? message.priority,
+                requiresAck: acknowledgeDuty(reached.requiresAck ?? message.requiresAck, cls),
+                group: message.group,
+                delay: message.delay,
+                delayGone: message.delayGone,
+                text: formatMessageText(reached.text || message.text || settings.name || stateId, {
+                    val,
+                    unit: settings.unit,
+                    name: settings.name,
+                    level: cls.level,
+                    alarmName: cls.name,
+                    isFloatComma: ctx.isFloatComma,
+                }),
+            });
+        }
+        else {
+            clear.push(stateId);
+        }
+        return { raise, clear };
+    }
+    const cls = (0, levels_1.resolveAlarmClass)(message.alarmClass, classes);
+    if (!cls) {
+        return { raise, clear };
+    }
+    if (isConditionMet(message.condition, val, {
+        standing: standingSeverity !== undefined,
+        hysteresis: message.hysteresis,
+    })) {
         raise.push({
             id: stateId,
             stateId,
-            level: message.level,
+            ...fromClass(cls),
             val,
+            unit: settings.unit,
             priority: message.priority,
-            requiresAck: message.requiresAck,
+            requiresAck: acknowledgeDuty(message.requiresAck, cls),
             group: message.group,
             delay: message.delay,
             delayGone: message.delayGone,
@@ -605,7 +762,8 @@ function evaluateStateMessages(stateId, settings, val, ctx) {
                 val,
                 unit: settings.unit,
                 name: settings.name,
-                level: message.level,
+                level: cls.level,
+                alarmName: cls.name,
                 isFloatComma: ctx.isFloatComma,
             }),
         });
@@ -615,12 +773,25 @@ function evaluateStateMessages(stateId, settings, val, ctx) {
     }
     return { raise, clear };
 }
-/** Most severe first, then the higher priority, then the newest */
+/**
+ * The order of a control room: most severe first, and inside one severity what nobody has seen yet.
+ *
+ * The severity carries the order of the levels in it, so one number is enough: a class of `alarm
+ * high` outranks one of `alarm low`, and that one outranks every warning. Then comes the
+ * acknowledgement - an unacknowledged alarm is the one that still wants the operator - and only
+ * then the priority and the time.
+ */
 function sortMessages(list) {
     return [...list].sort((a, b) => {
-        const levelDiff = exports.LEVELS.indexOf(a.level) - exports.LEVELS.indexOf(b.level);
-        if (levelDiff) {
-            return levelDiff;
+        const severityA = a.severity ?? levels_1.DEFAULT_SEVERITY[a.level].normal;
+        const severityB = b.severity ?? levels_1.DEFAULT_SEVERITY[b.level].normal;
+        if (severityA !== severityB) {
+            return severityB - severityA;
+        }
+        const unackedA = a.requiresAck && !a.acked;
+        const unackedB = b.requiresAck && !b.acked;
+        if (unackedA !== unackedB) {
+            return unackedA ? -1 : 1;
         }
         if (a.priority !== b.priority) {
             return b.priority - a.priority;
@@ -634,16 +805,26 @@ function sortMessages(list) {
  * @param list the standing messages
  */
 function summarizeMessages(list) {
-    const byLevel = { fatal: 0, error: 0, warning: 0, info: 0 };
+    const byLevel = { fatal: 0, alarm: 0, warning: 0, info: 0 };
     let unacknowledged = 0;
+    let active = 0;
+    let total = 0;
     for (const item of list) {
+        if (item.oneShot) {
+            // it never stands, it is only the memory of an entry that was written
+            continue;
+        }
+        total++;
         byLevel[item.level]++;
-        if (!item.acked) {
+        if (item.active) {
+            active++;
+        }
+        if (item.requiresAck && !item.acked) {
             unacknowledged++;
         }
     }
-    const highest = exports.LEVELS.find(level => byLevel[level] > 0) || '';
-    return { total: list.length, unacknowledged, byLevel, highest };
+    const highest = levels_1.LEVELS.find(level => byLevel[level] > 0) || '';
+    return { total, active, unacknowledged, byLevel, highest };
 }
 /**
  * Build the list for the GUI
@@ -658,10 +839,14 @@ function formatMessageList(list) {
             firstOfGroup[item.group] = item;
         }
     }
-    return sortMessages(list).map(item => {
+    // a message that only wrote its coming is kept as the memory of that edge, it is not shown
+    return sortMessages(list.filter(item => !item.oneShot)).map(item => {
         const message = {
             id: item.id,
             level: item.level,
+            alarmClass: item.alarmClass,
+            alarmName: item.alarmName,
+            severity: item.severity ?? levels_1.DEFAULT_SEVERITY[item.level].normal,
             text: item.text,
             state: getMessageState(item),
             active: item.active,
@@ -671,12 +856,15 @@ function formatMessageList(list) {
             ts: item.ts,
             lastTs: item.lastTs,
             goneTs: item.goneTs,
+            ackTs: item.ackTs,
+            ackUser: item.ackUser,
             count: item.count,
             priority: item.priority,
             stateId: item.stateId,
             val: item.val,
+            unit: item.unit,
             icon: item.icon,
-            color: item.color || exports.LEVEL_COLORS[item.level],
+            color: item.color || levels_1.LEVEL_COLORS[item.level],
         };
         if (item.group) {
             message.group = item.group;
@@ -737,7 +925,7 @@ function buildTransitionEvent(transition, message, texts) {
     };
     return {
         event: `${message.text} - ${words[transition]}`,
-        color: message.color || exports.LEVEL_COLORS[message.level],
+        color: message.color || levels_1.LEVEL_COLORS[message.level],
     };
 }
 //# sourceMappingURL=messages.js.map

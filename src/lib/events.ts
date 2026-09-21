@@ -16,6 +16,14 @@ export interface StateSettings {
     alarmsOnly?: boolean;
     defaultMessengers?: boolean;
     messagesInAlarmsOnly?: boolean;
+    /**
+     * Only the transitions of the standing message go into the event list, not every value change.
+     *
+     * For a state that is watched for its limits and not for its history: a memory value that is
+     * written every fifteen seconds fills the list with hundreds of lines, while the two lines that
+     * matter are the coming and the going of the message.
+     */
+    messagesOnly?: boolean;
     whatsAppCMB?: string[];
     telegram?: string[];
     pushover?: string[];
@@ -25,7 +33,8 @@ export interface StateSettings {
         color: string;
         icon: string;
         disabled?: boolean;
-        level?: MessageLevel;
+        /** Id of the alarm class this value raises */
+        alarmClass?: string;
     }>;
     /** Settings of the standing message this state raises */
     message?: MessageSettings;
@@ -85,6 +94,8 @@ export interface FormattedEvent {
     /** Level, if the event comes from a standing message */
     level?: MessageLevel;
     messageId?: string;
+    /** What happened to the message: it came, it went, it was acknowledged */
+    transition?: MessageTransition;
 }
 
 /** Translated texts, that are used to build the duration string */
@@ -153,19 +164,22 @@ export function parseEventList(
 }
 
 /**
- * Format the duration in milliseconds as a human-readable text
+ * Format the duration in milliseconds as a human-readable text.
+ *
+ * The texts are units, not words - `2 Std. 9 Min.` and not `2 hours 9 minutes` - and there is always
+ * a space in front of them. A unit that has to work for one and for many cannot be a word: `15
+ * Sekunde` is not German, and no language solves that with one form.
  *
  * @param ms duration in milliseconds
  * @param isFloatComma if the comma must be used as a decimal separator
- * @param texts translated texts for days, hours, minutes, seconds and milliseconds
- * @param withSpaces if a space must be placed between the number and the unit
+ * @param texts translated units for days, hours, minutes, seconds and milliseconds
  */
-export function duration2text(ms: number, isFloatComma: boolean, texts: DurationTexts, withSpaces?: boolean): string {
+export function duration2text(ms: number, isFloatComma: boolean, texts: DurationTexts): string {
     if (ms < 1000) {
-        return `${ms}${withSpaces ? ' ' : ''}${texts.ms}`;
+        return `${ms} ${texts.ms}`;
     }
     if (ms < 10000) {
-        return `${isFloatComma ? (Math.round(ms / 100) / 10).toString().replace('.', ',') : (Math.round(ms / 100) / 10).toString()}${withSpaces ? ' ' : ''}${texts.seconds}`;
+        return `${isFloatComma ? (Math.round(ms / 100) / 10).toString().replace('.', ',') : (Math.round(ms / 100) / 10).toString()} ${texts.seconds}`;
     }
     if (ms < 90000) {
         return `${
@@ -174,10 +188,10 @@ export function duration2text(ms: number, isFloatComma: boolean, texts: Duration
                       .toString()
                       .replace('.', ',')
                 : Math.round(ms / 1000).toString()
-        }${withSpaces ? ' ' : ''}${texts.seconds}`;
+        } ${texts.seconds}`;
     }
     if (ms < 3600000) {
-        return `${Math.floor(ms / 60000)}${withSpaces ? ' ' : ''}${texts.minutes} ${Math.round((ms % 60000) / 1000)}${withSpaces ? ' ' : ''}${texts.seconds}`;
+        return `${Math.floor(ms / 60000)} ${texts.minutes} ${Math.round((ms % 60000) / 1000)} ${texts.seconds}`;
     }
     let hours = Math.floor(ms / 3600000);
     const minutes = Math.floor(ms / 60000) % 60;
@@ -186,15 +200,15 @@ export function duration2text(ms: number, isFloatComma: boolean, texts: Duration
         const days = Math.floor(hours / 24);
         hours %= 24;
         if (days > 2) {
-            return `${days}${withSpaces ? ' ' : ''}${texts.days} ${hours}${withSpaces ? ' ' : ''}${texts.hours}`;
+            return `${days} ${texts.days} ${hours} ${texts.hours}`;
         }
-        return `${days}${withSpaces ? ' ' : ''}${texts.days} ${hours}${withSpaces ? ' ' : ''}${texts.hours} ${minutes}${withSpaces ? ' ' : ''}${texts.minutes}`;
+        return `${days} ${texts.days} ${hours} ${texts.hours} ${minutes} ${texts.minutes}`;
     }
 
     if (hours > 2) {
-        return `${hours}${withSpaces ? ' ' : ''}${texts.hours} ${minutes}${withSpaces ? ' ' : ''}${texts.minutes}`;
+        return `${hours} ${texts.hours} ${minutes} ${texts.minutes}`;
     }
-    return `${hours}${withSpaces ? ' ' : ''}${texts.hours} ${minutes}${withSpaces ? ' ' : ''}${texts.minutes} ${seconds}${withSpaces ? ' ' : ''}${texts.seconds}`;
+    return `${hours} ${texts.hours} ${minutes} ${texts.minutes} ${seconds} ${texts.seconds}`;
 }
 
 /**
@@ -426,6 +440,13 @@ export function formatEvent(state: EventItem, allowRelative: boolean, ctx: Event
             } else {
                 val = tempVal2.toString();
             }
+
+            // an event with its own text - the transition of a message, above all - still belongs to
+            // a state, and the value column shows the value of that state, so it needs its unit
+            const unit = state.id ? ctx.states[state.id]?.unit : undefined;
+            if (val && unit) {
+                valWithUnit = val + unit;
+            }
         }
     }
 
@@ -466,8 +487,8 @@ export function formatEvent(state: EventItem, allowRelative: boolean, ctx: Event
     }
 
     if (eventTemplate.includes('%s')) {
+        // the value stands in the text as well, but the value column keeps it with its unit
         eventTemplate = eventTemplate.replace(/%s/g, val === undefined ? '' : val);
-        valWithUnit = '';
     }
 
     if (eventTemplate.includes('%t')) {
@@ -504,6 +525,10 @@ export function formatEvent(state: EventItem, allowRelative: boolean, ctx: Event
     if (state.level) {
         event.level = state.level;
         event.messageId = state.messageId;
+    }
+    // and the transition, so the list can show at a glance what happened
+    if (state.transition) {
+        event.transition = state.transition;
     }
 
     return event as FormattedEvent;

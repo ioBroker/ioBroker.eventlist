@@ -1,3 +1,17 @@
+/** One alarm class as the instance settings store it */
+export interface AlarmClassSettings {
+    id: string;
+    name?: string;
+    level: 'fatal' | 'alarm' | 'warning' | 'info';
+    subLevel: 'high' | 'normal' | 'low';
+    severity: number;
+    standing: boolean;
+    requiresAck: boolean;
+    color?: string;
+    icon?: string;
+    builtIn?: boolean;
+}
+
 export interface EventListAdapterConfig {
     maxLength: number | string;
     dateFormat: string;
@@ -65,11 +79,22 @@ export interface EventListAdapterConfig {
     defaultPushover: string[];
     deleteAlarmsByDisable: boolean;
     /** From which level on the horn sounds. Empty switches it off. */
-    hornLevel: '' | 'fatal' | 'error' | 'warning' | 'info';
+    hornLevel: '' | 'fatal' | 'alarm' | 'warning' | 'info';
+    /**
+     * The alarm classes of this installation.
+     *
+     * Only what differs from the twelve built-in classes is stored: an entry with the id of a
+     * built-in class overrides it, every other entry is a class the user has added.
+     */
+    alarmClasses: AlarmClassSettings[];
     /** More transitions than this inside the window count as flapping. 0 switches the protection off. */
     flappingCount: number | string;
     /** Length of the flapping window in minutes */
     flappingInterval: number | string;
     /** Duration of a suppression in minutes, if none is given */
     suppressDefault: number | string;
+    /** How many alarm cycles the journal keeps. 0 switches it off. */
+    journalLength: number | string;
+    /** Whether a closed cycle is written into the monthly file `journal/<YYYY-MM>.jsonl` */
+    journalArchive: boolean;
 }

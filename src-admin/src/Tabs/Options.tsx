@@ -31,6 +31,7 @@ import {
 import { I18n, Logo, ColorPicker, withWidth, type AdminConnection, type Width } from '@iobroker/gui-components';
 
 import MessengerSelect from '../Components/MessengerSelect';
+import { levelLabel } from '../Components/AlarmClassSelect';
 import { LEVEL_COLORS, MESSAGE_LEVELS, type DefaultStringText, type EventListNative } from '../types';
 
 const styles: Record<string, CSSProperties> = {
@@ -545,7 +546,7 @@ class Options extends Component<OptionsProps, OptionsState> {
                                             value={level}
                                         >
                                             <span style={{ color: LEVEL_COLORS[level], fontWeight: 'bold' }}>
-                                                {level.toUpperCase()}
+                                                {levelLabel(level).toUpperCase()}
                                             </span>
                                         </MenuItem>
                                     ))}
@@ -587,6 +588,33 @@ class Options extends Component<OptionsProps, OptionsState> {
                                 helperText={I18n.t('Used if the suppression brings no duration of its own')}
                                 onChange={e => this.props.onChange('suppressDefault', parseFloat(e.target.value) || 0)}
                             />
+                            {narrowWidth && <br />}
+                            <TextField
+                                variant="standard"
+                                label={I18n.t('Alarm cycles in the journal')}
+                                style={styles.input}
+                                type="number"
+                                slotProps={{ htmlInput: { min: 0 } }}
+                                value={this.props.native.journalLength ?? 1000}
+                                helperText={I18n.t('One entry per alarm cycle. 0 switches the journal off.')}
+                                onChange={e => this.props.onChange('journalLength', parseInt(e.target.value, 10) || 0)}
+                            />
+                            {narrowWidth && <br />}
+                            <FormControlLabel
+                                style={styles.input}
+                                control={
+                                    <Checkbox
+                                        checked={!!this.props.native.journalArchive}
+                                        onChange={e => this.props.onChange('journalArchive', e.target.checked)}
+                                    />
+                                }
+                                label={I18n.t('Archive the journal monthly')}
+                            />
+                            <FormHelperText style={{ marginTop: -4 }}>
+                                {I18n.t(
+                                    'Closed cycles are kept in one file per month, so the history does not end at the length above',
+                                )}
+                            </FormHelperText>
                         </AccordionDetails>
                     </Accordion>
                 </div>

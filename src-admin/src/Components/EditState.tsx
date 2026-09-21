@@ -1,19 +1,8 @@
 import React, { Component, type ComponentType, type CSSProperties, type JSX } from 'react';
-import moment from 'moment';
-
-import 'moment/locale/fr';
-import 'moment/locale/de';
-import 'moment/locale/en-gb';
-import 'moment/locale/ru';
-import 'moment/locale/it';
-import 'moment/locale/es';
-import 'moment/locale/pt';
-import 'moment/locale/zh-cn';
-import 'moment/locale/pl';
-import 'moment/locale/nl';
 
 import {
     Box,
+    Button,
     TextField,
     FormControlLabel,
     Checkbox,
@@ -32,7 +21,12 @@ import {
 } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
 
-import { ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from '@mui/icons-material';
+import {
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+    Add as AddIcon,
+    Delete as DeleteIcon,
+} from '@mui/icons-material';
 import { FaMinus as EmptyIcon, FaWhatsapp as WhatsappIcon } from 'react-icons/fa';
 
 import {
@@ -51,23 +45,27 @@ import Telegram from '../assets/telegram.svg';
 import Pushover from '../assets/pushover.svg';
 
 import MessengerSelect from './MessengerSelect';
+import ClosableInfo from './ClosableInfo';
+import AlarmClassSelect, { classColor, classLabel } from './AlarmClassSelect';
+import { buildAlarmClasses, resolveAlarmClass, type AlarmClass } from '../levels';
+import { formatValue } from '../formatValue';
 import { ICON_PICKER_STYLES } from './iconPickerStyles';
 import {
     DEFAULT_ACK,
-    LEVEL_COLORS,
     MESSAGE_LEVELS,
     MESSAGE_OPERATORS,
     type DefaultStringText,
     type EditStateSettings,
     type EventListNative,
     type MessageCondition,
-    type MessageLevel,
+    type MessageLimit,
     type MessageOperator,
     type MessageSettings,
     type StateValueSettings,
     type StoredStateSettings,
     type StoredStateValueSettings,
 } from '../types';
+import moment, { setMomentLocale } from '../momentLocale';
 
 const styles: Record<string, CSSProperties> = {
     textField: {
@@ -112,9 +110,6 @@ const styles: Record<string, CSSProperties> = {
     width100: {
         width: '100%',
     },
-    width100minus32: {
-        width: 'calc(100% - 32px)',
-    },
     /**
      * The colour picker above is an inline block, so its lower edge would sit directly on the label
      * of the icon picker. A line break alone does not separate them.
@@ -131,7 +126,30 @@ const styles: Record<string, CSSProperties> = {
         marginRight: 16,
     },
     limitField: {
+        width: 120,
+        marginRight: 16,
+    },
+    limitRow: {
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 8,
+        marginBottom: 8,
+        flexWrap: 'wrap',
+    },
+    limitLevel: {
         width: 140,
+    },
+    limitText: {
+        flexGrow: 1,
+        minWidth: 160,
+    },
+    limitAck: {
+        marginLeft: 0,
+        marginRight: 0,
+        whiteSpace: 'nowrap',
+    },
+    limitPriority: {
+        width: 90,
     },
     priorityField: {
         width: 200,
@@ -185,6 +203,20 @@ const sxExampleIconBox = {
 
 const DEFAULT_TEMPLATE = 'default';
 const DISABLED_TEXT = '-------------';
+
+/**
+ * How a standing message works, shown as a closeable info box above the settings.
+ *
+ * The event list and the messages are two different things, and that is the point that has to be
+ * said once: the list is a history, the message is a state that comes, stands and goes.
+ */
+const MESSAGE_PRINCIPLE = [
+    'A message comes when its condition holds, and it stays standing until the condition falls away again: one message for the state, and not a line for every value.',
+    'With a ladder the sharpest reached limit applies. As long as the value stays above a limit, the message only changes its level, it does not go and come again.',
+    'The hysteresis holds the message until the value has come back that far, the delays hold it until the condition has lasted that long.',
+    'A message that has to be acknowledged stays pending after it has gone, until somebody acknowledges it. The messages of a group are acknowledged together, and the first one of them is marked.',
+    "The option 'Only the message in the event list' writes only the coming and the going: a value that is read every ten seconds gives two lines instead of hundreds.",
+];
 
 interface EditStateProps {
     instance: number;
@@ -242,7 +274,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
 
         this.imagePrefix = this.props.imagePrefix;
         this.language = this.props.native.language || I18n.getLanguage();
-        moment.locale(this.language === 'en' ? 'en-gb' : this.language);
+        setMomentLocale(this.language);
 
         this.textSwitchedOn = EditState.translate('switched on', this.language);
         this.textSwitchedOff = EditState.translate('switched off', this.language);
@@ -508,6 +540,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
             settings.states = custom.states as StateValueSettings[] | undefined;
             settings.alarmsOnly = !!custom.alarmsOnly;
             settings.messagesInAlarmsOnly = !!custom.messagesInAlarmsOnly;
+            settings.messagesOnly = !!custom.messagesOnly;
             settings.whatsAppCMB = custom.whatsAppCMB || [];
             settings.pushover = custom.pushover || [];
             settings.telegram = custom.telegram || [];
@@ -802,6 +835,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
         if (settings.messagesInAlarmsOnly) {
             curSettings.messagesInAlarmsOnly = true;
         }
+        if (settings.messagesOnly) {
+            curSettings.messagesOnly = true;
+        }
         if (settings.pushover?.length && !settings.defaultMessengers) {
             curSettings.pushover = settings.pushover;
         }
@@ -815,7 +851,10 @@ export class EditState extends Component<EditStateProps, EditStateState> {
         // The standing message is only stored once a level exists, either at the state or at one of
         // its values, otherwise the section would be noise. With levels per value the shared part
         // still counts: text, group and delays belong to all of them.
-        const hasLevel = !!settings.message?.level || !!settings.states?.some(item => item.level);
+        const hasLevel =
+            !!settings.message?.alarmClass ||
+            !!settings.message?.limits?.length ||
+            !!settings.states?.some(item => item.alarmClass);
         if (hasLevel && settings.message) {
             curSettings.message = settings.message;
         }
@@ -824,9 +863,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
             curSettings.states = curSettings.states || [];
             const it: StoredStateValueSettings = { val: item.val };
 
-            // the level of a value survives even a disabled value, so switching it back keeps it
-            if (item.level) {
-                it.level = item.level;
+            // the class of a value survives even a disabled value, so switching it back keeps it
+            if (item.alarmClass) {
+                it.alarmClass = item.alarmClass;
             }
 
             if (item.disabled) {
@@ -849,15 +888,20 @@ export class EditState extends Component<EditStateProps, EditStateState> {
         return curSettings;
     }
 
-    duration2text(ms: number, withSpaces?: boolean): string {
-        const space = withSpaces ? ' ' : '';
+    /**
+     * The same duration as the adapter writes it into the list: units, not words, and always with a
+     * space in front of them - `15 Sek.` and not `15Sekunde`.
+     *
+     * @param ms the duration
+     */
+    duration2text(ms: number): string {
         if (ms < 1000) {
-            return `${ms}${space}${I18n.t('ms')}`;
+            return `${ms} ${I18n.t('ms')}`;
         } else if (ms < 90000) {
             const seconds = (Math.round(ms / 100) / 10).toString();
-            return `${this.isFloatComma ? seconds.replace('.', ',') : seconds}${space}${I18n.t('seconds')}`;
+            return `${this.isFloatComma ? seconds.replace('.', ',') : seconds} ${I18n.t('seconds')}`;
         } else if (ms < 3600000) {
-            return `${Math.floor(ms / 60000)}${space}${I18n.t('minutes')} ${Math.round((ms % 60000) / 1000)}${space}${I18n.t('seconds')}`;
+            return `${Math.floor(ms / 60000)} ${I18n.t('minutes')} ${Math.round((ms % 60000) / 1000)} ${I18n.t('seconds')}`;
         }
         let hours = Math.floor(ms / 3600000);
         const minutes = Math.floor(ms / 60000) % 60;
@@ -866,14 +910,14 @@ export class EditState extends Component<EditStateProps, EditStateState> {
             const days = Math.floor(hours / 24);
             hours %= 24;
             if (days > 2) {
-                return `${days}${space}${I18n.t('days')} ${hours}${space}${I18n.t('hours')}`;
+                return `${days} ${I18n.t('days')} ${hours} ${I18n.t('hours')}`;
             }
-            return `${days}${space}${I18n.t('days')} ${hours}${space}${I18n.t('hours')} ${minutes}${space}${I18n.t('minutes')}`;
+            return `${days} ${I18n.t('days')} ${hours} ${I18n.t('hours')} ${minutes} ${I18n.t('minutes')}`;
         }
         if (hours > 2) {
-            return `${hours}${space}${I18n.t('hours')} ${minutes}${space}${I18n.t('minutes')}`;
+            return `${hours} ${I18n.t('hours')} ${minutes} ${I18n.t('minutes')}`;
         }
-        return `${hours}${space}${I18n.t('hours')} ${minutes}${space}${I18n.t('minutes')} ${seconds}${space}${I18n.t('seconds')}`;
+        return `${hours} ${I18n.t('hours')} ${minutes} ${I18n.t('minutes')} ${seconds} ${I18n.t('seconds')}`;
     }
 
     onToggle(id: string | boolean): void {
@@ -1038,8 +1082,8 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                 ) : null}
                             </div>
                             <div style={styles.iconBlock}>
-                                {this.renderLevelSelect(I18n.t('Message level'), state.level, level =>
-                                    this.updateStateValue(i, { level: level || undefined }),
+                                {this.renderLevelSelect(I18n.t('Message level'), state.alarmClass, alarmClass =>
+                                    this.updateStateValue(i, { alarmClass: alarmClass || undefined }),
                                 )}
                             </div>
                         </Paper>
@@ -1068,10 +1112,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                 expanded={this.state.expanded.includes('state_settings')}
                 onChange={() => this.onToggle('state_settings')}
             >
-                <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    style={styles.width100minus32}
-                >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Typography>
                         {I18n.t('Event settings')}
                         {!narrowWidth ? (
@@ -1142,40 +1183,250 @@ export class EditState extends Component<EditStateProps, EditStateState> {
         );
     }
 
-    /** Dropdown for a level, used for the whole state and for a single value */
-    renderLevelSelect(
-        label: string,
-        value: MessageLevel | '' | undefined,
-        onChange: (level: MessageLevel | '') => void,
-    ): JSX.Element {
+    /** The alarm classes of this installation, the tree the selects are built from */
+    get alarmClasses(): AlarmClass[] {
+        return buildAlarmClasses(this.props.native.alarmClasses);
+    }
+
+    /** Dropdown for an alarm class, used for the whole state and for a single value */
+    renderLevelSelect(label: string, value: string | undefined, onChange: (alarmClass: string) => void): JSX.Element {
         return (
-            <FormControl
-                variant="standard"
-                style={styles.levelSelect}
+            <AlarmClassSelect
+                label={label}
+                value={value}
+                classes={this.alarmClasses}
                 disabled={this.props.reading}
+                emptyText={I18n.t('No message')}
+                style={styles.levelSelect}
+                onChange={onChange}
+            />
+        );
+    }
+
+    /**
+     * The limits of a numeric state, most severe first.
+     *
+     * A state that was configured with one class and one condition shows that as the first row, and
+     * the next change writes it as a ladder.
+     *
+     * @param message the message settings of the state
+     */
+    getLimits(message: MessageSettings): MessageLimit[] {
+        const classes = this.alarmClasses;
+        const severityOf = (limit: MessageLimit): number => resolveAlarmClass(limit.alarmClass, classes)?.severity ?? 0;
+
+        if (message.limits?.length) {
+            return [...message.limits].sort((a, b) => severityOf(b) - severityOf(a));
+        }
+
+        if (message.alarmClass && message.condition?.limit !== undefined) {
+            // settings from before the ladder: the acknowledgement duty and the priority of the whole
+            // state belonged to this one condition, so they move into its row
+            return [
+                {
+                    alarmClass: message.alarmClass,
+                    operator: message.condition.operator || '>',
+                    limit: message.condition.limit,
+                    hysteresis: message.hysteresis,
+                    requiresAck: message.requiresAck,
+                    priority: message.priority,
+                },
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Write the ladder back.
+     *
+     * The single condition of the old form goes with it, otherwise the adapter would find both and
+     * the ladder would silently win. The acknowledgement duty and the priority go too: with a ladder
+     * they belong to the single limit, and a value left behind here would work invisibly.
+     *
+     * @param message the current message settings
+     * @param limits the new ladder
+     */
+    updateLimits(message: MessageSettings, limits: MessageLimit[]): void {
+        const next: MessageSettings = { ...message, limits };
+        delete next.alarmClass;
+        delete next.condition;
+        delete next.hysteresis;
+        delete next.requiresAck;
+        delete next.priority;
+
+        if (!limits.length) {
+            delete next.limits;
+        }
+
+        this.setSettings('message', next);
+    }
+
+    /** One line of the ladder: level, comparison, limit, hysteresis, text, acknowledgement, priority */
+    renderLimit(message: MessageSettings, limits: MessageLimit[], index: number): JSX.Element {
+        const item = limits[index];
+        const limitClass = resolveAlarmClass(item.alarmClass, this.alarmClasses);
+        const update = (patch: Partial<MessageLimit>): void => {
+            const next = JSON.parse(JSON.stringify(limits)) as MessageLimit[];
+            Object.assign(next[index], patch);
+            this.updateLimits(message, next);
+        };
+
+        return (
+            <div
+                key={index}
+                style={styles.limitRow}
             >
-                <InputLabel shrink>{label}</InputLabel>
-                <Select
+                <AlarmClassSelect
+                    label={I18n.t('Level')}
+                    value={item.alarmClass}
+                    classes={this.alarmClasses}
+                    disabled={this.props.reading}
+                    style={styles.limitLevel}
+                    onChange={alarmClass => update({ alarmClass })}
+                />
+                <FormControl
                     variant="standard"
-                    displayEmpty
-                    value={value || ''}
-                    onChange={(e: SelectChangeEvent<string>) => onChange(e.target.value as MessageLevel | '')}
+                    style={styles.operatorSelect}
+                    disabled={this.props.reading}
                 >
-                    <MenuItem value="">
-                        <em>{I18n.t('No message')}</em>
-                    </MenuItem>
-                    {MESSAGE_LEVELS.map(level => (
-                        <MenuItem
-                            key={level}
-                            value={level}
-                        >
-                            <span style={{ color: LEVEL_COLORS[level], fontWeight: 'bold' }}>
-                                {level.toUpperCase()}
-                            </span>
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+                    <InputLabel shrink>{I18n.t('Condition')}</InputLabel>
+                    <Select
+                        variant="standard"
+                        value={item.operator || '>'}
+                        onChange={(e: SelectChangeEvent<string>) =>
+                            update({ operator: e.target.value as MessageOperator })
+                        }
+                    >
+                        {MESSAGE_OPERATORS.map(operator => (
+                            <MenuItem
+                                key={operator}
+                                value={operator}
+                            >
+                                {operator}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <TextField
+                    variant="standard"
+                    disabled={this.props.reading}
+                    label={I18n.t('Limit')}
+                    type="number"
+                    style={styles.limitField}
+                    value={item.limit ?? ''}
+                    onChange={e => update({ limit: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+                />
+                <TextField
+                    variant="standard"
+                    disabled={this.props.reading}
+                    label={I18n.t('Hysteresis')}
+                    title={I18n.t('The message goes only when the value has come back this far')}
+                    type="number"
+                    style={styles.limitField}
+                    value={item.hysteresis ?? ''}
+                    onChange={e =>
+                        update({ hysteresis: e.target.value === '' ? undefined : parseFloat(e.target.value) })
+                    }
+                />
+                <TextField
+                    variant="standard"
+                    disabled={this.props.reading}
+                    label={I18n.t('Own text')}
+                    title={I18n.t('Instead of the message text below, only for this limit')}
+                    type="text"
+                    style={styles.limitText}
+                    value={item.text || ''}
+                    onChange={e => update({ text: e.target.value || undefined })}
+                />
+                <FormControlLabel
+                    disabled={this.props.reading || limitClass?.level === 'fatal'}
+                    title={
+                        limitClass?.level === 'fatal'
+                            ? I18n.t('A message of the level fatal is always acknowledged')
+                            : I18n.t('Must be acknowledged')
+                    }
+                    style={styles.limitAck}
+                    control={
+                        <Checkbox
+                            // without an own value what the class says counts, and the checkbox shows
+                            // what will happen. `fatal` is acknowledged in any case.
+                            checked={limitClass?.level === 'fatal' || (item.requiresAck ?? !!limitClass?.requiresAck)}
+                            onChange={e => update({ requiresAck: e.target.checked })}
+                        />
+                    }
+                    label={I18n.t('Acknowledge')}
+                />
+                <TextField
+                    variant="standard"
+                    disabled={this.props.reading}
+                    label={I18n.t('Priority')}
+                    title={I18n.t('Sorts only inside the same level, 0 to 100. It changes nothing else.')}
+                    type="number"
+                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                    style={styles.limitPriority}
+                    value={item.priority ?? 50}
+                    onChange={e => update({ priority: parseInt(e.target.value, 10) })}
+                />
+                <IconButton
+                    disabled={this.props.reading}
+                    title={I18n.t('Delete limit')}
+                    onClick={() =>
+                        this.updateLimits(
+                            message,
+                            limits.filter((_, i) => i !== index),
+                        )
+                    }
+                >
+                    <DeleteIcon />
+                </IconButton>
+            </div>
+        );
+    }
+
+    /**
+     * The ladder of limits of a numeric state.
+     *
+     * Several limits make one message whose level follows the value: `> 200` a warning, `> 300` a
+     * fatal. The most severe limit that is reached wins.
+     */
+    renderLimits(message: MessageSettings): JSX.Element {
+        const limits = this.getLimits(message);
+
+        return (
+            <div>
+                {limits.map((_, index) => this.renderLimit(message, limits, index))}
+                <Button
+                    disabled={this.props.reading}
+                    startIcon={<AddIcon />}
+                    onClick={() => {
+                        // the first limit is a warning, every further one the most severe level that
+                        // is still free; comparison and value follow the row above, so only the
+                        // number has to be typed
+                        const used = limits.map(item => item.alarmClass);
+                        const free = MESSAGE_LEVELS.map(level => `${level}.normal`).find(id => !used.includes(id));
+
+                        this.updateLimits(message, [
+                            ...limits,
+                            {
+                                alarmClass: limits.length ? free || 'warning.normal' : 'warning.normal',
+                                operator: limits[0]?.operator || '>',
+                                limit: limits[0]?.limit ?? 0,
+                            },
+                        ]);
+                    }}
+                >
+                    {I18n.t('Add limit')}
+                </Button>
+                {limits.length ? (
+                    <Typography
+                        variant="body2"
+                        style={styles.hint}
+                    >
+                        {I18n.t('The most severe limit that is reached wins, the message follows the value')}
+                    </Typography>
+                ) : null}
+            </div>
         );
     }
 
@@ -1184,62 +1435,6 @@ export class EditState extends Component<EditStateProps, EditStateState> {
         const condition = message.condition || {};
         const update = (patch: Partial<MessageCondition>): void =>
             this.setSettings('message', { ...message, condition: { ...condition, ...patch } });
-
-        if (this.state.settings.type === 'number') {
-            return (
-                <>
-                    <FormControl
-                        variant="standard"
-                        style={styles.operatorSelect}
-                        disabled={this.props.reading}
-                    >
-                        <InputLabel>{I18n.t('Condition')}</InputLabel>
-                        <Select
-                            variant="standard"
-                            value={condition.operator || '>'}
-                            onChange={(e: SelectChangeEvent<string>) =>
-                                update({ operator: e.target.value as MessageOperator })
-                            }
-                        >
-                            {MESSAGE_OPERATORS.map(operator => (
-                                <MenuItem
-                                    key={operator}
-                                    value={operator}
-                                >
-                                    {operator}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <TextField
-                        variant="standard"
-                        disabled={this.props.reading}
-                        label={I18n.t('Limit')}
-                        type="number"
-                        style={styles.limitField}
-                        value={condition.limit ?? ''}
-                        onChange={e =>
-                            update({ limit: e.target.value === '' ? undefined : parseFloat(e.target.value) })
-                        }
-                    />
-                    <TextField
-                        variant="standard"
-                        disabled={this.props.reading}
-                        label={I18n.t('Hysteresis')}
-                        type="number"
-                        style={styles.limitField}
-                        value={message.hysteresis ?? ''}
-                        helperText={I18n.t('The message goes only when the value has come back this far')}
-                        onChange={e =>
-                            this.setSettings('message', {
-                                ...message,
-                                hysteresis: e.target.value === '' ? undefined : parseFloat(e.target.value),
-                            })
-                        }
-                    />
-                </>
-            );
-        }
 
         return (
             <TextField
@@ -1263,17 +1458,38 @@ export class EditState extends Component<EditStateProps, EditStateState> {
     renderMessage(): JSX.Element {
         const message: MessageSettings = this.state.settings.message || {};
         const perValue = !!this.state.settings.states?.length;
-        const levelsOfValues = (this.state.settings.states || []).filter(item => item.level);
-        const level = message.level;
+        const withLimits = !perValue && this.state.settings.type === 'number';
+        const classes = this.alarmClasses;
+        const classOf = (id: string | undefined): AlarmClass | null => resolveAlarmClass(id, classes);
+        const levelsOfValues = (this.state.settings.states || []).filter(item => item.alarmClass);
+        const limits = withLimits ? this.getLimits(message) : [];
+        const alarmClass = message.alarmClass;
 
         const update = (patch: Partial<MessageSettings>): void => this.setSettings('message', { ...message, ...patch });
 
-        const active = perValue ? !!levelsOfValues.length : !!level;
-        // the acknowledgement duty follows the level, with values it follows the most severe one
-        const effectiveLevel = level || MESSAGE_LEVELS.find(item => levelsOfValues.find(value => value.level === item));
+        const active = perValue ? !!levelsOfValues.length : withLimits ? !!limits.length : !!alarmClass;
+        // the acknowledgement duty follows the class, with several of them the most severe one
+        const effectiveClass = withLimits
+            ? classOf(limits[0]?.alarmClass)
+            : classOf(alarmClass) ||
+              levelsOfValues
+                  .map(item => classOf(item.alarmClass))
+                  .filter((item): item is AlarmClass => !!item)
+                  .sort((a, b) => b.severity - a.severity)[0];
         const summary = perValue
-            ? levelsOfValues.map(item => `${item.original ?? item.val}: ${item.level}`).join(', ')
-            : level;
+            ? levelsOfValues
+                  .map(item => `${item.original ?? item.val}: ${classOf(item.alarmClass)?.name || item.alarmClass}`)
+                  .join(', ')
+            : withLimits
+              ? limits
+                    .map(
+                        item =>
+                            `${item.operator || '>'} ${item.limit}: ${classOf(item.alarmClass)?.name || item.alarmClass}`,
+                    )
+                    .join(', ')
+              : effectiveClass
+                ? classLabel(effectiveClass)
+                : '';
 
         return (
             <Accordion
@@ -1286,7 +1502,7 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                         {active ? (
                             <span
                                 style={{
-                                    color: effectiveLevel ? LEVEL_COLORS[effectiveLevel] : undefined,
+                                    color: effectiveClass ? classColor(effectiveClass) : undefined,
                                     fontStyle: 'italic',
                                 }}
                             >{` - ${summary}`}</span>
@@ -1294,6 +1510,10 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails style={{ display: 'block' }}>
+                    <ClosableInfo
+                        storeId="eventlist.messagePrinciple"
+                        lines={MESSAGE_PRINCIPLE}
+                    />
                     <Paper style={styles.paper}>
                         {perValue ? (
                             <Typography
@@ -1302,12 +1522,14 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                             >
                                 {I18n.t('The level is set below, at every single value')}
                             </Typography>
+                        ) : withLimits ? (
+                            this.renderLimits(message)
                         ) : (
                             <div>
-                                {this.renderLevelSelect(I18n.t('Level'), level, newLevel =>
-                                    update({ level: newLevel || undefined }),
+                                {this.renderLevelSelect(I18n.t('Level'), alarmClass, newClass =>
+                                    update({ alarmClass: newClass || undefined }),
                                 )}
-                                {level ? this.renderCondition(message) : null}
+                                {alarmClass ? this.renderCondition(message) : null}
                             </div>
                         )}
 
@@ -1326,26 +1548,41 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                     )}
                                     fullWidth
                                 />
-                                <FormControlLabel
-                                    disabled={this.props.reading}
-                                    control={
-                                        <Checkbox
-                                            checked={message.requiresAck ?? DEFAULT_ACK[effectiveLevel || 'error']}
-                                            onChange={e => update({ requiresAck: e.target.checked })}
+                                {/* with a ladder both belong to the single limit, up in its row */}
+                                {withLimits ? null : (
+                                    <>
+                                        <FormControlLabel
+                                            disabled={this.props.reading}
+                                            control={
+                                                <Checkbox
+                                                    disabled={effectiveClass?.level === 'fatal'}
+                                                    checked={
+                                                        effectiveClass?.level === 'fatal' ||
+                                                        (message.requiresAck ??
+                                                            (effectiveClass
+                                                                ? effectiveClass.requiresAck
+                                                                : DEFAULT_ACK.alarm))
+                                                    }
+                                                    onChange={e => update({ requiresAck: e.target.checked })}
+                                                />
+                                            }
+                                            label={I18n.t('Must be acknowledged')}
                                         />
-                                    }
-                                    label={I18n.t('Must be acknowledged')}
-                                />
-                                <TextField
-                                    variant="standard"
-                                    disabled={this.props.reading}
-                                    label={I18n.t('Priority within the level')}
-                                    type="number"
-                                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
-                                    style={styles.priorityField}
-                                    value={message.priority ?? 50}
-                                    onChange={e => update({ priority: parseInt(e.target.value, 10) })}
-                                />
+                                        <TextField
+                                            variant="standard"
+                                            disabled={this.props.reading}
+                                            label={I18n.t('Priority within the level')}
+                                            title={I18n.t(
+                                                'Sorts only inside the same level, 0 to 100. It changes nothing else.',
+                                            )}
+                                            type="number"
+                                            slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                                            style={styles.priorityField}
+                                            value={message.priority ?? 50}
+                                            onChange={e => update({ priority: parseInt(e.target.value, 10) })}
+                                        />
+                                    </>
+                                )}
                                 <div style={styles.messageBlock}>
                                     <TextField
                                         variant="standard"
@@ -1380,6 +1617,19 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                         onChange={e => update({ group: e.target.value || undefined })}
                                     />
                                 </div>
+                                <FormControlLabel
+                                    disabled={this.props.reading}
+                                    control={
+                                        <Checkbox
+                                            checked={!!this.state.settings.messagesOnly}
+                                            onChange={e => this.setSettings('messagesOnly', e.target.checked)}
+                                        />
+                                    }
+                                    title={I18n.t(
+                                        'Only the coming and the going of the message are written, not every value of the state',
+                                    )}
+                                    label={I18n.t('Only the message in the event list')}
+                                />
                             </div>
                         ) : null}
                     </Paper>
@@ -1449,6 +1699,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                 onChange={e => this.setSettings('messagesInAlarmsOnly', e.target.checked)}
                             />
                         }
+                        title={I18n.t(
+                            'The messengers are only informed while the alarm mode is on. The event list is written anyway',
+                        )}
                         label={I18n.t('Only in alarm state')}
                     />
                     {narrowWidth && <br />}
@@ -1502,7 +1755,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
 
     render(): JSX.Element {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm' || this.props.width === 'md';
-        const val = this.state.state?.val ? ` - ${this.state.state.val.toString()}` : '';
+        const val = this.state.state?.val
+            ? ` - ${formatValue(this.state.state.val, this.isFloatComma, this.state.settings.unit)}`
+            : '';
 
         const exampleColor = this.getExampleColor() || undefined;
 
@@ -1593,6 +1848,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                     onChange={e => this.setSettings('changesOnly', e.target.checked)}
                                 />
                             }
+                            title={I18n.t(
+                                'An event is written only if the value has really changed, and not on every update of the state',
+                            )}
                             label={I18n.t('Only changes')}
                         />
                         {narrowWidth && <br />}
@@ -1604,6 +1862,9 @@ export class EditState extends Component<EditStateProps, EditStateState> {
                                     onChange={e => this.setSettings('alarmsOnly', e.target.checked)}
                                 />
                             }
+                            title={I18n.t(
+                                'The state is watched only while the alarm mode is on. When the alarm mode goes off, its events are removed from the list again',
+                            )}
                             label={I18n.t('Only in alarm state')}
                         />
                         <IconButton

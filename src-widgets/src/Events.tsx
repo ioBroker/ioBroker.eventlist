@@ -3,7 +3,7 @@ import React, { type CSSProperties } from 'react';
 import type { RxRenderWidgetProps, RxWidgetInfo, VisRxWidgetProps, VisRxWidgetState } from '@iobroker/types-vis-2';
 
 import Generic from './Generic';
-import { parseEventList, type FormattedEvent } from './types';
+import { exactTime, parseEventList, type FormattedEvent } from './types';
 
 type Align = 'left' | 'right' | 'center';
 
@@ -348,7 +348,7 @@ export default class Events extends Generic<EventsRxData, EventsState> {
                         <td
                             key={column}
                             style={{ ...styles.cell, textAlign: align }}
-                            title={content}
+                            title={column === 'time' ? exactTime(event._id) : content}
                         >
                             {content}
                         </td>
@@ -370,9 +370,7 @@ export default class Events extends Generic<EventsRxData, EventsState> {
                     {this.renderHeader(columns)}
                     <tbody>{events.map((event, index) => this.renderRow(event, index, columns))}</tbody>
                 </table>
-                {!events.length && this.state.events ? (
-                    <div style={styles.empty}>{Generic.t('no_events')}</div>
-                ) : null}
+                {!events.length && this.state.events ? <div style={styles.empty}>{Generic.t('no_events')}</div> : null}
             </div>
         );
     }

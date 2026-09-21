@@ -18,26 +18,38 @@
  * So the rule is: a message stands as long as it is active OR still unacknowledged.
  */
 
-/** Levels, ordered from the most to the least severe */
-export const LEVELS = ['fatal', 'error', 'warning', 'info'] as const;
+import {
+    ACK_BY_DEFAULT,
+    type AlarmClass,
+    DEFAULT_SEVERITY,
+    isLevel,
+    LEVEL_COLORS,
+    LEVELS,
+    type MessageLevel,
+    resolveAlarmClass,
+    severityToLevel,
+} from './levels';
 
-export type MessageLevel = (typeof LEVELS)[number];
-
-/** Colour of a level, used for the event entry when the message brings no colour of its own */
-export const LEVEL_COLORS: Record<MessageLevel, string> = {
-    fatal: '#B3122B',
-    error: '#D9601A',
-    warning: '#E0A800',
-    info: '#4A7FA5',
-};
-
-/** Levels that have to be acknowledged unless the message says otherwise */
-const ACK_BY_DEFAULT: Record<MessageLevel, boolean> = {
-    fatal: true,
-    error: true,
-    warning: false,
-    info: false,
-};
+export {
+    ACK_BY_DEFAULT,
+    type AlarmClass,
+    buildAlarmClasses,
+    builtInClasses,
+    builtInId,
+    buildClassId,
+    DEFAULT_SEVERITY,
+    isLevel,
+    isSubLevel,
+    LEVEL_COLORS,
+    LEVELS,
+    type MessageLevel,
+    resolveAlarmClass,
+    SEVERITY_BANDS,
+    severityToLevel,
+    sortAlarmClasses,
+    SUB_LEVELS,
+    type SubLevel,
+} from './levels';
 
 /**
  * Transition of a message, written into the event list.
@@ -57,9 +69,40 @@ export interface MessageCondition {
     value?: string | number | boolean;
 }
 
+/**
+ * One limit of a state, with the level it raises.
+ *
+ * Several of them make the ladder a control room works with: `> 200` a warning, `> 300` a fatal, and
+ * a low limit below. The most severe limit that is reached wins, so one state raises one message
+ * whose level follows the value.
+ */
+export interface MessageLimit {
+    /** Id of the alarm class this limit raises, `alarm.high` for one of the twelve built-in ones */
+    alarmClass: string;
+    /** Comparison, `>` if it is missing */
+    operator?: '>' | '>=' | '<' | '<=' | '==' | '!=';
+    limit: number;
+    /** How far the value has to come back before this limit lets go again */
+    hysteresis?: number;
+    /** Text of this limit. Without it the text of the whole state is used. */
+    text?: string;
+    /**
+     * Whether this limit has to be acknowledged. Without it the default of its level counts, so the
+     * warning of a ladder passes by and its fatal has to be confirmed.
+     */
+    requiresAck?: boolean;
+    /** 0 to 100, sorts only inside the level. Without it the priority of the whole state counts. */
+    priority?: number;
+}
+
 /** Message settings of one state, stored in `common.custom[<namespace>].message` */
 export interface MessageSettings {
-    level?: MessageLevel;
+    /** Id of the alarm class the state raises. Without it the state raises no message. */
+    alarmClass?: string;
+    /**
+     * Several limits with their classes. If they are there, they replace `alarmClass` and `condition`.
+     */
+    limits?: MessageLimit[];
     /** 0 to 100, only sorts inside the level */
     priority?: number;
     requiresAck?: boolean;
@@ -110,15 +153,28 @@ export interface Suppression {
 export interface IncomingMessage {
     /** Identifies the message over its whole life cycle */
     id: string;
+    /** Id of the alarm class, if it comes from a state or from a script that knows the classes */
+    alarmClass?: string;
+    /** Name of the class, so the lists can show it without the settings */
+    alarmName?: string;
     level?: MessageLevel;
-    /** Severity of a foreign system, 1 to 1000. Used only if no level is given. */
+    /** 1 to 1000, as OPC UA counts it. Without a level it says which level the message lands in. */
     severity?: number;
+    /**
+     * The message only writes its coming into the event list and never stands.
+     *
+     * That is what the classes below the alarm line of OPC UA do, `info` above all: there is nothing
+     * to acknowledge and nothing to watch, so the message is an entry and not a state.
+     */
+    oneShot?: boolean;
     text?: string;
     priority?: number;
     requiresAck?: boolean;
     /** The ioBroker state that raised it, if any */
     stateId?: string;
     val?: ioBroker.StateValue;
+    /** Unit of the value, so the lists can show the value as the user reads it */
+    unit?: string;
     icon?: string;
     color?: string;
     /** Name of the group */
@@ -142,12 +198,15 @@ export interface ScriptMessage {
     id: string;
     /** `gone` lets the message go, everything else lets it come */
     state?: 'came' | 'gone';
+    /** Id of an alarm class of this installation. It brings level, severity and acknowledgement. */
+    alarmClass?: string;
     level?: MessageLevel;
     severity?: number;
     text?: string;
     priority?: number;
     requiresAck?: boolean;
     val?: ioBroker.StateValue;
+    unit?: string;
     icon?: string;
     color?: string;
     group?: string;
@@ -157,6 +216,12 @@ export interface ScriptMessage {
 export interface PendingMessage {
     id: string;
     level: MessageLevel;
+    /** Id of the alarm class it belongs to */
+    alarmClass?: string;
+    /** Name of the class at the time it came */
+    alarmName?: string;
+    /** It only wrote its coming and never stands: it is kept as the memory of that edge */
+    oneShot?: boolean;
     priority: number;
     text: string;
     /** The condition is currently true */
@@ -175,6 +240,8 @@ export interface PendingMessage {
     count: number;
     stateId?: string;
     val?: ioBroker.StateValue;
+    /** Unit of the value, so the table of the messages shows it the way the event list does */
+    unit?: string;
     icon?: string;
     color?: string;
     severity?: number;
@@ -190,6 +257,12 @@ export interface PendingMessage {
 export interface FormattedMessage {
     id: string;
     level: MessageLevel;
+    /** Id of the alarm class, for the filter of the GUI */
+    alarmClass?: string;
+    /** Name of the class, empty for one of the twelve built-in ones */
+    alarmName?: string;
+    /** 1 to 1000 */
+    severity: number;
     text: string;
     /** K, KQ, KG or KGQ. The last one only for a message that stays because it flaps. */
     state: 'K' | 'KQ' | 'KG' | 'KGQ';
@@ -201,10 +274,14 @@ export interface FormattedMessage {
     ts: number;
     lastTs: number;
     goneTs?: number;
+    /** When it was acknowledged, and by whom */
+    ackTs?: number;
+    ackUser?: string;
     count: number;
     priority: number;
     stateId?: string;
     val?: ioBroker.StateValue;
+    unit?: string;
     icon?: string;
     color: string;
     group?: string;
@@ -215,7 +292,10 @@ export interface FormattedMessage {
 }
 
 export interface MessageSummary {
+    /** Everything that stands: active or not acknowledged yet */
     total: number;
+    /** The condition of these is true right now */
+    active: number;
     unacknowledged: number;
     byLevel: Record<MessageLevel, number>;
     /** The most severe level that stands, empty if nothing stands */
@@ -236,11 +316,9 @@ export interface MessageTextContext {
     unit?: string;
     name?: string;
     level: MessageLevel;
+    /** Name of the alarm class, for the pattern %c */
+    alarmName?: string;
     isFloatComma?: boolean;
-}
-
-export function isLevel(value: unknown): value is MessageLevel {
-    return typeof value === 'string' && (LEVELS as readonly string[]).includes(value);
 }
 
 /**
@@ -250,27 +328,6 @@ export function isLevel(value: unknown): value is MessageLevel {
  */
 export function requiresAckByDefault(level: MessageLevel): boolean {
     return ACK_BY_DEFAULT[level];
-}
-
-/**
- * Map the severity of a foreign system onto a level.
- *
- * Fixed bands and not configurable on purpose: the same number has to mean the same thing in every
- * installation. The range 1 to 1000 is the one OPC UA uses.
- *
- * @param severity severity of the foreign system
- */
-export function severityToLevel(severity: number): MessageLevel {
-    if (severity > 800) {
-        return 'fatal';
-    }
-    if (severity > 500) {
-        return 'error';
-    }
-    if (severity > 200) {
-        return 'warning';
-    }
-    return 'info';
 }
 
 /**
@@ -342,6 +399,42 @@ export function isConditionMet(
 }
 
 /**
+ * The most severe limit the value has reached, or null if it has reached none.
+ *
+ * The message that stands is one, not one per limit, and its level follows the value up and down
+ * the ladder. The hysteresis of a limit counts as long as the message stands at that limit or at a
+ * more severe one - only then does a value that falls back leave the band it is in.
+ *
+ * @param limits the configured limits, in any order
+ * @param val the current value of the state
+ * @param classes the alarm classes of this installation
+ * @param standingSeverity severity at which the message stands at the moment, if it stands
+ */
+export function findMatchingLimit(
+    limits: MessageLimit[],
+    val: ioBroker.StateValue,
+    classes: AlarmClass[],
+    standingSeverity?: number,
+): MessageLimit | null {
+    const withClass = limits
+        .map(item => ({ item, cls: resolveAlarmClass(item.alarmClass, classes) }))
+        .filter((entry): entry is { item: MessageLimit; cls: AlarmClass } => !!entry.cls);
+
+    withClass.sort((a, b) => b.cls.severity - a.cls.severity);
+
+    for (const { item, cls } of withClass) {
+        const standing = standingSeverity !== undefined && standingSeverity >= cls.severity;
+        const condition: MessageCondition = { operator: item.operator || '>', limit: item.limit };
+
+        if (isConditionMet(condition, val, { standing, hysteresis: item.hysteresis })) {
+            return item;
+        }
+    }
+
+    return null;
+}
+
+/**
  * Replace the patterns in the text of a message.
  *
  * Only the patterns that make sense without an event: value, unit, name and level. The event list
@@ -368,6 +461,10 @@ export function formatMessageText(text: string, ctx: MessageTextContext): string
     }
     if (result.includes('%l')) {
         result = result.replace(/%l/g, ctx.level);
+    }
+    if (result.includes('%c')) {
+        // the class of the plant, and the level as the fallback of a built-in class without a name
+        result = result.replace(/%c/g, ctx.alarmName || ctx.level);
     }
 
     return result;
@@ -457,7 +554,8 @@ export function raiseMessage(
     now: number,
     flapping?: FlappingConfig,
 ): MessageChange {
-    const level: MessageLevel = incoming.level || (incoming.severity ? severityToLevel(incoming.severity) : 'info');
+    const level: MessageLevel =
+        incoming.level || (incoming.severity ? severityToLevel(incoming.severity).level : 'info');
     const result = [...list];
     const index = result.findIndex(item => item.id === incoming.id);
 
@@ -469,17 +567,30 @@ export function raiseMessage(
             text: incoming.text || incoming.id,
             active: true,
             acked: false,
-            requiresAck: incoming.requiresAck ?? requiresAckByDefault(level),
+            // a message that only writes its coming has nothing anybody could acknowledge
+            requiresAck: incoming.oneShot ? false : (incoming.requiresAck ?? requiresAckByDefault(level)),
             ts: now,
             lastTs: now,
             count: 1,
         };
         // only what is really there, so the stored list stays free of empty fields
+        if (incoming.alarmClass) {
+            message.alarmClass = incoming.alarmClass;
+        }
+        if (incoming.alarmName) {
+            message.alarmName = incoming.alarmName;
+        }
+        if (incoming.oneShot) {
+            message.oneShot = true;
+        }
         if (incoming.stateId !== undefined) {
             message.stateId = incoming.stateId;
         }
         if (incoming.val !== undefined) {
             message.val = incoming.val;
+        }
+        if (incoming.unit) {
+            message.unit = incoming.unit;
         }
         if (incoming.icon) {
             message.icon = incoming.icon;
@@ -508,20 +619,61 @@ export function raiseMessage(
     if (incoming.val !== undefined) {
         existing.val = incoming.val;
     }
+    if (incoming.unit) {
+        existing.unit = incoming.unit;
+    }
     if (incoming.text) {
         existing.text = incoming.text;
     }
     if (incoming.level) {
         existing.level = incoming.level;
     }
+    if (incoming.alarmClass) {
+        // the ladder climbs from one class to the next, and colour and icon follow it
+        existing.alarmClass = incoming.alarmClass;
+        existing.alarmName = incoming.alarmName;
+        existing.icon = incoming.icon;
+        existing.color = incoming.color;
+    }
+    if (incoming.severity !== undefined) {
+        existing.severity = incoming.severity;
+    }
+    if (incoming.priority !== undefined) {
+        // with a ladder of limits every step may sort differently inside its level
+        existing.priority = incoming.priority;
+    }
     if (incoming.group) {
         existing.group = incoming.group;
     }
 
     if (existing.active) {
-        // it already stands, so this is no new occurrence
+        // a message that comes without a severity - a script that only names a level - is compared
+        // by the severity its level stands for, otherwise an escalation would go unnoticed
+        const severityOf = (item: PendingMessage): number => item.severity ?? DEFAULT_SEVERITY[item.level].normal;
+
+        if (severityOf(existing) === severityOf(result[index]) && existing.alarmClass === result[index].alarmClass) {
+            // it already stands at the same class, so this is no new occurrence
+            result[index] = existing;
+            return { list: result, transitions: [] };
+        }
+
+        // A pressure that climbs from the warning limit to the fatal one is a new event: the text
+        // and the colour change, and an acknowledgement of the milder state must not cover it. The
+        // duty to acknowledge follows the new level, so a message that falls back to a warning stops
+        // asking for one instead of demanding a second acknowledgement.
+        existing.lastTs = now;
+        existing.count++;
+        existing.acked = false;
+        existing.requiresAck = existing.oneShot
+            ? false
+            : (incoming.requiresAck ?? requiresAckByDefault(existing.level));
+        delete existing.ackTs;
+        delete existing.ackUser;
+
+        const escalated = recordChange(existing, now, flapping);
         result[index] = existing;
-        return { list: result, transitions: [] };
+
+        return { list: result, transitions: transitionsOf('came', existing, escalated) };
     }
 
     // it had gone and was not acknowledged, so it comes again
@@ -777,64 +929,137 @@ export function isHornOn(list: PendingMessage[], level: MessageLevel | '' | unde
         return false;
     }
     const limit = LEVELS.indexOf(level);
-    return list.some(item => item.requiresAck && !item.acked && LEVELS.indexOf(item.level) <= limit);
+    return list.some(item => !item.oneShot && item.requiresAck && !item.acked && LEVELS.indexOf(item.level) <= limit);
+}
+
+/**
+ * Whether this state raises a message at all: at the state itself, as one class or a ladder of
+ * limits, or at one of its values.
+ *
+ * A state without one must keep writing its value changes, whatever `messagesOnly` says - otherwise
+ * a class that was removed would silently switch the state off.
+ *
+ * @param settings the settings of the state
+ * @param settings.message the message of the state itself
+ * @param settings.states the settings of the single values
+ */
+export function hasMessage(settings: {
+    message?: MessageSettings;
+    states?: Array<{ alarmClass?: string }> | null;
+}): boolean {
+    return (
+        !!settings.message?.alarmClass ||
+        !!settings.message?.limits?.length ||
+        !!settings.states?.some(item => !!item.alarmClass)
+    );
+}
+
+/**
+ * What the alarm class contributes to every message that is raised with it.
+ *
+ * The class is the single place where level, severity, colour, icon and the two flags come from, so
+ * that a plant which renames `alarm high` into `Boiler pressure` changes one entry and not fifty
+ * states.
+ *
+ * @param cls the alarm class
+ */
+function fromClass(
+    cls: AlarmClass,
+): Pick<IncomingMessage, 'alarmClass' | 'alarmName' | 'level' | 'severity' | 'oneShot' | 'icon' | 'color'> {
+    return {
+        alarmClass: cls.id,
+        alarmName: cls.name,
+        level: cls.level,
+        severity: cls.severity,
+        oneShot: !cls.standing,
+        icon: cls.icon,
+        color: cls.color,
+    };
+}
+
+/**
+ * Whether this message has to be acknowledged: what was configured for it wins, then its class.
+ *
+ * `fatal` is the exception and is always acknowledged - a fault of that level that nobody has seen
+ * must not be able to leave the list.
+ *
+ * @param configured what the limit or the state says, if it says anything
+ * @param cls the alarm class
+ */
+function acknowledgeDuty(configured: boolean | undefined, cls: AlarmClass): boolean {
+    if (cls.level === 'fatal') {
+        return true;
+    }
+    return configured ?? cls.requiresAck;
 }
 
 /**
  * Work out which messages a state raises and which it clears.
  *
- * Two ways to configure it. Either single values of the state carry a level, then every such value
- * is its own message and only the current one stands. Or the state has one condition, then there is
- * one message for the whole state.
+ * Three ways to configure it. Either single values of the state carry an alarm class, then every
+ * such value is its own message and only the current one stands. Or the state carries a ladder of
+ * limits, then there is one message whose class follows the value. Or it carries one single
+ * condition.
  *
  * @param stateId the state
- * @param settings the message settings of the state, and the values with their levels
- * @param settings.message the condition and the level of the whole state
- * @param settings.states the single values, each of which may carry a level
+ * @param settings the message settings of the state, and the values with their classes
+ * @param settings.message the limits or the condition and the class of the whole state
+ * @param settings.states the single values, each of which may carry a class
  * @param settings.unit unit of the state, for the text
  * @param settings.name name of the state, for the text
  * @param val the new value
- * @param ctx unit, name and number format for the text
+ * @param ctx the classes of this installation and what the text and the hysteresis need
  * @param ctx.isFloatComma if the comma is the decimal separator
- * @param ctx.isActive tells whether a message stands at the moment, for the hysteresis
+ * @param ctx.classes all alarm classes of this installation
+ * @param ctx.activeSeverity severity at which the message of a state stands, for the hysteresis
  */
 export function evaluateStateMessages(
     stateId: string,
     settings: {
         message?: MessageSettings;
-        states?: Array<{ val: string; text?: string; level?: MessageLevel; icon?: string; color?: string }> | null;
+        states?: Array<{ val: string; text?: string; alarmClass?: string; icon?: string; color?: string }> | null;
         unit?: string;
         name?: string;
     },
     val: ioBroker.StateValue,
-    ctx: { isFloatComma?: boolean; isActive?: (id: string) => boolean },
+    ctx: {
+        isFloatComma?: boolean;
+        classes: AlarmClass[];
+        activeSeverity?: (id: string) => number | undefined;
+    },
 ): { raise: IncomingMessage[]; clear: string[] } {
     const raise: IncomingMessage[] = [];
     const clear: string[] = [];
     const valText = val === null || val === undefined ? '' : val.toString();
+    const classes = ctx.classes || [];
 
-    const valuesWithLevel = (settings.states || []).filter(item => isLevel(item.level));
+    const valuesWithClass = (settings.states || [])
+        .map(item => ({ item, cls: resolveAlarmClass(item.alarmClass, classes) }))
+        .filter((entry): entry is { item: (typeof entry)['item']; cls: AlarmClass } => !!entry.cls);
 
-    if (valuesWithLevel.length) {
-        for (const item of valuesWithLevel) {
+    if (valuesWithClass.length) {
+        for (const { item, cls } of valuesWithClass) {
             const id = `${stateId}#${item.val}`;
             if (item.val === valText) {
                 raise.push({
                     id,
                     stateId,
-                    level: item.level,
+                    ...fromClass(cls),
                     val,
-                    icon: item.icon,
-                    color: item.color,
+                    unit: settings.unit,
+                    // what the value brings wins over the colour and the icon of the class
+                    icon: item.icon || cls.icon,
+                    color: item.color || cls.color,
                     text: formatMessageText(item.text || settings.message?.text || settings.name || stateId, {
                         val,
                         unit: settings.unit,
                         name: settings.name,
-                        level: item.level!,
+                        level: cls.level,
+                        alarmName: cls.name,
                         isFloatComma: ctx.isFloatComma,
                     }),
                     priority: settings.message?.priority,
-                    requiresAck: settings.message?.requiresAck,
+                    requiresAck: acknowledgeDuty(settings.message?.requiresAck, cls),
                     group: settings.message?.group,
                     delay: settings.message?.delay,
                     delayGone: settings.message?.delayGone,
@@ -847,21 +1072,66 @@ export function evaluateStateMessages(
     }
 
     const message = settings.message;
-    if (!message || !isLevel(message.level)) {
+    if (!message || (!message.alarmClass && !message.limits?.length)) {
         return { raise, clear };
     }
 
-    // with a hysteresis the answer depends on whether the message already stands
-    const standing = ctx.isActive ? ctx.isActive(stateId) : false;
+    // with a hysteresis the answer depends on whether the message already stands, and with a ladder
+    // of limits also on the class it stands at
+    const standingSeverity = ctx.activeSeverity?.(stateId);
 
-    if (isConditionMet(message.condition, val, { standing, hysteresis: message.hysteresis })) {
+    if (message.limits?.length) {
+        const reached = findMatchingLimit(message.limits, val, classes, standingSeverity);
+        const cls = reached ? resolveAlarmClass(reached.alarmClass, classes) : null;
+
+        if (reached && cls) {
+            raise.push({
+                id: stateId,
+                stateId,
+                ...fromClass(cls),
+                val,
+                unit: settings.unit,
+                // what the limit says wins, then the state, and only then what the class says
+                priority: reached.priority ?? message.priority,
+                requiresAck: acknowledgeDuty(reached.requiresAck ?? message.requiresAck, cls),
+                group: message.group,
+                delay: message.delay,
+                delayGone: message.delayGone,
+                text: formatMessageText(reached.text || message.text || settings.name || stateId, {
+                    val,
+                    unit: settings.unit,
+                    name: settings.name,
+                    level: cls.level,
+                    alarmName: cls.name,
+                    isFloatComma: ctx.isFloatComma,
+                }),
+            });
+        } else {
+            clear.push(stateId);
+        }
+
+        return { raise, clear };
+    }
+
+    const cls = resolveAlarmClass(message.alarmClass, classes);
+    if (!cls) {
+        return { raise, clear };
+    }
+
+    if (
+        isConditionMet(message.condition, val, {
+            standing: standingSeverity !== undefined,
+            hysteresis: message.hysteresis,
+        })
+    ) {
         raise.push({
             id: stateId,
             stateId,
-            level: message.level,
+            ...fromClass(cls),
             val,
+            unit: settings.unit,
             priority: message.priority,
-            requiresAck: message.requiresAck,
+            requiresAck: acknowledgeDuty(message.requiresAck, cls),
             group: message.group,
             delay: message.delay,
             delayGone: message.delayGone,
@@ -869,7 +1139,8 @@ export function evaluateStateMessages(
                 val,
                 unit: settings.unit,
                 name: settings.name,
-                level: message.level,
+                level: cls.level,
+                alarmName: cls.name,
                 isFloatComma: ctx.isFloatComma,
             }),
         });
@@ -880,13 +1151,28 @@ export function evaluateStateMessages(
     return { raise, clear };
 }
 
-/** Most severe first, then the higher priority, then the newest */
+/**
+ * The order of a control room: most severe first, and inside one severity what nobody has seen yet.
+ *
+ * The severity carries the order of the levels in it, so one number is enough: a class of `alarm
+ * high` outranks one of `alarm low`, and that one outranks every warning. Then comes the
+ * acknowledgement - an unacknowledged alarm is the one that still wants the operator - and only
+ * then the priority and the time.
+ */
 export function sortMessages(list: PendingMessage[]): PendingMessage[] {
     return [...list].sort((a, b) => {
-        const levelDiff = LEVELS.indexOf(a.level) - LEVELS.indexOf(b.level);
-        if (levelDiff) {
-            return levelDiff;
+        const severityA = a.severity ?? DEFAULT_SEVERITY[a.level].normal;
+        const severityB = b.severity ?? DEFAULT_SEVERITY[b.level].normal;
+        if (severityA !== severityB) {
+            return severityB - severityA;
         }
+
+        const unackedA = a.requiresAck && !a.acked;
+        const unackedB = b.requiresAck && !b.acked;
+        if (unackedA !== unackedB) {
+            return unackedA ? -1 : 1;
+        }
+
         if (a.priority !== b.priority) {
             return b.priority - a.priority;
         }
@@ -900,19 +1186,29 @@ export function sortMessages(list: PendingMessage[]): PendingMessage[] {
  * @param list the standing messages
  */
 export function summarizeMessages(list: PendingMessage[]): MessageSummary {
-    const byLevel: Record<MessageLevel, number> = { fatal: 0, error: 0, warning: 0, info: 0 };
+    const byLevel: Record<MessageLevel, number> = { fatal: 0, alarm: 0, warning: 0, info: 0 };
     let unacknowledged = 0;
+    let active = 0;
+    let total = 0;
 
     for (const item of list) {
+        if (item.oneShot) {
+            // it never stands, it is only the memory of an entry that was written
+            continue;
+        }
+        total++;
         byLevel[item.level]++;
-        if (!item.acked) {
+        if (item.active) {
+            active++;
+        }
+        if (item.requiresAck && !item.acked) {
             unacknowledged++;
         }
     }
 
     const highest = LEVELS.find(level => byLevel[level] > 0) || '';
 
-    return { total: list.length, unacknowledged, byLevel, highest };
+    return { total, active, unacknowledged, byLevel, highest };
 }
 
 /**
@@ -929,10 +1225,14 @@ export function formatMessageList(list: PendingMessage[]): FormattedMessage[] {
         }
     }
 
-    return sortMessages(list).map(item => {
+    // a message that only wrote its coming is kept as the memory of that edge, it is not shown
+    return sortMessages(list.filter(item => !item.oneShot)).map(item => {
         const message: FormattedMessage = {
             id: item.id,
             level: item.level,
+            alarmClass: item.alarmClass,
+            alarmName: item.alarmName,
+            severity: item.severity ?? DEFAULT_SEVERITY[item.level].normal,
             text: item.text,
             state: getMessageState(item),
             active: item.active,
@@ -942,10 +1242,13 @@ export function formatMessageList(list: PendingMessage[]): FormattedMessage[] {
             ts: item.ts,
             lastTs: item.lastTs,
             goneTs: item.goneTs,
+            ackTs: item.ackTs,
+            ackUser: item.ackUser,
             count: item.count,
             priority: item.priority,
             stateId: item.stateId,
             val: item.val,
+            unit: item.unit,
             icon: item.icon,
             color: item.color || LEVEL_COLORS[item.level],
         };

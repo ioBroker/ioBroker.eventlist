@@ -55,7 +55,8 @@ import {
 import AddEventDialog from '../Dialogs/AddEvent';
 import AddIdDialog from '../Dialogs/AddId';
 import SelectStateDialog from '../Dialogs/SelectState';
-import type { EventListNative, FormattedEvent, RawEvent } from '../types';
+import { LEVEL_COLORS, type EventListNative, type FormattedEvent, type RawEvent } from '../types';
+import moment, { setMomentLocale } from '../momentLocale';
 
 // Copyright Apache 2.0 https://raw.githubusercontent.com/material-icons/material-icons/master/svg/filter_alt/baseline.svg
 // https://github.com/material-icons/material-icons/blob/master/LICENSE
@@ -132,17 +133,46 @@ const styles: Record<string, CSSProperties> = {
     tdEvent: {
         paddingRight: 8,
     },
+    tdTransition: {
+        width: 34,
+        paddingLeft: 2,
+        paddingRight: 2,
+    },
+    transitionChip: {
+        display: 'inline-block',
+        minWidth: 20,
+        padding: '0 4px',
+        borderRadius: 4,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        fontWeight: 'bold',
+        fontSize: 12,
+        lineHeight: '18px',
+        textAlign: 'center',
+    },
     tdVal: {},
     tdDuration: {},
     tdID: {
-        opacity: 0.3,
+        opacity: 0.7,
+    },
+    tdIDSmall: {
+        fontSize: 10,
+        lineHeight: '12px',
+        opacity: 0.7,
     },
     tdEdit: {},
     toolbarButtonText: {
         whiteSpace: 'nowrap',
         marginLeft: 16,
         marginRight: 16,
-        lineHeight: 24,
+        /**
+         * With the unit, and it belongs there: `lineHeight` is one of the properties React writes
+         * without one, so the plain number meant 24 times the font size - a line box of 336px. The
+         * MUI button does not clip it, so the text of the button hung far down over the first rows
+         * of the table, invisible but not gone: it showed the tooltip of the button there and
+         * swallowed the click on the row.
+         */
+        lineHeight: '24px',
         display: 'inline-block',
     },
     tabMargins: {
@@ -238,10 +268,13 @@ type SortKey = 'ts' | 'event' | 'val';
 type Order = 'asc' | 'desc';
 
 interface HeadCell {
-    id: SortKey | 'icon';
+    id: SortKey | 'icon' | 'transition';
     label?: string;
     align?: 'left' | 'right' | 'center';
 }
+
+/** A message that has gone is no longer a fault, and a control room paints that green */
+const COLOR_GONE = '#4CAF50';
 
 const HEAD_STYLES: Record<SortKey, CSSProperties> = {
     ts: styles.tdTs,
@@ -302,6 +335,8 @@ interface ListState {
     pdfInGeneration: boolean;
     /** All state IDs that are in the event list (for the filter) or null if not loaded yet */
     stateIds: StateIdItem[] | null;
+    /** Name of a state, keyed with its ID. The list shows the name and not only the ID. */
+    stateNames: Record<string, string>;
 }
 
 class List extends Component<ListProps, ListState> {
@@ -314,6 +349,8 @@ class List extends Component<ListProps, ListState> {
 
     constructor(props: ListProps) {
         super(props);
+
+        setMomentLocale(this.props.native.language);
 
         const storageKey = `${props.adapterName}-${props.instance || 0}-adapter`;
         const storedEditEnabled = window.localStorage.getItem(`${storageKey}.editEnabled`) || null;
@@ -356,6 +393,7 @@ class List extends Component<ListProps, ListState> {
             editAvailable,
             pdfInGeneration: false,
             stateIds: null,
+            stateNames: {},
         };
 
         this.imagePrefix = this.props.imagePrefix; // by default is admin
@@ -367,9 +405,54 @@ class List extends Component<ListProps, ListState> {
         this.headCells = [
             { id: 'ts', label: I18n.t('Time'), align: 'right' },
             { id: 'icon' },
+            { id: 'transition' },
             { id: 'event', label: I18n.t('Event'), align: 'center' },
             { id: 'val', label: I18n.t('Value'), align: 'left' },
         ];
+    }
+
+    /**
+     * What happened to the message, as one letter.
+     *
+     * The event text says it as well - `... - gekommen` - but a list is read by running the eye down
+     * one column, not by reading every line to its end. K, G and Q are the letters a control room
+     * uses, the same ones as in the table of the standing messages.
+     *
+     * @param row one line of the event list
+     */
+    static renderTransition(row: FormattedEvent): JSX.Element | null {
+        if (!row.transition) {
+            return null;
+        }
+
+        // gone is green: the condition is over. Everything else keeps the colour of its message.
+        const color =
+            row.transition === 'gone'
+                ? COLOR_GONE
+                : row._style?.color || (row.level ? LEVEL_COLORS[row.level] : undefined) || '#888';
+        const letters: Record<string, string> = { came: 'K', gone: 'G', ack: 'Q', flapping: '~', settled: '=' };
+        const titles: Record<string, string> = {
+            came: 'came',
+            gone: 'gone',
+            ack: 'acknowledged',
+            flapping: 'flapping',
+            settled: 'settled',
+        };
+        const filled = row.transition === 'came';
+
+        return (
+            <span
+                title={I18n.t(titles[row.transition])}
+                style={{
+                    ...styles.transitionChip,
+                    color: filled ? '#FFF' : color,
+                    backgroundColor: filled ? color : 'transparent',
+                    borderColor: color,
+                }}
+            >
+                {letters[row.transition]}
+            </span>
+        );
     }
 
     static parseList<T>(state: ioBroker.State | null | undefined): T[] {
@@ -380,17 +463,66 @@ class List extends Component<ListProps, ListState> {
         }
     }
 
-    /** Take the state IDs from the raw list and store them in the formatted list */
-    static mergeStateIds(eventList: FormattedEvent[], eventRawList: RawEvent[] | null): void {
-        if (!eventRawList) {
-            return;
+    /**
+     * The names of the states that appear in the list.
+     *
+     * An ID says which state it is, a name says what it is. Only the states that are really in the
+     * list are read, and only once each.
+     *
+     * @param eventList the list as it is shown
+     */
+    async readNames(eventList: FormattedEvent[] | null): Promise<void> {
+        const names = { ...this.state.stateNames };
+        let found = false;
+
+        for (const id of new Set((eventList || []).map(item => item.stateId).filter((id): id is string => !!id))) {
+            if (names[id] !== undefined) {
+                continue;
+            }
+            try {
+                const obj = await this.props.socket.getObject(id);
+                names[id] = obj ? Utils.getObjectNameFromObj(obj, I18n.getLanguage()) : id;
+            } catch {
+                names[id] = id;
+            }
+            found = true;
         }
+
+        if (found) {
+            this.setState({ stateNames: names });
+        }
+    }
+
+    /**
+     * Take what only the raw list knows and store it in the formatted list.
+     *
+     * The state ID, and the level and the transition of a message: the formatted list of an older
+     * adapter does not carry the last two, and the raw list has them for every entry it ever wrote.
+     *
+     * @param eventList the formatted list, as the adapter writes it
+     * @param eventRawList the raw list, keyed by the time of the event
+     * @returns whether anything was taken over
+     */
+    static mergeStateIds(eventList: FormattedEvent[], eventRawList: RawEvent[] | null): boolean {
+        if (!eventRawList) {
+            return false;
+        }
+        let changed = false;
+
         eventList.forEach(item => {
             const raw = eventRawList.find(it => it.ts === item._id);
-            if (raw) {
-                item.stateId = raw.id;
+            if (!raw) {
+                return;
             }
+            if (item.stateId !== raw.id || (!item.level && raw.level) || (!item.transition && raw.transition)) {
+                changed = true;
+            }
+            item.stateId = raw.id;
+            item.level = item.level || raw.level;
+            item.transition = item.transition || raw.transition;
         });
+
+        return changed;
     }
 
     async readStatus(): Promise<void> {
@@ -407,6 +539,8 @@ class List extends Component<ListProps, ListState> {
         await new Promise<void>(resolve =>
             this.setState({ isInstanceAlive: !!aliveState?.val, eventList, eventRawList }, resolve),
         );
+
+        await this.readNames(eventList);
     }
 
     componentDidMount(): void {
@@ -435,21 +569,17 @@ class List extends Component<ListProps, ListState> {
             const eventList = List.parseList<FormattedEvent>(state);
             // merge together
             List.mergeStateIds(eventList, this.state.eventRawList);
-            this.setState({ eventList });
+            this.setState({ eventList }, () => void this.readNames(eventList));
         } else if (id === this.eventRawListId) {
             const eventRawList = List.parseList<RawEvent>(state);
-            // merge together
-            let eventList: FormattedEvent[] | null = null;
-            this.state.eventList?.forEach((item, i) => {
-                if (!item.stateId) {
-                    const raw = eventRawList.find(it => it.ts === item._id);
-                    if (raw) {
-                        eventList = eventList || JSON.parse(JSON.stringify(this.state.eventList));
-                        (eventList as FormattedEvent[])[i].stateId = raw.id;
-                    }
-                }
-            });
-            if (eventList) {
+
+            // The same merge as for the formatted list: which of the two states arrives first must
+            // not change what is shown, otherwise a line loses its state and its chip until the
+            // adapter writes the formatted list again.
+            const eventList = this.state.eventList?.map(item => ({ ...item })) || null;
+            const changed = eventList ? List.mergeStateIds(eventList, eventRawList) : false;
+
+            if (changed && eventList) {
                 this.setState({ eventRawList, eventList });
             } else {
                 this.setState({ eventRawList });
@@ -526,7 +656,15 @@ class List extends Component<ListProps, ListState> {
                         </TableCell>
                     )}
                     {this.headCells.map(cell =>
-                        cell.id === 'icon' ? (
+                        cell.id === 'transition' ? (
+                            <TableCell
+                                key={cell.id}
+                                component="th"
+                                style={styles.tdTransition}
+                                align="center"
+                                padding="none"
+                            />
+                        ) : cell.id === 'icon' ? (
                             this.props.native.icons ? (
                                 <TableCell
                                     key={cell.id}
@@ -577,7 +715,7 @@ class List extends Component<ListProps, ListState> {
                             style={styles.tdID}
                             align="left"
                         >
-                            State ID
+                            {I18n.t('State')}
                         </TableCell>
                     )}
                     {this.state.editAvailable && this.state.editEnabled && (
@@ -705,6 +843,18 @@ class List extends Component<ListProps, ListState> {
         );
     }
 
+    /**
+     * The exact time behind a relative one like `5 minutes ago`
+     *
+     * A row that already shows its time needs no tooltip that repeats it.
+     *
+     * @param row the event of the row
+     */
+    exactTime(row: FormattedEvent): string | undefined {
+        const exact = moment(row._id).format(this.props.native.dateFormat || 'MMM Do, HH:mm:ss');
+        return row.ts === exact ? undefined : exact;
+    }
+
     renderToolbar(): JSX.Element {
         const narrowWidth = this.props.width === 'xs' || this.props.width === 'sm';
         let name: string;
@@ -749,7 +899,10 @@ class List extends Component<ListProps, ListState> {
 
                 {this.state.editAvailable && this.state.editEnabled && this.state.selected.length ? (
                     <>
-                        <Tooltip title={I18n.t('Delete')}>
+                        <Tooltip
+                            title={I18n.t('Delete')}
+                            slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                        >
                             <IconButton
                                 aria-label="delete"
                                 onClick={() => this.setState({ showDeleteConfirm: true })}
@@ -758,7 +911,10 @@ class List extends Component<ListProps, ListState> {
                             </IconButton>
                         </Tooltip>
                         {this.state.selectedId ? (
-                            <Tooltip title={I18n.t('Edit settings for state')}>
+                            <Tooltip
+                                title={I18n.t('Edit settings for state')}
+                                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                            >
                                 <IconButton
                                     aria-label="edit"
                                     onClick={() => {
@@ -777,6 +933,7 @@ class List extends Component<ListProps, ListState> {
                             <Tooltip
                                 title={I18n.t('Add state to event list')}
                                 style={styles.toolbarButton}
+                                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                             >
                                 <Fab
                                     variant="extended"
@@ -806,6 +963,7 @@ class List extends Component<ListProps, ListState> {
                             <Tooltip
                                 title={I18n.t('Insert custom event into list')}
                                 style={styles.toolbarButton}
+                                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                             >
                                 <span>
                                     <Fab
@@ -832,6 +990,7 @@ class List extends Component<ListProps, ListState> {
                             <Tooltip
                                 title={I18n.t('Edit mode')}
                                 style={styles.toolbarButton}
+                                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                             >
                                 <Fab
                                     variant="extended"
@@ -854,6 +1013,7 @@ class List extends Component<ListProps, ListState> {
                             <Tooltip
                                 title={I18n.t('Generate PDF file')}
                                 style={styles.toolbarButton}
+                                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                             >
                                 <span>
                                     <Fab
@@ -871,6 +1031,7 @@ class List extends Component<ListProps, ListState> {
                         <Tooltip
                             title={I18n.t('Refresh list')}
                             style={styles.toolbarButton}
+                            slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                         >
                             <Fab
                                 variant="extended"
@@ -1031,8 +1192,17 @@ class List extends Component<ListProps, ListState> {
                                             scope="row"
                                             padding="none"
                                             align="right"
+                                            title={this.exactTime(row)}
                                         >
                                             {row.ts}
+                                        </TableCell>
+                                        <TableCell
+                                            style={styles.tdTransition}
+                                            component="td"
+                                            padding="none"
+                                            align="center"
+                                        >
+                                            {List.renderTransition(row)}
                                         </TableCell>
                                         {this.props.native.icons ? (
                                             <TableCell
@@ -1089,7 +1259,12 @@ class List extends Component<ListProps, ListState> {
                                                 style={styles.tdID}
                                                 align="left"
                                             >
-                                                {row.stateId}
+                                                <div>
+                                                    {(row.stateId && this.state.stateNames[row.stateId]) || row.stateId}
+                                                </div>
+                                                {row.stateId && this.state.stateNames[row.stateId] ? (
+                                                    <div style={styles.tdIDSmall}>{row.stateId}</div>
+                                                ) : null}
                                             </TableCell>
                                         )}
                                         {this.state.editAvailable && this.state.editEnabled && (
@@ -1101,6 +1276,7 @@ class List extends Component<ListProps, ListState> {
                                                     <Tooltip
                                                         title={I18n.t('Edit settings for state')}
                                                         style={styles.toolbarButton}
+                                                        slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
                                                     >
                                                         <IconButton
                                                             sx={sxEditButton}

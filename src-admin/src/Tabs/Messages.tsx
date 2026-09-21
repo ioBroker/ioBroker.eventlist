@@ -1,5 +1,4 @@
 import React, { Component, type ComponentType, type CSSProperties, type JSX } from 'react';
-import moment from 'moment';
 
 import {
     Box,
@@ -32,8 +31,10 @@ import {
     Close as IconClose,
 } from '@mui/icons-material';
 
-import { I18n, Image, withWidth, type AdminConnection, type Width } from '@iobroker/gui-components';
+import { I18n, Utils, Image, withWidth, type AdminConnection, type Width } from '@iobroker/gui-components';
 
+import { formatValue } from '../formatValue';
+import { levelLabel } from '../Components/AlarmClassSelect';
 import {
     LEVEL_COLORS,
     MESSAGE_LEVELS,
@@ -42,6 +43,7 @@ import {
     type MessageLevel,
     type Suppression,
 } from '../types';
+import moment, { setMomentLocale } from '../momentLocale';
 
 const ICON_SIZE = 28;
 
@@ -90,6 +92,14 @@ const styles: Record<string, CSSProperties> = {
     table: {
         width: '100%',
     },
+    stateName: {
+        lineHeight: '16px',
+    },
+    stateIdSmall: {
+        fontSize: 10,
+        lineHeight: '12px',
+        opacity: 0.7,
+    },
     levelChip: {
         display: 'inline-block',
         padding: '2px 8px',
@@ -119,6 +129,31 @@ const styles: Record<string, CSSProperties> = {
     gone: {
         opacity: 0.6,
     },
+    unacknowledged: {
+        fontWeight: 'bold',
+    },
+    summary: {
+        display: 'flex',
+        gap: 24,
+        padding: '4px 16px',
+        alignItems: 'baseline',
+        flex: 'none',
+    },
+    summaryCell: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 6,
+    },
+    summaryValue: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        fontVariantNumeric: 'tabular-nums',
+    },
+    summaryLabel: {
+        fontSize: 12,
+        opacity: 0.7,
+        textTransform: 'uppercase',
+    },
     filter: {
         minWidth: 140,
     },
@@ -146,6 +181,11 @@ const styles: Record<string, CSSProperties> = {
     tdNarrow: {
         whiteSpace: 'nowrap',
     },
+    currentValue: {
+        marginLeft: 6,
+        fontWeight: 'bold',
+        whiteSpace: 'nowrap',
+    },
 };
 
 interface MessagesProps {
@@ -160,10 +200,18 @@ interface MessagesProps {
 
 interface MessagesState {
     messages: FormattedMessage[] | null;
+    /** The value the state has right now, keyed with its ID */
+    currentValues: Record<string, string | number | boolean | null>;
+    /** How many entries the event list holds, for the summary */
+    eventCount: number;
+    /** Whether the comma is the decimal separator of this installation */
+    isFloatComma: boolean;
     suppressions: Suppression[];
     isInstanceAlive: boolean;
     filterLevel: MessageLevel | '';
     toast: string;
+    /** The name of every state a message points at, keyed by its ID */
+    stateNames: Record<string, string>;
 }
 
 class Messages extends Component<MessagesProps, MessagesState> {
@@ -171,31 +219,47 @@ class Messages extends Component<MessagesProps, MessagesState> {
     private readonly listId: string;
     private readonly suppressedId: string;
     private readonly ackId: string;
+    private readonly eventCountId: string;
     /** The times are shown relative, so they have to be refreshed even without a change */
     private timeInterval: ReturnType<typeof setInterval> | null = null;
+    /** The states whose value is watched, because a message of them stands */
+    private subscribedValues: string[] = [];
 
     constructor(props: MessagesProps) {
         super(props);
 
+        setMomentLocale(this.props.native.language);
+
         this.state = {
             messages: null,
+            currentValues: {},
+            eventCount: 0,
+            isFloatComma: false,
             suppressions: [],
             isInstanceAlive: false,
             filterLevel: '',
             toast: '',
+            stateNames: {},
         };
 
         this.aliveId = `system.adapter.${this.props.adapterName}.${this.props.instance}.alive`;
         this.listId = `${this.props.adapterName}.${this.props.instance}.messages.list`;
         this.suppressedId = `${this.props.adapterName}.${this.props.instance}.messages.suppressed`;
         this.ackId = `${this.props.adapterName}.${this.props.instance}.messages.ack`;
+        this.eventCountId = `${this.props.adapterName}.${this.props.instance}.eventCount`;
     }
 
     componentDidMount(): void {
+        void this.props.socket
+            .getSystemConfig()
+            .then(systemConfig => this.setState({ isFloatComma: !!systemConfig?.common?.isFloatComma }));
+
         void this.readStatus().then(() => {
             void this.props.socket.subscribeState(this.aliveId, this.onStateChanged);
             void this.props.socket.subscribeState(this.listId, this.onStateChanged);
             void this.props.socket.subscribeState(this.suppressedId, this.onStateChanged);
+            void this.props.socket.subscribeState(this.eventCountId, this.onStateChanged);
+            void this.subscribeValues();
         });
 
         this.timeInterval = setInterval(() => this.forceUpdate(), 30000);
@@ -205,6 +269,12 @@ class Messages extends Component<MessagesProps, MessagesState> {
         this.props.socket.unsubscribeState(this.aliveId, this.onStateChanged);
         this.props.socket.unsubscribeState(this.listId, this.onStateChanged);
         this.props.socket.unsubscribeState(this.suppressedId, this.onStateChanged);
+        this.props.socket.unsubscribeState(this.eventCountId, this.onStateChanged);
+
+        for (const id of this.subscribedValues) {
+            this.props.socket.unsubscribeState(id, this.onValueChanged);
+        }
+        this.subscribedValues = [];
 
         if (this.timeInterval) {
             clearInterval(this.timeInterval);
@@ -213,7 +283,87 @@ class Messages extends Component<MessagesProps, MessagesState> {
     }
 
     /**
-     * How long ago that was. Built from the translated words and not with ,
+     * Watch the states the standing messages belong to.
+     *
+     * A message keeps the value that raised it; the state has moved on in the meantime. Both belong
+     * in the table: what was, and what is.
+     */
+    async subscribeValues(): Promise<void> {
+        const wanted = [
+            ...new Set((this.state.messages || []).map(item => item.stateId).filter((id): id is string => !!id)),
+        ];
+
+        for (const id of this.subscribedValues) {
+            if (!wanted.includes(id)) {
+                this.props.socket.unsubscribeState(id, this.onValueChanged);
+            }
+        }
+        for (const id of wanted) {
+            if (!this.subscribedValues.includes(id)) {
+                await this.props.socket.subscribeState(id, this.onValueChanged);
+            }
+        }
+
+        this.subscribedValues = wanted;
+        await this.readNames(wanted);
+    }
+
+    /**
+     * Read the names of the states the messages belong to, the way the event list shows them.
+     *
+     * An ID says where an alarm comes from, a name says what it is. Both belong there, so the name
+     * stands above and the ID under it.
+     *
+     * @param ids the state IDs of the rows
+     */
+    async readNames(ids: string[]): Promise<void> {
+        const names = { ...this.state.stateNames };
+        let found = false;
+
+        for (const id of ids) {
+            if (names[id] !== undefined) {
+                continue;
+            }
+            try {
+                const obj = await this.props.socket.getObject(id);
+                names[id] = obj ? Utils.getObjectNameFromObj(obj, I18n.getLanguage()) : id;
+            } catch {
+                names[id] = id;
+            }
+            found = true;
+        }
+
+        if (found) {
+            this.setState({ stateNames: names });
+        }
+    }
+
+    /**
+     * The cell of a state: its name, and the ID under it
+     *
+     * @param stateId the ID of the state, if the message has one
+     */
+    renderStateId(stateId?: string): JSX.Element {
+        const name = stateId ? this.state.stateNames[stateId] : '';
+
+        return (
+            <>
+                <div style={styles.stateName}>{name || stateId || ''}</div>
+                {name && stateId && name !== stateId ? <div style={styles.stateIdSmall}>{stateId}</div> : null}
+            </>
+        );
+    }
+
+    onValueChanged = (id: string, state: ioBroker.State | null | undefined): void => {
+        const value = state ? state.val : null;
+        if (this.state.currentValues[id] === value) {
+            return;
+        }
+        this.setState({ currentValues: { ...this.state.currentValues, [id]: value } });
+    };
+
+    /**
+     * How long ago that was. Built from the translated words and not with `moment.fromNow()`,
      * whose locale files do not reach the moment instance of the GUI.
      *
      * @param ms how long ago in milliseconds
@@ -225,18 +375,51 @@ class Messages extends Component<MessagesProps, MessagesState> {
 
         const minutes = Math.floor(ms / 60000);
         if (minutes < 60) {
-            return `${minutes} ${I18n.t('minutes short')}`;
+            return `${minutes} ${I18n.t('minutes')}`;
         }
 
         const hours = Math.floor(minutes / 60);
         if (hours < 24) {
             const rest = minutes % 60;
-            return `${hours} ${I18n.t('hours short')}${rest ? ` ${rest} ${I18n.t('minutes short')}` : ''}`;
+            return `${hours} ${I18n.t('hours')}${rest ? ` ${rest} ${I18n.t('minutes')}` : ''}`;
         }
 
         const days = Math.floor(hours / 24);
         const rest = hours % 24;
-        return `${days} ${I18n.t('days short')}${rest ? ` ${rest} ${I18n.t('hours short')}` : ''}`;
+        return `${days} ${I18n.t('days')}${rest ? ` ${rest} ${I18n.t('hours')}` : ''}`;
+    }
+
+    /**
+     * The value of the message, and the value the state has now if it is not the same one.
+     *
+     * A message that stands says what raised it. Whether the pressure has kept climbing since then
+     * is the other half of the picture, and it is the half an operator acts on.
+     *
+     * @param row the message
+     */
+    renderValue(row: FormattedMessage): JSX.Element {
+        const stored = formatValue(row.val, this.state.isFloatComma, row.unit);
+        const current = row.stateId ? this.state.currentValues[row.stateId] : undefined;
+        const changed =
+            current !== undefined &&
+            current !== null &&
+            row.val !== undefined &&
+            row.val !== null &&
+            current.toString() !== row.val.toString();
+
+        return (
+            <>
+                <span>{stored}</span>
+                {changed ? (
+                    <span
+                        style={{ ...styles.currentValue, color: row.color || LEVEL_COLORS[row.level] }}
+                        title={I18n.t('The value the state has now')}
+                    >
+                        {`(${formatValue(current, this.state.isFloatComma, row.unit)})`}
+                    </span>
+                ) : null}
+            </>
+        );
     }
 
     static parse<T>(state: ioBroker.State | null | undefined): T[] {
@@ -251,6 +434,7 @@ class Messages extends Component<MessagesProps, MessagesState> {
         const alive = await this.props.socket.getState(this.aliveId);
         const list = await this.props.socket.getState(this.listId);
         const suppressed = await this.props.socket.getState(this.suppressedId);
+        const eventCount = await this.props.socket.getState(this.eventCountId);
 
         await new Promise<void>(resolve =>
             this.setState(
@@ -258,6 +442,7 @@ class Messages extends Component<MessagesProps, MessagesState> {
                     isInstanceAlive: !!alive?.val,
                     messages: Messages.parse<FormattedMessage>(list),
                     suppressions: Messages.parse<Suppression>(suppressed),
+                    eventCount: (eventCount?.val as number) || 0,
                 },
                 resolve,
             ),
@@ -268,9 +453,12 @@ class Messages extends Component<MessagesProps, MessagesState> {
         if (id === this.aliveId) {
             this.setState({ isInstanceAlive: !!state?.val });
         } else if (id === this.listId) {
-            this.setState({ messages: Messages.parse<FormattedMessage>(state) });
+            // a new message may belong to a state that is not watched yet
+            this.setState({ messages: Messages.parse<FormattedMessage>(state) }, () => void this.subscribeValues());
         } else if (id === this.suppressedId) {
             this.setState({ suppressions: Messages.parse<Suppression>(state) });
+        } else if (id === this.eventCountId) {
+            this.setState({ eventCount: (state?.val as number) || 0 });
         }
     };
 
@@ -315,6 +503,47 @@ class Messages extends Component<MessagesProps, MessagesState> {
     }
 
     /** The counters per level, they say at a glance what is standing */
+    /**
+     * The four numbers an operator looks at first.
+     *
+     * The most important one is the number of unacknowledged alarms: everything else can wait, that
+     * one is what nobody has seen yet.
+     *
+     * @param messages the standing messages
+     * @param events how many entries the event list holds
+     */
+    static renderSummary(messages: FormattedMessage[], events: number): JSX.Element {
+        const unacknowledged = messages.filter(item => item.ackable).length;
+        const active = messages.filter(item => item.active).length;
+        const warnings = messages.filter(item => item.level === 'warning').length;
+
+        const cells: { label: string; value: number; color?: string; loud?: boolean }[] = [
+            {
+                label: I18n.t('Unacknowledged'),
+                value: unacknowledged,
+                color: unacknowledged ? LEVEL_COLORS.fatal : undefined,
+                loud: !!unacknowledged,
+            },
+            { label: I18n.t('Active'), value: active, color: active ? LEVEL_COLORS.alarm : undefined },
+            { label: I18n.t('Warnings'), value: warnings, color: warnings ? LEVEL_COLORS.warning : undefined },
+            { label: I18n.t('Events'), value: events },
+        ];
+
+        return (
+            <div style={styles.summary}>
+                {cells.map(cell => (
+                    <div
+                        key={cell.label}
+                        style={styles.summaryCell}
+                    >
+                        <span style={{ ...styles.summaryValue, color: cell.color }}>{cell.value}</span>
+                        <span style={styles.summaryLabel}>{cell.label}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
     static renderCounters(messages: FormattedMessage[]): JSX.Element | null {
         const counters = MESSAGE_LEVELS.map(level => ({
             level,
@@ -332,7 +561,7 @@ class Messages extends Component<MessagesProps, MessagesState> {
                         key={item.level}
                         style={{ ...styles.counter, backgroundColor: LEVEL_COLORS[item.level] }}
                     >
-                        {`${item.count} × ${item.level}`}
+                        {`${item.count} × ${levelLabel(item.level)}`}
                     </span>
                 ))}
             </div>
@@ -376,13 +605,16 @@ class Messages extends Component<MessagesProps, MessagesState> {
                             value={level}
                         >
                             <span style={{ color: LEVEL_COLORS[level], fontWeight: 'bold' }}>
-                                {level.toUpperCase()}
+                                {levelLabel(level).toUpperCase()}
                             </span>
                         </MenuItem>
                     ))}
                 </Select>
 
-                <Tooltip title={I18n.t('Acknowledge all messages')}>
+                <Tooltip
+                    title={I18n.t('Acknowledge all messages')}
+                    slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                >
                     <span>
                         <Button
                             variant="contained"
@@ -433,10 +665,13 @@ class Messages extends Component<MessagesProps, MessagesState> {
                     <TableCell>{I18n.t('Level')}</TableCell>
                     <TableCell align="center">{I18n.t('State')}</TableCell>
                     <TableCell align="right">{I18n.t('Since')}</TableCell>
+                    {!narrowWidth ? <TableCell align="right">{I18n.t('Acknowledged at')}</TableCell> : null}
+                    {!narrowWidth ? <TableCell align="right">{I18n.t('Gone at')}</TableCell> : null}
                     {this.props.native.icons ? <TableCell padding="none" /> : null}
                     <TableCell>{I18n.t('Message')}</TableCell>
                     {!narrowWidth ? <TableCell align="right">{I18n.t('Value')}</TableCell> : null}
                     {!narrowWidth ? <TableCell align="right">{I18n.t('Count')}</TableCell> : null}
+                    {!narrowWidth ? <TableCell align="right">{I18n.t('Priority')}</TableCell> : null}
                     {!narrowWidth ? <TableCell>{I18n.t('Group')}</TableCell> : null}
                     {!narrowWidth && this.props.native.stateId ? <TableCell>{I18n.t('State ID')}</TableCell> : null}
                     <TableCell padding="none" />
@@ -447,15 +682,23 @@ class Messages extends Component<MessagesProps, MessagesState> {
 
     /** The combined state and what it means, in the notation used in control rooms */
     static renderState(row: FormattedMessage): JSX.Element {
-        const explanation =
-            row.state === 'K'
-                ? I18n.t('came, not acknowledged')
-                : row.state === 'KQ'
-                  ? I18n.t('came, acknowledged')
-                  : I18n.t('gone, not acknowledged');
+        let explanation: string;
+
+        if (!row.requiresAck) {
+            // nobody has to confirm this one, so saying "not acknowledged" would ask for something
+            // that is not wanted
+            explanation = row.active ? I18n.t('came') : I18n.t('gone');
+        } else if (row.acked) {
+            explanation = row.active ? I18n.t('came, acknowledged') : I18n.t('gone, acknowledged');
+        } else {
+            explanation = row.active ? I18n.t('came, not acknowledged') : I18n.t('gone, not acknowledged');
+        }
 
         return (
-            <Tooltip title={explanation}>
+            <Tooltip
+                title={explanation}
+                slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+            >
                 <span style={styles.stateCode}>{row.state}</span>
             </Tooltip>
         );
@@ -469,11 +712,15 @@ class Messages extends Component<MessagesProps, MessagesState> {
             <TableRow
                 key={row.id}
                 hover
-                style={!row.active ? styles.gone : undefined}
+                // what nobody has seen yet must catch the eye, what has gone may fade
+                style={{ ...(row.active ? undefined : styles.gone), ...(row.ackable ? styles.unacknowledged : {}) }}
             >
                 <TableCell style={styles.tdNarrow}>
-                    <span style={{ ...styles.levelChip, backgroundColor: LEVEL_COLORS[row.level] }}>
-                        {row.level.toUpperCase()}
+                    <span
+                        style={{ ...styles.levelChip, backgroundColor: row.color || LEVEL_COLORS[row.level] }}
+                        title={row.alarmName || levelLabel(row.level)}
+                    >
+                        {(row.alarmName || levelLabel(row.level)).toUpperCase()}
                     </span>
                 </TableCell>
                 <TableCell align="center">{Messages.renderState(row)}</TableCell>
@@ -481,10 +728,30 @@ class Messages extends Component<MessagesProps, MessagesState> {
                     align="right"
                     style={styles.tdNarrow}
                 >
-                    <Tooltip title={moment(row.ts).format(dateFormat)}>
+                    <Tooltip
+                        title={moment(row.ts).format(dateFormat)}
+                        slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                    >
                         <span>{Messages.ageText(Date.now() - row.ts)}</span>
                     </Tooltip>
                 </TableCell>
+                {!narrowWidth ? (
+                    <TableCell
+                        align="right"
+                        style={styles.tdNarrow}
+                        title={row.ackUser ? `${I18n.t('Acknowledged')}: ${row.ackUser}` : undefined}
+                    >
+                        {row.ackTs ? moment(row.ackTs).format(dateFormat) : ''}
+                    </TableCell>
+                ) : null}
+                {!narrowWidth ? (
+                    <TableCell
+                        align="right"
+                        style={styles.tdNarrow}
+                    >
+                        {row.goneTs ? moment(row.goneTs).format(dateFormat) : ''}
+                    </TableCell>
+                ) : null}
                 {this.props.native.icons ? (
                     <TableCell
                         padding="none"
@@ -505,7 +772,10 @@ class Messages extends Component<MessagesProps, MessagesState> {
                 <TableCell style={styles.tdText}>
                     <span style={{ color: row.color }}>{row.text}</span>
                     {row.first ? (
-                        <Tooltip title={I18n.t('First message of the group')}>
+                        <Tooltip
+                            title={I18n.t('First message of the group')}
+                            slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                        >
                             <IconFirst
                                 fontSize="small"
                                 style={{ verticalAlign: 'middle', marginLeft: 4 }}
@@ -513,7 +783,10 @@ class Messages extends Component<MessagesProps, MessagesState> {
                         </Tooltip>
                     ) : null}
                     {row.flapping ? (
-                        <Tooltip title={I18n.t('This message changes too often, its transitions are not written')}>
+                        <Tooltip
+                            slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                            title={I18n.t('This message changes too often, its transitions are not written')}
+                        >
                             <IconFlapping
                                 fontSize="small"
                                 style={{ verticalAlign: 'middle', marginLeft: 4 }}
@@ -521,17 +794,19 @@ class Messages extends Component<MessagesProps, MessagesState> {
                         </Tooltip>
                     ) : null}
                 </TableCell>
-                {!narrowWidth ? (
-                    <TableCell align="right">
-                        {row.val === undefined || row.val === null ? '' : row.val.toString()}
-                    </TableCell>
-                ) : null}
+                {!narrowWidth ? <TableCell align="right">{this.renderValue(row)}</TableCell> : null}
                 {!narrowWidth ? <TableCell align="right">{row.count > 1 ? row.count : ''}</TableCell> : null}
+                {!narrowWidth ? <TableCell align="right">{row.priority}</TableCell> : null}
                 {!narrowWidth ? <TableCell>{row.group || ''}</TableCell> : null}
-                {!narrowWidth && this.props.native.stateId ? <TableCell>{row.stateId || ''}</TableCell> : null}
+                {!narrowWidth && this.props.native.stateId ? (
+                    <TableCell>{this.renderStateId(row.stateId)}</TableCell>
+                ) : null}
                 <TableCell padding="none">
                     {row.ackable ? (
-                        <Tooltip title={I18n.t('Acknowledge')}>
+                        <Tooltip
+                            title={I18n.t('Acknowledge')}
+                            slotProps={{ popper: { sx: { pointerEvents: 'none' } } }}
+                        >
                             <IconButton
                                 size="small"
                                 onClick={() => this.acknowledge(row.id)}
@@ -586,6 +861,7 @@ class Messages extends Component<MessagesProps, MessagesState> {
         return (
             <Paper style={styles.tab}>
                 {this.renderToolbar(this.state.messages)}
+                {Messages.renderSummary(this.state.messages, this.state.eventCount)}
                 {this.renderSuppressions()}
                 {this.renderTable(messages)}
                 {this.renderToast()}

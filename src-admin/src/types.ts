@@ -2,6 +2,8 @@
  * Shared types of the eventlist admin/web GUI
  */
 
+import type { AlarmClass, MessageLevel } from './levels';
+
 /** Default text/color/icon for a specific (string or numeric) state value */
 export type DefaultStringText = {
     /** State value for which the defaults should be used */
@@ -88,12 +90,18 @@ export type EventListNative = {
     deleteAlarmsByDisable: boolean;
     /** From which level on the horn sounds. Empty switches it off. */
     hornLevel: MessageLevel | '';
+    /** What differs from the twelve built-in alarm classes, and the classes the user added */
+    alarmClasses: AlarmClass[];
     /** More transitions than this inside the window count as flapping. 0 switches the protection off. */
     flappingCount: number;
     /** Length of the flapping window in minutes */
     flappingInterval: number;
     /** Duration of a suppression in minutes, if none is given */
     suppressDefault: number;
+    /** How many alarm cycles the journal keeps. 0 switches it off. */
+    journalLength: number;
+    /** Whether a closed cycle is written into the monthly file `journal/<YYYY-MM>.jsonl` */
+    journalArchive: boolean;
 };
 
 /** One line of the formatted event list (state `eventJSONList`) */
@@ -114,7 +122,14 @@ export type FormattedEvent = {
     dr?: number;
     /** State ID (merged in GUI from the raw list) */
     stateId?: string;
+    /** Level, if the event comes from a standing message */
+    level?: MessageLevel;
+    /** What happened to the message */
+    transition?: MessageTransition;
 };
+
+/** What happened to a standing message, as the event list writes it down */
+export type MessageTransition = 'came' | 'gone' | 'ack' | 'flapping' | 'settled';
 
 /** One line of the raw event list (state `eventListRaw`) */
 export type RawEvent = {
@@ -127,6 +142,10 @@ export type RawEvent = {
     color?: string;
     duration?: number;
     diff?: number;
+    /** Level of the message this event belongs to */
+    level?: MessageLevel;
+    /** What happened to the message */
+    transition?: MessageTransition;
 };
 
 /** Custom event that will be sent to the instance with the command "insert" */
@@ -141,6 +160,12 @@ export type InsertEvent = {
 export type FormattedMessage = {
     id: string;
     level: MessageLevel;
+    /** Id of the alarm class it belongs to */
+    alarmClass?: string;
+    /** Name of the class, empty for one of the twelve built-in ones */
+    alarmName?: string;
+    /** 1 to 1000, as OPC UA counts it */
+    severity: number;
     text: string;
     /** K = came, KQ = came and acknowledged, KG = gone and not acknowledged */
     state: 'K' | 'KQ' | 'KG' | 'KGQ';
@@ -155,11 +180,16 @@ export type FormattedMessage = {
     lastTs: number;
     /** When it went, as long as it is still in the list */
     goneTs?: number;
+    /** When it was acknowledged, and by whom */
+    ackTs?: number;
+    ackUser?: string;
     /** How often it came in the current standing period */
     count: number;
     priority: number;
     stateId?: string;
     val?: string | number | boolean | null;
+    /** Unit of the value, as the state settings give it */
+    unit?: string;
     icon?: string;
     color: string;
     group?: string;
@@ -177,27 +207,9 @@ export type Suppression = {
     until: number;
 };
 
-/** Settings of one state value (true/false or one enum value) as edited in the GUI */
-/** Levels of a standing message, ordered from the most to the least severe */
-export const MESSAGE_LEVELS = ['fatal', 'error', 'warning', 'info'] as const;
-
-export type MessageLevel = (typeof MESSAGE_LEVELS)[number];
-
-/** Colour of a level, the same one the adapter writes into the event */
-export const LEVEL_COLORS: Record<MessageLevel, string> = {
-    fatal: '#B3122B',
-    error: '#D9601A',
-    warning: '#E0A800',
-    info: '#4A7FA5',
-};
-
-/** Levels that have to be acknowledged unless the message says otherwise */
-export const DEFAULT_ACK: Record<MessageLevel, boolean> = {
-    fatal: true,
-    error: true,
-    warning: false,
-    info: false,
-};
+/** The levels and everything around them live in their own file, the GUI only passes them on */
+export { LEVELS as MESSAGE_LEVELS, LEVEL_COLORS, ACK_BY_DEFAULT as DEFAULT_ACK } from './levels';
+export type { AlarmClass, MessageLevel, SubLevel } from './levels';
 
 export const MESSAGE_OPERATORS = ['>', '>=', '<', '<=', '==', '!='] as const;
 
@@ -212,9 +224,34 @@ export type MessageCondition = {
     value?: string | number | boolean;
 };
 
+/**
+ * One limit of a numeric state, with the level it raises.
+ *
+ * Several of them make a ladder: `> 200` a warning, `> 300` a fatal. The most severe limit that is
+ * reached wins, so the state raises one message whose level follows the value.
+ */
+export type MessageLimit = {
+    /** Id of the alarm class this limit raises */
+    alarmClass: string;
+    /** Comparison, `>` if it is missing */
+    operator?: MessageOperator;
+    limit: number;
+    /** How far the value has to come back before this limit lets go again */
+    hysteresis?: number;
+    /** Text of this limit. Without it the text of the whole state is used. */
+    text?: string;
+    /** Whether this limit has to be acknowledged. Without it the default of its level counts. */
+    requiresAck?: boolean;
+    /** 0 to 100, sorts only inside the level */
+    priority?: number;
+};
+
 /** Settings of the standing message a state raises */
 export type MessageSettings = {
-    level?: MessageLevel;
+    /** Id of the alarm class the state raises */
+    alarmClass?: string;
+    /** The ladder of limits. If it is there, it replaces `alarmClass` and `condition`. */
+    limits?: MessageLimit[];
     /** 0 to 100, only sorts inside the level */
     priority?: number;
     requiresAck?: boolean;
@@ -235,8 +272,8 @@ export type StateValueSettings = {
     text: string;
     color: string;
     icon: string;
-    /** Level of the message this value raises */
-    level?: MessageLevel;
+    /** Id of the alarm class this value raises */
+    alarmClass?: string;
     /** Original name of the value (from `common.states`) */
     original?: string;
     disabled?: boolean;
@@ -255,7 +292,8 @@ export type StoredStateValueSettings = {
     color?: string;
     icon?: string;
     disabled?: boolean;
-    level?: MessageLevel;
+    /** Id of the alarm class this value raises */
+    alarmClass?: string;
 };
 
 /** Settings as stored in `object.common.custom[namespace]` */
@@ -268,6 +306,8 @@ export type StoredStateSettings = {
     icon?: string;
     alarmsOnly?: boolean;
     messagesInAlarmsOnly?: boolean;
+    /** Only the transitions of the standing message go into the event list, not every value change */
+    messagesOnly?: boolean;
     pushover?: string[];
     telegram?: string[];
     whatsAppCMB?: string[];
@@ -290,6 +330,8 @@ export type EditStateSettings = {
     color: string;
     alarmsOnly: boolean;
     messagesInAlarmsOnly: boolean;
+    /** Only the transitions of the standing message go into the event list, not every value change */
+    messagesOnly?: boolean;
     changesOnly?: boolean;
     defaultMessengers?: boolean;
     states?: StateValueSettings[] | null;

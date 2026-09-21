@@ -46,7 +46,7 @@ const I18n = AdapterReact.I18n as typeof I18nType;
 const Icon = AdapterReact.Icon as typeof IconType;
 
 /** One entry of `eventJSONList`, as the adapter writes it */
-interface FormattedEvent {
+export interface FormattedEvent {
     /** Timestamp in ms, unique inside the list */
     _id: number;
     /** Already formatted time, absolute or relative */
@@ -60,6 +60,15 @@ interface FormattedEvent {
     id?: string;
     /** Style of the line, carries the colour of the event */
     _style?: { color?: string };
+}
+
+/**
+ * The exact time behind a relative one like `5 minutes ago`, for the tooltip of a cell
+ *
+ * @param ts the timestamp of the row in ms
+ */
+function exactTime(ts: number | undefined): string | undefined {
+    return ts ? new Date(ts).toLocaleString() : undefined;
 }
 
 interface EventlistLastEventSettings extends CustomWidgetPlugin {
@@ -98,10 +107,7 @@ export function parseEventList(value: unknown): FormattedEvent[] {
     return [];
 }
 
-export class EventlistLastEventComponent extends WidgetGeneric<
-    EventlistLastEventState,
-    EventlistLastEventSettings
-> {
+export class EventlistLastEventComponent extends WidgetGeneric<EventlistLastEventState, EventlistLastEventSettings> {
     /** The subscribed state, so the widget can unsubscribe from exactly that one */
     private subscribedId: string | null = null;
     private readonly onListChanged = (_id: string, state: ioBroker.State | null | undefined): void => {
@@ -316,6 +322,7 @@ export class EventlistLastEventComponent extends WidgetGeneric<
                         <Typography
                             variant="caption"
                             sx={{ opacity: 0.75, whiteSpace: 'nowrap' }}
+                            title={exactTime(event._id)}
                         >
                             {event.ts}
                         </Typography>
@@ -373,7 +380,12 @@ export class EventlistLastEventComponent extends WidgetGeneric<
                                         key={event._id}
                                         style={{ color: event._style?.color }}
                                     >
-                                        <td style={{ ...cell, whiteSpace: 'nowrap' }}>{event.ts}</td>
+                                        <td
+                                            style={{ ...cell, whiteSpace: 'nowrap' }}
+                                            title={exactTime(event._id)}
+                                        >
+                                            {event.ts}
+                                        </td>
                                         <td style={cell}>{event.event}</td>
                                         {showValue ? (
                                             <td style={cell}>

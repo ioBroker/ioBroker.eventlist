@@ -1,7 +1,6 @@
-// @ts-expect-error no types
 import react from '@vitejs/plugin-react';
 import { federation } from '@module-federation/vite';
-import { moduleFederationShared } from '@iobroker/types-vis-2/modulefederation.vis.config';
+import { moduleFederationShared } from '@iobroker/types-vis-2/modulefederation.vis.config.js';
 import { readFileSync } from 'node:fs';
 
 // The shared modules come from @iobroker/types-vis-2, so they stay in sync with what the vis-2 host
@@ -15,6 +14,7 @@ const config = {
             name: 'eventlistWidgets',
             filename: 'customWidgets.js',
             exposes: {
+                './Alarms': './src/Alarms',
                 './Events': './src/Events',
                 './PdfButton': './src/PdfButton',
                 './translations': './src/translations.ts',

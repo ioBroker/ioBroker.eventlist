@@ -32,10 +32,10 @@ const TEXTS: EventTexts = {
     switchedOn: 'switched on',
     switchedOff: 'switched off',
     deviceChangedStatus: 'Device %n changed status:',
-    days: 'days',
-    hours: 'hours',
-    minutes: 'minutes',
-    seconds: 'sec',
+    days: 'd',
+    hours: 'h',
+    minutes: 'min',
+    seconds: 's',
     ms: 'ms',
 };
 
@@ -147,40 +147,43 @@ describe('events engine', () => {
 
     describe('duration2text', () => {
         it('shows milliseconds under one second', () => {
-            assert.equal(duration2text(0, false, TEXTS), '0ms');
-            assert.equal(duration2text(999, false, TEXTS), '999ms');
+            assert.equal(duration2text(0, false, TEXTS), '0 ms');
+            assert.equal(duration2text(999, false, TEXTS), '999 ms');
         });
 
         it('shows tenths of a second under ten seconds', () => {
-            assert.equal(duration2text(1500, false, TEXTS), '1.5sec');
-            assert.equal(duration2text(1500, true, TEXTS), '1,5sec');
+            assert.equal(duration2text(1500, false, TEXTS), '1.5 s');
+            assert.equal(duration2text(1500, true, TEXTS), '1,5 s');
         });
 
         it('shows full seconds under 90 seconds', () => {
-            assert.equal(duration2text(20400, false, TEXTS), '20sec');
-            assert.equal(duration2text(65000, false, TEXTS), '65sec');
+            assert.equal(duration2text(20400, false, TEXTS), '20 s');
+            assert.equal(duration2text(65000, false, TEXTS), '65 s');
         });
 
         it('shows minutes and seconds under one hour', () => {
-            assert.equal(duration2text(100000, false, TEXTS), '1minutes 40sec');
+            assert.equal(duration2text(100000, false, TEXTS), '1 min 40 s');
         });
 
         it('shows hours, minutes and seconds up to two hours', () => {
-            assert.equal(duration2text(2 * 3600000 + 3 * 60000, false, TEXTS), '2hours 3minutes 0sec');
+            assert.equal(duration2text(2 * 3600000 + 3 * 60000, false, TEXTS), '2 h 3 min 0 s');
         });
 
         it('omits the seconds if longer than two hours', () => {
-            assert.equal(duration2text(3 * 3600000 + 5 * 60000, false, TEXTS), '3hours 5minutes');
+            assert.equal(duration2text(3 * 3600000 + 5 * 60000, false, TEXTS), '3 h 5 min');
         });
 
         it('shows days and hours for long durations', () => {
-            assert.equal(duration2text(25 * 3600000, false, TEXTS), '1days 1hours 0minutes');
-            assert.equal(duration2text(4 * 24 * 3600000, false, TEXTS), '4days 0hours');
+            assert.equal(duration2text(25 * 3600000, false, TEXTS), '1 d 1 h 0 min');
+            assert.equal(duration2text(4 * 24 * 3600000, false, TEXTS), '4 d 0 h');
         });
 
-        it('can place spaces between the value and the unit', () => {
-            assert.equal(duration2text(500, false, TEXTS, true), '500 ms');
-            assert.equal(duration2text(100000, false, TEXTS, true), '1 minutes 40 sec');
+        it('always has a space in front of the unit, a unit is not a word', () => {
+            // `15Sekunde` was neither German nor readable, and no single word fits one and many
+            const glued = /[0-9][^0-9.,\s]/;
+            assert.ok(!glued.test(duration2text(15000, false, TEXTS)), duration2text(15000, false, TEXTS));
+            assert.ok(!glued.test(duration2text(1500, true, TEXTS)), duration2text(1500, true, TEXTS));
+            assert.ok(!glued.test(duration2text(25 * 3600000, false, TEXTS)), duration2text(25 * 3600000, false, TEXTS));
         });
     });
 
@@ -722,7 +725,7 @@ describe('events engine', () => {
 
         it('replaces %d with the duration', () => {
             const ctx = createContext();
-            assert.equal(format({ ts: TS, event: 'was on for %d', duration: 65000 }, ctx).event, 'was on for 65sec');
+            assert.equal(format({ ts: TS, event: 'was on for %d', duration: 65000 }, ctx).event, 'was on for 65 s');
         });
 
         it('replaces %g with the difference to the previous value', () => {
@@ -869,6 +872,31 @@ describe('events engine', () => {
             assert.equal(event.val, '21.5°C');
         });
 
+        it('keeps the unit in the value column although the text carries the value too', () => {
+            const ctx = createContext({
+                'my.0.temp': { type: 'number', name: 'Temperature', unit: '°C', event: '%n: %s%u' },
+            });
+
+            const event = format({ ts: TS, id: 'my.0.temp', val: 21.5, duration: 0 }, ctx);
+            assert.equal(event.event, 'Temperature: 21.5°C');
+            assert.equal(event.val, '21.5°C');
+        });
+
+        it('adds the unit to an event that brings its own text, like the message transitions', () => {
+            const ctx = createContext({
+                'my.0.temp': { type: 'number', name: 'Temperature', unit: '°C', event: 'default' },
+            });
+
+            const event = format({ ts: TS, id: 'my.0.temp', val: 28.5, event: 'It is warm - came', duration: 0 }, ctx);
+            assert.equal(event.event, 'It is warm - came');
+            assert.equal(event.val, '28.5°C');
+        });
+
+        it('leaves the value of a custom event without a unit alone', () => {
+            const event = format({ ts: TS, val: 5, event: 'Something happened', duration: 0 }, createContext());
+            assert.equal(event.val, '5');
+        });
+
         it('uses a comma as a decimal separator if configured', () => {
             const ctx = createContext(
                 { 'my.0.temp': { type: 'number', name: 'Temperature', unit: '°C', event: 'default' } },
@@ -1007,14 +1035,14 @@ describe('events engine', () => {
             assert.equal(event.dr, 1);
             assert.equal(ctx.relativeUsed, 1);
             // the duration is calculated from "now", so it is about 5 seconds
-            assert.match(event.duration || '', /^5(\.\d)?sec$/);
+            assert.match(event.duration || '', /^5(\.\d)? s$/);
         });
 
         it('shows the duration of a finished event', () => {
             const ctx = createContext();
             const event = format({ ts: TS, event: 'text', duration: 65000 }, ctx);
 
-            assert.equal(event.duration, '65sec');
+            assert.equal(event.duration, '65 s');
             assert.equal(event.dr, undefined);
         });
 

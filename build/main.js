@@ -9,6 +9,7 @@ const moment_1 = __importDefault(require("moment"));
 const list2pdf_1 = __importDefault(require("./lib/list2pdf"));
 const events_1 = require("./lib/events");
 const messages_1 = require("./lib/messages");
+const journal_1 = require("./lib/journal");
 require("moment/locale/de");
 require("moment/locale/fr");
 require("moment/locale/en-gb");
@@ -34,6 +35,18 @@ class EventList extends adapter_core_1.Adapter {
     #suppressions = [];
     /** When a message counts as flapping, undefined if the protection is switched off */
     #flapping;
+    /** The alarm classes of this installation: the twelve built-in ones and what the user added */
+    #alarmClasses = [];
+    /** One entry per alarm cycle, oldest first */
+    #journal = [];
+    /** How many cycles the journal keeps, 0 switches it off */
+    #journalLength = 0;
+    /** Whether a closed cycle is kept in a monthly file, so the history does not end at the ring buffer */
+    #journalArchive = false;
+    /** The closed cycles that are not written to their month file yet */
+    #archiveQueue = [];
+    /** Waits a moment, so a burst of alarms opens the month file once and not ten times */
+    #archiveTimer = null;
     /** Running delays of messages, keyed with `came:<id>` and `gone:<id>` */
     #messageTimers = new Map();
     /** The messages that are waiting for their delay, with the newest text and value */
@@ -100,6 +113,11 @@ class EventList extends adapter_core_1.Adapter {
             suppressed: this.getTranslatedWords('suppressed'),
             released: this.getTranslatedWords('released'),
         };
+        this.#alarmClasses = (0, messages_1.buildAlarmClasses)(this.config.alarmClasses);
+        this.#journalLength = parseInt(this.config.journalLength, 10);
+        this.#journalLength = isNaN(this.#journalLength) ? 1000 : this.#journalLength;
+        this.#journalArchive =
+            this.config.journalArchive === true || this.config.journalArchive === 'true';
         const flappingCount = parseInt(this.config.flappingCount, 10);
         const flappingInterval = parseFloat(this.config.flappingInterval);
         this.#flapping =
@@ -213,6 +231,11 @@ class EventList extends adapter_core_1.Adapter {
             // The standing messages are evaluated before the event handling, because a value that is
             // not logged still changes the condition of a message.
             await this.#evaluateMessages(id, state.val);
+            if (this.#states[id].messagesOnly && (0, messages_1.hasMessage)(this.#states[id])) {
+                // this state is watched for its message, not for its history: only the coming and
+                // the going of the message go into the list, not every value it takes
+                return;
+            }
             if ((0, events_1.isValueDisabled)(this.#states[id], state.val)) {
                 this.log.debug(`Value ${state.val} of ${id} was ignored, because disabled`);
                 return;
@@ -300,16 +323,23 @@ class EventList extends adapter_core_1.Adapter {
                         await this.#applyMessageChange((0, messages_1.clearMessage)(this.#messages, request.id, Date.now(), this.#flapping));
                     }
                     else {
+                        // a script may name an alarm class of this installation, then it brings
+                        // level, severity, colour and the duty to acknowledge with it
+                        const cls = (0, messages_1.resolveAlarmClass)(request.alarmClass, this.#alarmClasses);
                         await this.#applyMessageChange(this.#raise(this.#messages, {
                             id: request.id,
-                            level: request.level,
-                            severity: request.severity,
+                            alarmClass: cls?.id,
+                            alarmName: cls?.name,
+                            level: cls?.level ?? request.level,
+                            severity: cls?.severity ?? request.severity,
+                            oneShot: cls ? !cls.standing : undefined,
                             text: request.text,
                             priority: request.priority,
-                            requiresAck: request.requiresAck,
+                            requiresAck: request.requiresAck ?? cls?.requiresAck,
                             val: request.val,
-                            icon: request.icon,
-                            color: request.color,
+                            unit: request.unit,
+                            icon: request.icon || cls?.icon,
+                            color: request.color || cls?.color,
                             group: request.group,
                         }, Date.now()));
                     }
@@ -336,6 +366,30 @@ class EventList extends adapter_core_1.Adapter {
             else if (obj.command === 'messages') {
                 if (obj.callback) {
                     this.sendTo(obj.from, obj.command, (0, messages_1.formatMessageList)(this.#visibleMessages()), obj.callback);
+                }
+            }
+            else if (obj.command === 'journal') {
+                // The alarm history: what happened, cycle by cycle. Newest first.
+                if (obj.callback) {
+                    const filter = (obj.message || {});
+                    const cycles = (0, journal_1.queryJournal)(await this.#journalOf(filter), filter);
+                    this.sendTo(obj.from, obj.command, cycles, obj.callback);
+                }
+            }
+            else if (obj.command === 'journalCsv') {
+                // The same history, as a table that a spreadsheet opens
+                if (obj.callback) {
+                    const filter = (obj.message || {});
+                    let cycles = (0, journal_1.queryJournal)(await this.#journalOf(filter), filter);
+                    if (filter.ids?.length) {
+                        const wanted = new Set(filter.ids);
+                        cycles = cycles.filter(cycle => wanted.has(cycle.id));
+                    }
+                    this.sendTo(obj.from, obj.command, {
+                        csv: (0, journal_1.toCsv)(cycles, this.#csvTexts()),
+                        fileName: `alarm-journal-${new Date().toISOString().substring(0, 10)}.csv`,
+                        count: cycles.length,
+                    }, obj.callback);
                 }
             }
             else if (obj.command === 'suppress') {
@@ -365,9 +419,61 @@ class EventList extends adapter_core_1.Adapter {
         }
     }
     async #onObjectChange(id, obj) {
-        const changed = await this.#updateStateSettings(id, obj);
+        const { changed, messagesChanged } = await this.#updateStateSettings(id, obj);
+        if (messagesChanged) {
+            // the limits of a state may have moved away from the value that raised its message. Without
+            // this the message would stand until the state is written the next time - with a value read
+            // once a day that is a fault that has long been repaired and still stands in the list.
+            await this.#resyncMessages(id);
+        }
         if (changed) {
             await this.#updateMomentTimes();
+        }
+    }
+    /**
+     * Look at the messages of a state again after its settings have changed.
+     *
+     * Two things can happen: a message is configured away - then it has to go, whatever the value is -
+     * or its condition has moved, then the current value decides again.
+     *
+     * @param id the state whose settings changed
+     */
+    async #resyncMessages(id) {
+        const settings = this.#states[id];
+        // which messages of this state are still configured at all
+        const configured = new Set();
+        if (settings && (0, messages_1.hasMessage)(settings)) {
+            const perValue = (settings.states || []).filter(item => item.alarmClass);
+            if (perValue.length) {
+                perValue.forEach(item => configured.add(`${id}#${item.val}`));
+            }
+            else {
+                configured.add(id);
+            }
+        }
+        let list = this.#messages;
+        const transitions = [];
+        const now = Date.now();
+        for (const message of this.#messages.filter(item => item.stateId === id && !configured.has(item.id))) {
+            this.#cancelMessageTimer(`came:${message.id}`);
+            this.#cancelMessageTimer(`gone:${message.id}`);
+            this.#delayedRaise.delete(message.id);
+            const next = (0, messages_1.clearMessage)(list, message.id, now, this.#flapping);
+            list = next.list;
+            transitions.push(...next.transitions);
+        }
+        if (list !== this.#messages || transitions.length) {
+            await this.#applyMessageChange({ list, transitions });
+        }
+        if (!settings || !(0, messages_1.hasMessage)(settings)) {
+            return;
+        }
+        try {
+            const state = await this.getForeignStateAsync(id);
+            await this.#evaluateMessages(id, state ? state.val : null);
+        }
+        catch (e) {
+            this.log.warn(`Cannot look at the messages of ${id} again: ${e}`);
         }
     }
     #onUnload(callback) {
@@ -384,7 +490,8 @@ class EventList extends adapter_core_1.Adapter {
         }
         this.#messageTimers.clear();
         this.#delayedRaise.clear();
-        callback?.();
+        // what is waiting for the archive is written now, a restart must not lose it
+        void this.#flushArchive().finally(() => callback?.());
     }
     async #deleteEvents(filter) {
         const eventList = await this.#getRawEventList();
@@ -520,6 +627,16 @@ class EventList extends adapter_core_1.Adapter {
     async #loadMessages() {
         const state = await this.getStateAsync('messages.raw');
         this.#messages = (0, messages_1.parseMessageList)(state?.val, text => this.log.warn(text));
+        // the journal outlives a restart: the cycles that were open then are still open now
+        const journal = await this.getStateAsync('messages.journal');
+        this.#journal = (0, journal_1.limitJournal)((0, journal_1.parseJournal)(journal?.val, text => this.log.warn(text)), this.#journalLength);
+        // what is closed goes into its month file once more: it costs nothing if it is already there,
+        // and it brings the archive what a crash or a switch that was turned on later has missed
+        for (const cycle of this.#journal) {
+            if (cycle.state === 'CLOSED') {
+                this.#queueForArchive(cycle);
+            }
+        }
         // a suppression that was still running keeps running, the rest of it is over
         const suppressed = await this.getStateAsync('messages.suppressed');
         this.#suppressions = (0, messages_1.expireSuppressions)(this.#parseSuppressions(suppressed?.val), Date.now());
@@ -535,6 +652,7 @@ class EventList extends adapter_core_1.Adapter {
             }
         }
         await this.#publishMessages();
+        await this.#publishJournal();
         this.#updateHousekeeping();
     }
     /**
@@ -574,7 +692,8 @@ class EventList extends adapter_core_1.Adapter {
         }
         const { raise, clear } = (0, messages_1.evaluateStateMessages)(id, settings, val, {
             isFloatComma: this.#isFloatComma,
-            isActive: messageId => this.#isMessageActive(messageId),
+            classes: this.#alarmClasses,
+            activeSeverity: messageId => this.#activeMessageSeverity(messageId),
         });
         if (!raise.length && !clear.length) {
             return;
@@ -615,6 +734,14 @@ class EventList extends adapter_core_1.Adapter {
     /** Whether the message stands at the moment */
     #isMessageActive(id) {
         return this.#messages.some(item => item.id === id && item.active);
+    }
+    /** The severity at which the message stands at the moment, for the hysteresis of the limits */
+    #activeMessageSeverity(id) {
+        const message = this.#messages.find(item => item.id === id && item.active);
+        if (!message) {
+            return undefined;
+        }
+        return message.severity ?? messages_1.DEFAULT_SEVERITY[message.level].normal;
     }
     /**
      * Let a message come, together with the transitions it made before it last left the list. Only
@@ -778,6 +905,7 @@ class EventList extends adapter_core_1.Adapter {
         const listChanged = change.list !== this.#messages;
         this.#messages = change.list;
         const now = Date.now();
+        let journalChanged = false;
         for (const { transition, message } of change.transitions) {
             // keep the restlessness of the message, even if it just left the list
             if (message.changes?.length) {
@@ -789,6 +917,23 @@ class EventList extends adapter_core_1.Adapter {
             if ((0, messages_1.isSuppressed)(message, this.#suppressions, now)) {
                 // during a maintenance the message writes nothing, that is what it was suppressed for
                 continue;
+            }
+            if (message.oneShot && transition !== 'came') {
+                // a class that only writes an entry has no going and nothing to acknowledge: it is
+                // kept in the list only so that the same condition does not write a line every time
+                // the value is read again
+                continue;
+            }
+            // the journal keeps the whole cycle, also of what is suppressed above
+            journalChanged = true;
+            const openBefore = (0, journal_1.findOpenCycle)(this.#journal, message.id);
+            this.#journal = (0, journal_1.applyToJournal)(this.#journal, transition, message, now, change.list.some(item => item.id === message.id));
+            if (openBefore) {
+                // a cycle that has just been closed goes into the archive before the ring buffer drops it
+                const closed = this.#journal.find(item => item.id === openBefore.id);
+                if (closed?.state === 'CLOSED') {
+                    this.#queueForArchive(closed);
+                }
             }
             const { event, color } = (0, messages_1.buildTransitionEvent)(transition, message, this.#transitionTexts);
             try {
@@ -807,9 +952,152 @@ class EventList extends adapter_core_1.Adapter {
                 this.log.error(`Cannot add the event of the message ${message.id}: ${e}`);
             }
         }
+        if (journalChanged) {
+            await this.#publishJournal();
+        }
         if (listChanged || change.transitions.length) {
             await this.#publishMessages();
             this.#updateHousekeeping();
+        }
+    }
+    /**
+     * The journal a query works on: the ring buffer alone, or the archive in front of it
+     *
+     * @param filter what was asked for
+     */
+    async #journalOf(filter) {
+        if (!filter.archive || !this.#journalArchive) {
+            return this.#journal;
+        }
+        // what is still open stands in the ring buffer only, so the archive alone is never enough
+        return (0, journal_1.mergeCycles)(await this.#readArchive(filter.from, filter.to), this.#journal);
+    }
+    /** The words the CSV header uses, in the language of the installation */
+    #csvTexts() {
+        return {
+            came: this.getTranslatedWords('Came at'),
+            level: this.getTranslatedWords('Level'),
+            class: this.getTranslatedWords('Alarm class'),
+            state: this.getTranslatedWords('State'),
+            message: this.getTranslatedWords('Message'),
+            value: this.getTranslatedWords('Value'),
+            unit: this.getTranslatedWords('Unit'),
+            acknowledged: this.getTranslatedWords('Acknowledged at'),
+            user: this.getTranslatedWords('User'),
+            gone: this.getTranslatedWords('Gone at'),
+            closed: this.getTranslatedWords('Closed at'),
+            count: this.getTranslatedWords('Count'),
+            source: this.getTranslatedWords('Source'),
+            group: this.getTranslatedWords('Group'),
+        };
+    }
+    /** Read one month file. A month that was never written is simply empty. */
+    async #readArchiveFile(month) {
+        try {
+            const result = await this.readFileAsync(this.name, (0, journal_1.archiveFileName)(month));
+            const data = result && typeof result === 'object' && 'file' in result
+                ? result.file
+                : result;
+            return typeof data === 'string' ? data : Buffer.from(data).toString('utf8');
+        }
+        catch {
+            return '';
+        }
+    }
+    /**
+     * The archived cycles of a time range
+     *
+     * @param from beginning of the range, without it every month that is there is read
+     * @param to end of the range
+     */
+    async #readArchive(from, to) {
+        const wanted = from === undefined ? null : new Set((0, journal_1.monthsBetween)(from, to ?? Date.now()));
+        let files;
+        try {
+            files = await this.readDirAsync(this.name, 'journal');
+        }
+        catch {
+            // nothing has been archived yet
+            return [];
+        }
+        const lists = [];
+        for (const entry of files) {
+            const month = entry.file.replace(/\.jsonl$/, '');
+            if (entry.isDir || !/^\d{4}-\d{2}$/.test(month) || (wanted && !wanted.has(month))) {
+                continue;
+            }
+            lists.push((0, journal_1.parseJsonLines)(await this.#readArchiveFile(month)));
+        }
+        return (0, journal_1.mergeCycles)(...lists);
+    }
+    /**
+     * Remember a cycle for its month file
+     *
+     * @param cycle the cycle that has just been closed
+     */
+    #queueForArchive(cycle) {
+        if (!this.#journalArchive) {
+            return;
+        }
+        this.#archiveQueue = this.#archiveQueue.filter(item => item.id !== cycle.id);
+        this.#archiveQueue.push(cycle);
+        if (!this.#archiveTimer) {
+            this.#archiveTimer = setTimeout(() => {
+                this.#archiveTimer = null;
+                void this.#flushArchive();
+            }, 5000);
+        }
+    }
+    /** Write what is waiting into the file of its month */
+    async #flushArchive() {
+        if (this.#archiveTimer) {
+            clearTimeout(this.#archiveTimer);
+            this.#archiveTimer = null;
+        }
+        if (!this.#archiveQueue.length) {
+            return;
+        }
+        const queue = this.#archiveQueue;
+        this.#archiveQueue = [];
+        const byMonth = new Map();
+        for (const cycle of queue) {
+            const month = (0, journal_1.monthKey)(cycle.activatedAt);
+            const list = byMonth.get(month);
+            if (list) {
+                list.push(cycle);
+            }
+            else {
+                byMonth.set(month, [cycle]);
+            }
+        }
+        for (const [month, cycles] of byMonth) {
+            try {
+                // read and write the whole month: a cycle that is already in it is not written twice
+                const merged = (0, journal_1.mergeCycles)((0, journal_1.parseJsonLines)(await this.#readArchiveFile(month)), cycles);
+                await this.writeFileAsync(this.name, (0, journal_1.archiveFileName)(month), (0, journal_1.toJsonLines)(merged));
+                this.log.debug(`${cycles.length} alarm cycle(s) archived in ${(0, journal_1.archiveFileName)(month)}`);
+            }
+            catch (e) {
+                this.log.error(`Cannot write the alarm archive of ${month}: ${e}`);
+                // keep them and try again later, a full disk is not a lost cycle
+                this.#archiveQueue.push(...cycles);
+            }
+        }
+        if (this.#archiveQueue.length && !this.#archiveTimer) {
+            this.#archiveTimer = setTimeout(() => {
+                this.#archiveTimer = null;
+                void this.#flushArchive();
+            }, 60000);
+        }
+    }
+    /** Write the alarm journal, cut down to its configured length */
+    async #publishJournal() {
+        this.#journal = (0, journal_1.limitJournal)(this.#journal, this.#journalLength);
+        try {
+            await this.setStateAsync('messages.journal', JSON.stringify(this.#journal), true);
+        }
+        catch (e) {
+            this.log.error(`Cannot write the alarm journal: ${e}`);
         }
     }
     /** Write the standing messages, the counters and the horn */
@@ -821,6 +1109,7 @@ class EventList extends adapter_core_1.Adapter {
             await this.setStateAsync('messages.raw', JSON.stringify(this.#messages), true);
             await this.setStateAsync('messages.list', JSON.stringify((0, messages_1.formatMessageList)(visible)), true);
             await this.setStateAsync('messages.count', summary.total, true);
+            await this.setStateAsync('messages.active', summary.active, true);
             await this.setStateAsync('messages.unacknowledged', summary.unacknowledged, true);
             await this.setStateAsync('messages.highest', summary.highest, true);
             await this.setStateAsync('messages.horn', (0, messages_1.isHornOn)(visible, this.config.hornLevel), true);
@@ -856,13 +1145,14 @@ class EventList extends adapter_core_1.Adapter {
                 catch (e) {
                     this.log.error(`Cannot unsubscribe from ${id}: ${e}`);
                 }
-                return true;
+                return { changed: true, messagesChanged: true };
             }
-            return false;
+            return { changed: false, messagesChanged: false };
         }
         id = obj._id;
         const needSubscribe = !this.#states[id];
         let changed = false;
+        let messagesChanged = false;
         const settings = obj.common.custom[this.namespace];
         if (this.#states[id]) {
             // detect relevant changes
@@ -894,6 +1184,10 @@ class EventList extends adapter_core_1.Adapter {
                 this.#states[id].messagesInAlarmsOnly = settings.messagesInAlarmsOnly;
                 changed = true;
             }
+            if (this.#states[id].messagesOnly !== settings.messagesOnly) {
+                this.#states[id].messagesOnly = settings.messagesOnly;
+                changed = true;
+            }
             if (JSON.stringify(this.#states[id].whatsAppCMB) !== JSON.stringify(settings.whatsAppCMB)) {
                 this.#states[id].whatsAppCMB = settings.whatsAppCMB;
                 changed = true;
@@ -910,15 +1204,18 @@ class EventList extends adapter_core_1.Adapter {
             if (JSON.stringify(this.#states[id].states) !== JSON.stringify(st)) {
                 this.#states[id].states = st;
                 changed = true;
+                messagesChanged = true;
             }
             if (JSON.stringify(this.#states[id].message) !== JSON.stringify(settings.message)) {
                 this.#states[id].message = settings.message;
                 changed = true;
+                messagesChanged = true;
             }
         }
         else {
             this.#states[id] = settings;
             changed = true;
+            messagesChanged = true;
         }
         if (this.#states[id].type !== obj.common.type) {
             this.#states[id].type = obj.common.type;
@@ -991,13 +1288,14 @@ class EventList extends adapter_core_1.Adapter {
                 this.log.error(`Cannot subscribe on ${id}: ${e}`);
             }
         }
-        return changed;
+        return { changed, messagesChanged };
     }
     // Read all Object names sequentially that do not have aliases
     async #readAllNames(ids) {
         for (let i = 0; i < ids.length; i++) {
             try {
                 const obj = (await this.getForeignObjectAsync(ids[i]));
+                // at the start the messages are not read yet, they are looked at in `#loadMessages`
                 await this.#updateStateSettings(ids[i], obj);
             }
             catch (e) {
@@ -1070,6 +1368,9 @@ class EventList extends adapter_core_1.Adapter {
             this.#momentInterval = null;
         }
         await this.setStateAsync('eventJSONList', JSON.stringify(json), true);
+        // the GUI and the widgets show it next to the alarm counters, and nobody has to parse the
+        // whole list for one number
+        await this.setStateAsync('eventCount', json.length, true);
     }
 }
 exports.EventList = EventList;

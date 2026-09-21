@@ -4,12 +4,16 @@ import {
     acknowledgeMessages,
     addSuppression,
     buildTransitionEvent,
+    builtInClasses,
+    DEFAULT_SEVERITY,
     clearMessage,
     evaluateStateMessages,
     expireSuppressions,
+    findMatchingLimit,
     formatMessageList,
     formatMessageText,
     getMessageState,
+    hasMessage,
     isConditionMet,
     isHornOn,
     isPending,
@@ -29,12 +33,15 @@ import {
     type Suppression,
 } from '../src/lib/messages';
 
+/** The twelve built-in classes, the ones every installation has */
+const CLASSES = builtInClasses();
+
 const NOW = new Date(2026, 0, 15, 10, 0, 0).getTime();
 const LATER = NOW + 60000;
 const TEXTS = { came: 'came', gone: 'gone', acknowledged: 'acknowledged' };
 
 /** Let one message come, the short way into a list */
-function withMessage(id = 'my.0.state', level: 'fatal' | 'error' | 'warning' | 'info' = 'error'): PendingMessage[] {
+function withMessage(id = 'my.0.state', level: 'fatal' | 'alarm' | 'warning' | 'info' = 'alarm'): PendingMessage[] {
     return raiseMessage([], { id, level, text: 'Fault' }, NOW).list;
 }
 
@@ -42,20 +49,20 @@ describe('message engine', () => {
     describe('levels', () => {
         it('demands an acknowledgement for the two severe levels', () => {
             assert.equal(requiresAckByDefault('fatal'), true);
-            assert.equal(requiresAckByDefault('error'), true);
+            assert.equal(requiresAckByDefault('alarm'), true);
             assert.equal(requiresAckByDefault('warning'), false);
             assert.equal(requiresAckByDefault('info'), false);
         });
 
         it('maps the severity of a foreign system onto the bands', () => {
-            assert.equal(severityToLevel(1000), 'fatal');
-            assert.equal(severityToLevel(801), 'fatal');
-            assert.equal(severityToLevel(800), 'error');
-            assert.equal(severityToLevel(501), 'error');
-            assert.equal(severityToLevel(500), 'warning');
-            assert.equal(severityToLevel(201), 'warning');
-            assert.equal(severityToLevel(200), 'info');
-            assert.equal(severityToLevel(1), 'info');
+            assert.deepEqual(severityToLevel(1000), { level: 'fatal', subLevel: 'high' });
+            assert.deepEqual(severityToLevel(801), { level: 'fatal', subLevel: 'low' });
+            assert.deepEqual(severityToLevel(800), { level: 'alarm', subLevel: 'high' });
+            assert.deepEqual(severityToLevel(601), { level: 'alarm', subLevel: 'low' });
+            assert.deepEqual(severityToLevel(600), { level: 'warning', subLevel: 'high' });
+            assert.deepEqual(severityToLevel(401), { level: 'warning', subLevel: 'low' });
+            assert.deepEqual(severityToLevel(400), { level: 'info', subLevel: 'high' });
+            assert.deepEqual(severityToLevel(1), { level: 'info', subLevel: 'low' });
         });
     });
 
@@ -98,9 +105,9 @@ describe('message engine', () => {
                 val: 92,
                 unit: '%',
                 name: 'Boiler',
-                level: 'error',
+                level: 'alarm',
             });
-            assert.equal(text, 'Boiler: 92% is critical (error)');
+            assert.equal(text, 'Boiler: 92% is critical (alarm)');
         });
 
         it('uses the comma as a decimal separator if the system does', () => {
@@ -154,11 +161,11 @@ describe('message engine', () => {
 
     describe('coming and going', () => {
         it('reports the coming once', () => {
-            const first = raiseMessage([], { id: 'x', level: 'error', text: 'Fault' }, NOW);
+            const first = raiseMessage([], { id: 'x', level: 'alarm', text: 'Fault' }, NOW);
             assert.equal(first.transitions.length, 1);
             assert.equal(first.transitions[0].transition, 'came');
 
-            const again = raiseMessage(first.list, { id: 'x', level: 'error', text: 'Fault' }, LATER);
+            const again = raiseMessage(first.list, { id: 'x', level: 'alarm', text: 'Fault' }, LATER);
             assert.equal(again.transitions.length, 0, 'a standing message does not come a second time');
             assert.equal(again.list.length, 1);
             assert.equal(again.list[0].count, 1);
@@ -166,7 +173,7 @@ describe('message engine', () => {
 
         it('counts a repetition instead of adding a second entry', () => {
             const gone = clearMessage(withMessage(), 'my.0.state', LATER).list;
-            const again = raiseMessage(gone, { id: 'my.0.state', level: 'error', text: 'Fault' }, LATER + 1000);
+            const again = raiseMessage(gone, { id: 'my.0.state', level: 'alarm', text: 'Fault' }, LATER + 1000);
 
             assert.equal(again.list.length, 1);
             assert.equal(again.list[0].count, 2);
@@ -177,8 +184,8 @@ describe('message engine', () => {
         });
 
         it('follows the value while the message stands', () => {
-            const first = raiseMessage([], { id: 'x', level: 'error', text: '80', val: 80 }, NOW);
-            const second = raiseMessage(first.list, { id: 'x', level: 'error', text: '95', val: 95 }, LATER);
+            const first = raiseMessage([], { id: 'x', level: 'alarm', text: '80', val: 80 }, NOW);
+            const second = raiseMessage(first.list, { id: 'x', level: 'alarm', text: '95', val: 95 }, LATER);
             assert.equal(second.list[0].val, 95);
             assert.equal(second.list[0].text, '95');
             assert.equal(second.transitions.length, 0);
@@ -199,8 +206,8 @@ describe('message engine', () => {
 
     describe('acknowledgement', () => {
         it('acknowledges only the named message', () => {
-            let list = raiseMessage([], { id: 'a', level: 'error', text: 'A' }, NOW).list;
-            list = raiseMessage(list, { id: 'b', level: 'error', text: 'B' }, NOW).list;
+            let list = raiseMessage([], { id: 'a', level: 'alarm', text: 'A' }, NOW).list;
+            list = raiseMessage(list, { id: 'b', level: 'alarm', text: 'B' }, NOW).list;
 
             const change = acknowledgeMessages(list, 'a', LATER);
             assert.equal(change.transitions.length, 1);
@@ -209,7 +216,7 @@ describe('message engine', () => {
         });
 
         it('acknowledges everything with a star', () => {
-            let list = raiseMessage([], { id: 'a', level: 'error', text: 'A' }, NOW).list;
+            let list = raiseMessage([], { id: 'a', level: 'alarm', text: 'A' }, NOW).list;
             list = raiseMessage(list, { id: 'b', level: 'fatal', text: 'B' }, NOW).list;
 
             const change = acknowledgeMessages(list, '*', LATER);
@@ -228,14 +235,14 @@ describe('message engine', () => {
             name: 'Boiler',
             unit: '°C',
             message: {
-                level: 'error' as const,
+                alarmClass: 'alarm.normal',
                 text: '%n too hot: %s%u',
                 condition: { operator: '>' as const, limit: 90 },
             },
         };
 
         it('raises the message when the limit is passed', () => {
-            const result = evaluateStateMessages('my.0.temp', settings, 95, {});
+            const result = evaluateStateMessages('my.0.temp', settings, 95, { classes: CLASSES });
             assert.equal(result.raise.length, 1);
             assert.equal(result.raise[0].id, 'my.0.temp');
             assert.equal(result.raise[0].text, 'Boiler too hot: 95°C');
@@ -243,13 +250,13 @@ describe('message engine', () => {
         });
 
         it('clears it below the limit', () => {
-            const result = evaluateStateMessages('my.0.temp', settings, 20, {});
+            const result = evaluateStateMessages('my.0.temp', settings, 20, { classes: CLASSES });
             assert.deepEqual(result.raise, []);
             assert.deepEqual(result.clear, ['my.0.temp']);
         });
 
         it('does nothing without a level', () => {
-            const result = evaluateStateMessages('my.0.temp', { message: { text: 'x' } }, 95, {});
+            const result = evaluateStateMessages('my.0.temp', { message: { text: 'x' } }, 95, { classes: CLASSES });
             assert.deepEqual(result.raise, []);
             assert.deepEqual(result.clear, []);
         });
@@ -259,19 +266,19 @@ describe('message engine', () => {
                 name: 'Door',
                 states: [
                     { val: '0', text: 'closed', color: '', icon: '' },
-                    { val: '1', text: 'open', color: '', icon: '', level: 'warning' as const },
-                    { val: '2', text: 'broken', color: '', icon: '', level: 'fatal' as const },
+                    { val: '1', text: 'open', color: '', icon: '', alarmClass: 'warning.normal' },
+                    { val: '2', text: 'broken', color: '', icon: '', alarmClass: 'fatal.normal' },
                 ],
             };
 
-            const broken = evaluateStateMessages('my.0.door', enumState, 2, {});
+            const broken = evaluateStateMessages('my.0.door', enumState, 2, { classes: CLASSES });
             assert.equal(broken.raise.length, 1);
             assert.equal(broken.raise[0].id, 'my.0.door#2');
             assert.equal(broken.raise[0].level, 'fatal');
             assert.equal(broken.raise[0].text, 'broken');
             assert.deepEqual(broken.clear, ['my.0.door#1'], 'the other message of this state goes');
 
-            const closed = evaluateStateMessages('my.0.door', enumState, 0, {});
+            const closed = evaluateStateMessages('my.0.door', enumState, 0, { classes: CLASSES });
             assert.deepEqual(closed.raise, []);
             assert.deepEqual(closed.clear, ['my.0.door#1', 'my.0.door#2']);
         });
@@ -279,10 +286,10 @@ describe('message engine', () => {
         it('raises a boolean state by its value', () => {
             const boolState = {
                 name: 'Water sensor',
-                message: { level: 'fatal' as const, text: '%n reports water', condition: { value: true } },
+                message: { alarmClass: 'fatal.normal', text: '%n reports water', condition: { value: true } },
             };
-            assert.equal(evaluateStateMessages('my.0.water', boolState, true, {}).raise.length, 1);
-            assert.deepEqual(evaluateStateMessages('my.0.water', boolState, false, {}).clear, ['my.0.water']);
+            assert.equal(evaluateStateMessages('my.0.water', boolState, true, { classes: CLASSES }).raise.length, 1);
+            assert.deepEqual(evaluateStateMessages('my.0.water', boolState, false, { classes: CLASSES }).clear, ['my.0.water']);
         });
     });
 
@@ -305,9 +312,32 @@ describe('message engine', () => {
         it('counts per level and names the highest', () => {
             const summary = summarizeMessages(build());
             assert.equal(summary.total, 4);
-            assert.equal(summary.unacknowledged, 4);
+            assert.equal(summary.active, 4, 'the condition of all of them is true');
+            assert.equal(summary.unacknowledged, 1, 'only the fatal one has to be acknowledged');
             assert.equal(summary.highest, 'fatal');
-            assert.deepEqual(summary.byLevel, { fatal: 1, error: 0, warning: 1, info: 2 });
+            assert.deepEqual(summary.byLevel, { fatal: 1, alarm: 0, warning: 1, info: 2 });
+        });
+
+        it('separates what stands from what is active', () => {
+            // the fatal one goes, but nobody has acknowledged it: it stands and is not active
+            const gone = clearMessage(build(), 'f', LATER, undefined).list;
+            const summary = summarizeMessages(gone);
+
+            assert.equal(summary.total, 4, 'it is still in the list');
+            assert.equal(summary.active, 3);
+            assert.equal(summary.unacknowledged, 1);
+        });
+
+        it('puts the unacknowledged alarm of a level in front of the acknowledged one', () => {
+            let list = raiseMessage([], { id: 'a', level: 'fatal', text: 'A' }, NOW).list;
+            list = raiseMessage(list, { id: 'b', level: 'fatal', text: 'B' }, NOW + 1).list;
+            list = acknowledgeMessages(list, 'b', NOW + 2, 'ben').list;
+
+            assert.deepEqual(
+                sortMessages(list).map(m => m.id),
+                ['a', 'b'],
+                'the newer one was acknowledged, so the older unacknowledged one leads',
+            );
         });
 
         it('reports nothing standing on an empty list', () => {
@@ -382,7 +412,7 @@ describe('message engine', () => {
         const settings = {
             name: 'Boiler',
             message: {
-                level: 'error' as const,
+                alarmClass: 'alarm.normal',
                 text: '%n too hot',
                 condition: { operator: '>' as const, limit: 90 },
                 hysteresis: 5,
@@ -393,7 +423,7 @@ describe('message engine', () => {
         };
 
         it('hands the delays and the group to the message', () => {
-            const { raise } = evaluateStateMessages('my.0.temp', settings, 95, {});
+            const { raise } = evaluateStateMessages('my.0.temp', settings, 95, { classes: CLASSES });
 
             assert.equal(raise.length, 1);
             assert.equal(raise[0].delay, 3000);
@@ -402,11 +432,11 @@ describe('message engine', () => {
         });
 
         it('asks whether the message stands before it lets it go', () => {
-            const standing = evaluateStateMessages('my.0.temp', settings, 88, { isActive: () => true });
+            const standing = evaluateStateMessages('my.0.temp', settings, 88, { classes: CLASSES, activeSeverity: () => DEFAULT_SEVERITY.alarm.normal });
             assert.deepEqual(standing.clear, [], 'inside the hysteresis it keeps standing');
             assert.equal(standing.raise.length, 1);
 
-            const gone = evaluateStateMessages('my.0.temp', settings, 88, { isActive: () => false });
+            const gone = evaluateStateMessages('my.0.temp', settings, 88, { classes: CLASSES, activeSeverity: () => undefined });
             assert.deepEqual(gone.clear, ['my.0.temp'], 'it does not come back at 88');
             assert.equal(gone.raise.length, 0);
         });
@@ -418,11 +448,11 @@ describe('message engine', () => {
                     ...settings,
                     states: [
                         { val: 'false', text: 'off' },
-                        { val: 'true', text: 'fault', level: 'error' as const },
+                        { val: 'true', text: 'fault', alarmClass: 'alarm.normal' },
                     ],
                 },
                 true,
-                {},
+                { classes: CLASSES },
             );
 
             assert.equal(raise.length, 1);
@@ -432,11 +462,134 @@ describe('message engine', () => {
         });
     });
 
+    describe('several limits of one state', () => {
+        const LIMITS = [
+            { alarmClass: 'warning.normal', operator: '>' as const, limit: 200 },
+            { alarmClass: 'fatal.normal', operator: '>' as const, limit: 300, hysteresis: 20 },
+            { alarmClass: 'alarm.normal', operator: '<' as const, limit: 50 },
+        ];
+        const settings = { name: 'Pressure', message: { text: '%n: %s', limits: LIMITS } };
+
+        it('takes the most severe limit the value has reached', () => {
+            assert.equal(findMatchingLimit(LIMITS, 150, CLASSES), null, 'below every limit');
+            assert.equal(findMatchingLimit(LIMITS, 250, CLASSES)?.alarmClass, 'warning.normal');
+            assert.equal(findMatchingLimit(LIMITS, 350, CLASSES)?.alarmClass, 'fatal.normal', 'not the warning it also passed');
+            assert.equal(findMatchingLimit(LIMITS, 40, CLASSES)?.alarmClass, 'alarm.normal', 'the low limit counts too');
+        });
+
+        it('holds a band until the value has come back through the hysteresis', () => {
+            // it stands at fatal, so the fatal limit lets go only below 280
+            assert.equal(findMatchingLimit(LIMITS, 290, CLASSES, DEFAULT_SEVERITY.fatal.normal)?.alarmClass, 'fatal.normal');
+            assert.equal(findMatchingLimit(LIMITS, 270, CLASSES, DEFAULT_SEVERITY.fatal.normal)?.alarmClass, 'warning.normal', 'one band down');
+            // without a standing message the plain limit counts
+            assert.equal(findMatchingLimit(LIMITS, 290, CLASSES)?.alarmClass, 'warning.normal');
+        });
+
+        it('raises one message whose level follows the value', () => {
+            const climbing = evaluateStateMessages('my.0.p', settings, 250, { classes: CLASSES, activeSeverity: () => undefined });
+            assert.equal(climbing.raise.length, 1, 'one message, not one per limit');
+            assert.equal(climbing.raise[0].id, 'my.0.p');
+            assert.equal(climbing.raise[0].level, 'warning');
+            assert.equal(climbing.raise[0].text, 'Pressure: 250');
+
+            const higher = evaluateStateMessages('my.0.p', settings, 350, {
+                classes: CLASSES,
+                activeSeverity: () => DEFAULT_SEVERITY.warning.normal,
+            });
+            assert.equal(higher.raise[0].level, 'fatal');
+
+            const gone = evaluateStateMessages('my.0.p', settings, 100, {
+                classes: CLASSES,
+                activeSeverity: () => DEFAULT_SEVERITY.warning.normal,
+            });
+            assert.deepEqual(gone.clear, ['my.0.p']);
+            assert.equal(gone.raise.length, 0);
+        });
+
+        it('takes the acknowledgement duty and the priority of the limit', () => {
+            const ladder = {
+                name: 'Memory',
+                message: {
+                    text: '%n: %s',
+                    priority: 50,
+                    limits: [
+                        { alarmClass: 'warning.normal', limit: 150 },
+                        { alarmClass: 'fatal.normal', limit: 200, requiresAck: true, priority: 90 },
+                    ],
+                },
+            };
+
+            const warning = evaluateStateMessages('my.0.mem', ladder, 160, { classes: CLASSES });
+            assert.equal(warning.raise[0].requiresAck, false, 'nothing said, so the class decides');
+            assert.equal(warning.raise[0].priority, 50, 'the priority of the state');
+
+            const fatal = evaluateStateMessages('my.0.mem', ladder, 250, { classes: CLASSES });
+            assert.equal(fatal.raise[0].requiresAck, true);
+            assert.equal(fatal.raise[0].priority, 90, 'the priority of the limit wins');
+
+            // and the message really takes them over
+            const list = raiseMessage([], warning.raise[0], NOW).list;
+            assert.equal(list[0].requiresAck, false, 'a warning is not acknowledged by default');
+            assert.equal(list[0].priority, 50);
+
+            const escalated = raiseMessage(list, fatal.raise[0], LATER).list;
+            assert.equal(escalated[0].requiresAck, true);
+            assert.equal(escalated[0].priority, 90, 'the priority follows the step');
+        });
+
+        it('uses the text of the limit if it brings one', () => {
+            const withText = {
+                name: 'Pressure',
+                message: {
+                    text: '%n: %s',
+                    limits: [{ alarmClass: 'fatal.normal', limit: 300, text: '%n dangerously high: %s' }],
+                },
+            };
+            const { raise } = evaluateStateMessages('my.0.p', withText, 350, { classes: CLASSES });
+            assert.equal(raise[0].text, 'Pressure dangerously high: 350');
+        });
+
+        it('counts a changed level as a new occurrence and asks for the acknowledgement again', () => {
+            const warning = raiseMessage([], { id: 'p', level: 'warning', text: 'W' }, NOW).list;
+            assert.equal(warning[0].requiresAck, false, 'a warning is not acknowledged');
+
+            const acked = acknowledgeMessages(warning, '*', NOW, 'ben').list;
+            const escalated = raiseMessage(acked, { id: 'p', level: 'fatal', text: 'F' }, LATER);
+
+            assert.deepEqual(
+                escalated.transitions.map(item => item.transition),
+                ['came'],
+                'the escalation is written',
+            );
+            assert.equal(escalated.list[0].level, 'fatal');
+            assert.equal(escalated.list[0].count, 2);
+            assert.equal(escalated.list[0].acked, false, 'the old acknowledgement does not cover the new level');
+            assert.equal(escalated.list[0].requiresAck, true, 'now it has to be acknowledged');
+        });
+
+        it('lets a message that falls back stop asking for an acknowledgement', () => {
+            const fatal = raiseMessage([], { id: 'p', level: 'fatal', text: 'F' }, NOW).list;
+            const back = raiseMessage(fatal, { id: 'p', level: 'warning', text: 'W' }, LATER).list;
+
+            assert.equal(back[0].level, 'warning');
+            assert.equal(back[0].requiresAck, false);
+            assert.equal(isPending(back[0]), true, 'it still stands, it is still active');
+        });
+
+        it('says nothing while the level stays the same', () => {
+            const first = raiseMessage([], { id: 'p', level: 'warning', text: 'W' }, NOW).list;
+            const again = raiseMessage(first, { id: 'p', level: 'warning', text: 'W' }, LATER);
+
+            assert.deepEqual(again.transitions, []);
+            assert.equal(again.list[0].count, 1);
+        });
+    });
+
     describe('groups', () => {
         const build = (): PendingMessage[] => {
-            let list = raiseMessage([], { id: 'a', level: 'error', text: 'A', group: 'boiler' }, NOW).list;
-            list = raiseMessage(list, { id: 'b', level: 'error', text: 'B', group: 'boiler' }, NOW + 1000).list;
-            return raiseMessage(list, { id: 'c', level: 'error', text: 'C' }, NOW + 2000).list;
+            let list = raiseMessage([], { id: 'a', level: 'alarm', text: 'A', group: 'boiler' }, NOW).list;
+            list = raiseMessage(list, { id: 'b', level: 'alarm', text: 'B', group: 'boiler' }, NOW + 1000).list;
+            return raiseMessage(list, { id: 'c', level: 'alarm', text: 'C' }, NOW + 2000).list;
         };
 
         it('acknowledges a whole group at once', () => {
@@ -470,7 +623,7 @@ describe('message engine', () => {
          */
         function flap(
             cycles: number,
-            level: 'error' | 'warning' = 'error',
+            level: 'alarm' | 'warning' = 'alarm',
         ): { list: PendingMessage[]; events: string[] } {
             let list: PendingMessage[] = [];
             const events: string[] = [];
@@ -534,7 +687,7 @@ describe('message engine', () => {
         });
 
         it('does nothing without a configuration', () => {
-            const came = raiseMessage([], { id: 'x', level: 'error', text: 'X' }, NOW);
+            const came = raiseMessage([], { id: 'x', level: 'alarm', text: 'X' }, NOW);
             assert.equal(came.list[0].changes, undefined);
             assert.equal(came.list[0].flapping, undefined);
         });
@@ -590,8 +743,8 @@ describe('message engine', () => {
 
         it('takes the message, its group and everything out of the list', () => {
             const list = [
-                ...raiseMessage([], { id: 'a', level: 'error', text: 'A', group: 'boiler' }, NOW).list,
-                ...raiseMessage([], { id: 'b', level: 'error', text: 'B' }, NOW).list,
+                ...raiseMessage([], { id: 'a', level: 'alarm', text: 'A', group: 'boiler' }, NOW).list,
+                ...raiseMessage([], { id: 'b', level: 'alarm', text: 'B' }, NOW).list,
             ];
 
             const byId: Suppression[] = [{ target: 'a', until: LATER }];
@@ -612,18 +765,18 @@ describe('message engine', () => {
     describe('horn', () => {
         const list = (): PendingMessage[] => {
             const warning = raiseMessage([], { id: 'w', level: 'warning', text: 'W' }, NOW).list;
-            return raiseMessage(warning, { id: 'e', level: 'error', text: 'E' }, NOW).list;
+            return raiseMessage(warning, { id: 'e', level: 'alarm', text: 'E' }, NOW).list;
         };
 
         it('sounds for an unacknowledged message of that level or a more severe one', () => {
-            assert.equal(isHornOn(list(), 'error'), true);
+            assert.equal(isHornOn(list(), 'alarm'), true);
             assert.equal(isHornOn(list(), 'fatal'), false, 'nothing fatal stands');
-            assert.equal(isHornOn(list(), 'warning'), true, 'the error is more severe');
+            assert.equal(isHornOn(list(), 'warning'), true, 'the alarm is more severe');
         });
 
         it('goes quiet with the acknowledgement', () => {
             const acked = acknowledgeMessages(list(), '*', LATER, 'ben').list;
-            assert.equal(isHornOn(acked, 'error'), false);
+            assert.equal(isHornOn(acked, 'alarm'), false);
         });
 
         it('stays quiet for a message nobody has to acknowledge and when it is switched off', () => {
@@ -631,6 +784,22 @@ describe('message engine', () => {
             assert.equal(isHornOn(warning, 'warning'), false, 'a warning is not acknowledged');
             assert.equal(isHornOn(list(), ''), false);
             assert.equal(isHornOn(list(), undefined), false);
+        });
+    });
+
+    describe('hasMessage', () => {
+        it('finds the class at the state, at a ladder and at a value', () => {
+            assert.equal(hasMessage({ message: { alarmClass: 'alarm.normal' } }), true);
+            assert.equal(hasMessage({ message: { limits: [{ alarmClass: 'warning.normal', limit: 200 }] } }), true);
+            assert.equal(hasMessage({ states: [{ alarmClass: 'info.normal' }] }), true);
+        });
+
+        it('says no without a class, so such a state keeps writing its values', () => {
+            assert.equal(hasMessage({}), false);
+            assert.equal(hasMessage({ message: {} }), false);
+            assert.equal(hasMessage({ message: { text: 'Fault', limits: [] } }), false);
+            assert.equal(hasMessage({ states: [{}, {}] }), false);
+            assert.equal(hasMessage({ states: null }), false);
         });
     });
 });
