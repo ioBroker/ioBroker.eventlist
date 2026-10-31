@@ -492,6 +492,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 
 ## Changelog
 ### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22.19.0 now
 * (@GermanBluefox) Added devices widget
 * (@GermanBluefox) Added messages with levels, coming and going, and acknowledgement
 * (@GermanBluefox) Added delays, hysteresis, groups, flapping protection, suppression and horn for the messages
