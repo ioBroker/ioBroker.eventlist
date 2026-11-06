@@ -1,0 +1,77 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-eventlist-pdf",
+    "icon": "../eventlist.png",
+    "module": "eventlist-pdf.js",
+    "name": {
+        "en": "PDF",
+        "de": "PDF",
+        "ru": "PDF",
+        "pt": "PDF",
+        "nl": "PDF",
+        "fr": "PDF",
+        "it": "PDF",
+        "es": "PDF",
+        "pl": "PDF",
+        "uk": "PDF",
+        "zh-cn": "PDF"
+    },
+    "description": {
+        "en": "Creates the event list as a PDF file and opens it",
+        "de": "Erzeugt die Ereignisliste als PDF-Datei und öffnet sie",
+        "ru": "Создаёт список событий в виде PDF-файла и открывает его",
+        "pt": "Cria a lista de eventos como ficheiro PDF e abre-o",
+        "nl": "Maakt de gebeurtenissenlijst als PDF-bestand en opent het",
+        "fr": "Crée la liste des événements sous forme de fichier PDF et l'ouvre",
+        "it": "Crea l'elenco eventi come file PDF e lo apre",
+        "es": "Crea la lista de eventos como archivo PDF y lo abre",
+        "pl": "Tworzy listę zdarzeń jako plik PDF i otwiera go",
+        "uk": "Створює список подій у вигляді PDF-файлу та відкриває його",
+        "zh-cn": "将事件列表生成为 PDF 文件并打开"
+    },
+    "size": {
+        "width": 200,
+        "height": 100
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "eventlist",
+                "default": "eventlist.0",
+                "label": {
+                    "en": "Instance",
+                    "de": "Instanz",
+                    "ru": "Инстанция",
+                    "pt": "Instância",
+                    "nl": "Instantie",
+                    "fr": "Instance",
+                    "it": "Istanza",
+                    "es": "Instancia",
+                    "pl": "Instancja",
+                    "uk": "Екземпляр",
+                    "zh-cn": "实例"
+                }
+            },
+            "text": {
+                "type": "text",
+                "default": "PDF",
+                "label": {
+                    "en": "Text",
+                    "de": "Text",
+                    "ru": "Текст",
+                    "pt": "Texto",
+                    "nl": "Tekst",
+                    "fr": "Texte",
+                    "it": "Testo",
+                    "es": "Texto",
+                    "pl": "Tekst",
+                    "uk": "Текст",
+                    "zh-cn": "文本"
+                }
+            }
+        }
+    }
+}

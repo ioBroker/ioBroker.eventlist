@@ -218,7 +218,19 @@
             "components": [
                 {
                     "name": "EventlistLastEventComponent",
-                    "label": "Last event",
+                    "label": {
+                        "en": "Last event",
+                        "de": "Letztes Ereignis",
+                        "ru": "Последнее событие",
+                        "pt": "Último evento",
+                        "nl": "Laatste gebeurtenis",
+                        "fr": "Dernier événement",
+                        "it": "Ultimo evento",
+                        "es": "Último evento",
+                        "pl": "Ostatnie zdarzenie",
+                        "uk": "Остання подія",
+                        "zh-cn": "最后事件"
+                    },
                     "description": {
                         "en": "Shows the last event, the click opens the whole list",
                         "de": "Zeigt das letzte Ereignis, der Klick öffnet die ganze Liste",
@@ -236,7 +248,19 @@
                 },
                 {
                     "name": "EventlistAlarmsComponent",
-                    "label": "Alarms",
+                    "label": {
+                        "en": "Alarms",
+                        "de": "Alarme",
+                        "ru": "Аварии",
+                        "pt": "Alarmes",
+                        "nl": "Alarmen",
+                        "fr": "Alarmes",
+                        "it": "Allarmi",
+                        "es": "Alarmas",
+                        "pl": "Alarmy",
+                        "uk": "Аварії",
+                        "zh-cn": "报警"
+                    },
                     "description": {
                         "en": "Shows the worst standing alarm, the click opens the alarms and the events",
                         "de": "Zeigt den schlimmsten anstehenden Alarm, der Klick öffnet Alarme und Ereignisse",
@@ -254,6 +278,12 @@
                 }
             ]
         },
+        "webComponents": [
+            "webcomponents/eventlist-events.json",
+            "webcomponents/eventlist-last-event.json",
+            "webcomponents/eventlist-alarms.json",
+            "webcomponents/eventlist-pdf.json"
+        ],
         "supportedMessages": {}
     },
     "native": {

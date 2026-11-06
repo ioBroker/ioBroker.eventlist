@@ -1,0 +1,2 @@
+# the output of vite; tasks.js copies it into admin/webcomponents/
+build/

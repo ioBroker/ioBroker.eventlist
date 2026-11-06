@@ -5,6 +5,7 @@
 'use strict';
 
 const fs = require('node:fs');
+const { exec } = require('node:child_process');
 const { deleteFoldersRecursive, npmInstall, buildReact, copyFiles, patchHtmlFile } = require('@iobroker/build-tools');
 const pkg = require('./package.json');
 const ioPackage = require('./io-package.json');
@@ -18,6 +19,8 @@ const SRC_WIDGETS = `${__dirname}/src-widgets`;
 const SRC_DEVICES = `${__dirname}/src-devices`;
 /** Directory of the JSON config custom component sources */
 const SRC_CUSTOM = `${__dirname}/src-custom`;
+/** Directory of the web component sources (`common.webComponents`) */
+const SRC_WC = `${__dirname}/src-webcomponents`;
 
 //TASKS
 function clean() {
@@ -106,6 +109,33 @@ function copyCustom() {
     copyFiles(['src-admin/src/i18n/*.json'], 'admin/custom/i18n');
 }
 
+/**
+ * Copies the built web components into `admin/webcomponents/`: the modules and their manifests (`<name>.json`,
+ * written and checked by the build).
+ *
+ * `clean()` keeps only `blockly.js` and `jsonCustom.json` in `admin/`, so this has to run after the admin build,
+ * not before it.
+ */
+function copyWebComponents() {
+    copyFiles(['src-webcomponents/build/*.js', 'src-webcomponents/build/*.json'], 'admin/webcomponents/');
+}
+
+/**
+ * Runs `npm run build` in a folder, with its output
+ *
+ * @param {string} dir the folder
+ * @returns {Promise<void>}
+ */
+function npmRunBuild(dir) {
+    return new Promise((resolve, reject) => {
+        const child = exec('npm run build', { cwd: dir }, error =>
+            error ? reject(new Error(`Cannot build ${dir}: ${error.message}`)) : resolve(),
+        );
+        child.stdout?.pipe(process.stdout);
+        child.stderr?.pipe(process.stderr);
+    });
+}
+
 async function installIfNeeded(dir) {
     if (!fs.existsSync(`${dir}/node_modules`)) {
         await npmInstall(dir);
@@ -140,12 +170,25 @@ async function buildCustom() {
     copyCustom();
 }
 
+/**
+ * The web components: one `vite build` per component, so that each one is ONE module file - see
+ * `src-webcomponents/vite.config.ts`. `npm run build` there runs all of them.
+ */
+async function buildWebComponents() {
+    deleteFoldersRecursive(`${__dirname}/admin/webcomponents`);
+    deleteFoldersRecursive(`${SRC_WC}/build`);
+    await installIfNeeded(SRC_WC);
+    await npmRunBuild(SRC_WC);
+    copyWebComponents();
+}
+
 async function main() {
     const onlyAdmin = process.argv.includes('--admin');
     const onlyWidgets = process.argv.includes('--widgets');
     const onlyDevices = process.argv.includes('--devices');
     const onlyCustom = process.argv.includes('--custom');
-    const all = !onlyAdmin && !onlyWidgets && !onlyDevices && !onlyCustom;
+    const onlyWebComponents = process.argv.includes('--wc');
+    const all = !onlyAdmin && !onlyWidgets && !onlyDevices && !onlyCustom && !onlyWebComponents;
 
     copyI18n();
 
@@ -160,6 +203,9 @@ async function main() {
     }
     if (all || onlyCustom) {
         await buildCustom();
+    }
+    if (all || onlyWebComponents) {
+        await buildWebComponents();
     }
 }
 

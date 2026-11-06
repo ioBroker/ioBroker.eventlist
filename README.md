@@ -393,6 +393,24 @@ Two widgets for the device manager:
   `Show` = `Journal` the dialog shows the alarm cycles, reaches into the archived months if it is
   allowed to, and exports what it shows as a CSV file.
 
+### Web components
+The same views as web components (`common.webComponents`, built from `src-webcomponents/` into
+`admin/webcomponents/`), so that Aura, vis-2, the device manager, admin and every other host can show them. Each
+one has its manifest next to its module; its name is the name of its native widget, so vis-2 and the device manager
+offer their own widget where they have one.
+
+- `<iob-eventlist-events>` (**Events**): the event list as a table. Settings: the instance, the number of rows, the
+  state IDs to filter by, which columns are shown and their titles.
+- `<iob-eventlist-last-event>` (**Last event**): the newest event of the list or of the filter, a click shows the
+  list in a dialog. Settings: the instance, a name, the filter, the rows of the dialog, value and duration.
+- `<iob-eventlist-alarms>` (**Alarms**): in a small box the tile with the worst standing alarm, from 360 × 240 px on
+  the counters, the standing alarms, the events and the alarm journal (the setting `Layout` can fix one of the two).
+  A click on the tile shows the lists in a dialog. The settings are those of the vis-2 widget `Alarms and events`:
+  what is shown, the level filter, the ID filter, the columns, the journal with its archived months and the CSV
+  export, and whether a click on an alarm acknowledges it.
+- `<iob-eventlist-pdf>` (**PDF**): a button that creates the PDF of the list (`triggerPDF`) and opens it, from
+  `/eventlist/report.pdf` (web) or `/files/eventlist/report.pdf` (admin). Settings: the instance and the text.
+
 ### PDF generation
 There is a possibility to generate a PDF document with all events.
 
@@ -527,6 +545,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 * (@GermanBluefox) Translated the whole GUI into all eleven languages, the words of the messages included
 * (@GermanBluefox) Fixed: a click into the first rows of the event list opened the dialog of a toolbar button instead of selecting the row. The text of the button had a line box of 336 pixels and hung invisibly over the table
 * (@GermanBluefox) Fixed the alarm mode, that was switched off by every restart
+* (@GermanBluefox) Added web components for Aura and other hosts (`common.webComponents`): `<iob-eventlist-events>`, `<iob-eventlist-last-event>`, `<iob-eventlist-alarms>` and `<iob-eventlist-pdf>`
 
 ### 3.0.0 (2026-09-04)
 * (@GermanBluefox) Updated packages

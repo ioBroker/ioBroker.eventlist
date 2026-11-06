@@ -63,18 +63,21 @@
         "check": "tsc --noEmit",
         "lint": "eslint -c eslint.config.mjs && cd src-admin && npm run lint",
         "prepublishOnly": "tsc -p tsconfig.build.json && node tasks.js && npm run build:blockly",
-        "build": "tsc -p tsconfig.build.json && node tasks.js && npm run build:blockly && npm run build:widgets && npm run build:admin && npm run build:devices && npm run build:custom",
+        "build": "tsc -p tsconfig.build.json && node tasks.js && npm run build:blockly && npm run build:widgets && npm run build:admin && npm run build:devices && npm run build:custom && npm run build:wc",
         "release": "release-script",
         "release-patch": "release-script patch --yes",
         "release-minor": "release-script minor --yes",
         "release-major": "release-script major --yes",
-        "update-packages": "npx -y npm-check-updates --upgrade && cd src-admin && npx -y npm-check-updates --upgrade && cd ../src-blockly && npx -y npm-check-updates --upgrade && cd ../src-widgets && npx -y npm-check-updates --upgrade && cd ../src-devices && npx -y npm-check-updates --upgrade && cd ../src-custom && npx -y npm-check-updates --upgrade",
-        "npm": "npm i && cd src-admin && npm i && cd ../src-blockly && npm i && cd ../src-widgets && npm i && cd ../src-devices && npm i && cd ../src-custom && npm i",
+        "update-packages": "npx -y npm-check-updates --upgrade && cd src-admin && npx -y npm-check-updates --upgrade && cd ../src-blockly && npx -y npm-check-updates --upgrade && cd ../src-widgets && npx -y npm-check-updates --upgrade && cd ../src-devices && npx -y npm-check-updates --upgrade && cd ../src-custom && npx -y npm-check-updates --upgrade && cd ../src-webcomponents && npx -y npm-check-updates --upgrade",
+        "npm": "npm i && cd src-admin && npm i && cd ../src-blockly && npm i && cd ../src-widgets && npm i && cd ../src-devices && npm i && cd ../src-custom && npm i && cd ../src-webcomponents && npm i",
         "build:blockly": "tsc -p src-blockly/tsconfig.json && node src-blockly/build.mjs",
         "build:widgets": "node tasks.js --widgets",
         "build:admin": "node tasks.js --admin",
         "build:devices": "node tasks.js --devices",
-        "build:custom": "node tasks.js --custom"
+        "build:custom": "node tasks.js --custom",
+        "build:wc": "node tasks.js --wc",
+        "lint:wc": "cd src-webcomponents && npm run lint",
+        "check:wc": "cd src-webcomponents && npm run check-ts"
     },
     "bugs": {
         "url": "https://github.com/bluefox/ioBroker.eventlist/issues"

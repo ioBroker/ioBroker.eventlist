@@ -19,6 +19,7 @@ export default [
             'src-widgets/**/*',
             'src-devices/**/*',
             'src-custom/**/*',
+            'src-webcomponents/**/*',
             'www/**/*',
             'widgets/**/*',
             'node_modules/**/*',

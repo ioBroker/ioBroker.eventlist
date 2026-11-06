@@ -1,0 +1,306 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-eventlist-events",
+    "icon": "../eventlist.png",
+    "module": "eventlist-events.js",
+    "name": {
+        "en": "Events",
+        "de": "Ereignisse",
+        "ru": "События",
+        "pt": "Eventos",
+        "nl": "Gebeurtenissen",
+        "fr": "Événements",
+        "it": "Eventi",
+        "es": "Eventos",
+        "pl": "Zdarzenia",
+        "uk": "Події",
+        "zh-cn": "事件"
+    },
+    "description": {
+        "en": "The event list as a table",
+        "de": "Die Ereignisliste als Tabelle",
+        "ru": "Список событий в виде таблицы",
+        "pt": "A lista de eventos como tabela",
+        "nl": "De gebeurtenissenlijst als tabel",
+        "fr": "La liste des événements sous forme de tableau",
+        "it": "L'elenco eventi come tabella",
+        "es": "La lista de eventos como tabla",
+        "pl": "Lista zdarzeń w postaci tabeli",
+        "uk": "Список подій у вигляді таблиці",
+        "zh-cn": "以表格形式显示事件列表"
+    },
+    "size": {
+        "width": 400,
+        "height": 300
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "eventlist",
+                "default": "eventlist.0",
+                "label": {
+                    "en": "Instance",
+                    "de": "Instanz",
+                    "ru": "Инстанция",
+                    "pt": "Instância",
+                    "nl": "Instantie",
+                    "fr": "Instance",
+                    "it": "Istanza",
+                    "es": "Instancia",
+                    "pl": "Instancja",
+                    "uk": "Екземпляр",
+                    "zh-cn": "实例"
+                }
+            },
+            "maxRows": {
+                "type": "number",
+                "min": 0,
+                "default": 0,
+                "label": {
+                    "en": "Max. rows",
+                    "de": "Max. Zeilen",
+                    "ru": "Макс. строк",
+                    "pt": "Máx. linhas",
+                    "nl": "Max. rijen",
+                    "fr": "Nb max. de lignes",
+                    "it": "Righe max.",
+                    "es": "Máx. filas",
+                    "pl": "Maks. wierszy",
+                    "uk": "Макс. рядків",
+                    "zh-cn": "最大行数"
+                }
+            },
+            "filterById": {
+                "type": "text",
+                "label": {
+                    "en": "Filter IDs",
+                    "de": "Filter-IDs",
+                    "ru": "Идентификаторы фильтра",
+                    "pt": "IDs de filtro",
+                    "nl": "Filter-ID's",
+                    "fr": "ID de filtre",
+                    "it": "ID filtro",
+                    "es": "ID de filtro",
+                    "pl": "Filtruj identyfikatory",
+                    "uk": "Фільтр ID",
+                    "zh-cn": "过滤器ID"
+                },
+                "help": {
+                    "en": "You can provide multiple IDs divided by comma.",
+                    "de": "Sie können mehrere durch Komma getrennte IDs angeben.",
+                    "ru": "Вы можете указать несколько идентификаторов, разделенных запятыми.",
+                    "pt": "Você pode fornecer vários IDs divididos por vírgula.",
+                    "nl": "U kunt meerdere ID's opgeven, gescheiden door komma's.",
+                    "fr": "Vous pouvez fournir plusieurs ID séparés par une virgule.",
+                    "it": "Puoi fornire più ID divisi da virgole.",
+                    "es": "Puede proporcionar varios ID divididos por comas.",
+                    "pl": "Możesz podać wiele identyfikatorów rozdzielonych przecinkami.",
+                    "uk": "Можна вказати кілька ID через кому.",
+                    "zh-cn": "您可以提供多个ID，以逗号分隔。"
+                }
+            },
+            "columnsHeader": {
+                "type": "header",
+                "text": {
+                    "en": "Columns",
+                    "de": "Spalten",
+                    "ru": "Столбцы",
+                    "pt": "Colunas",
+                    "nl": "Kolommen",
+                    "fr": "Colonnes",
+                    "it": "Colonne",
+                    "es": "Columnas",
+                    "pl": "Kolumny",
+                    "uk": "Стовпці",
+                    "zh-cn": "列"
+                }
+            },
+            "showTime": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Time",
+                    "de": "Zeit",
+                    "ru": "Время",
+                    "pt": "Tempo",
+                    "nl": "Tijd",
+                    "fr": "Temps",
+                    "it": "Tempo",
+                    "es": "Hora",
+                    "pl": "Czas",
+                    "uk": "Час",
+                    "zh-cn": "时间"
+                }
+            },
+            "showValue": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Value",
+                    "de": "Wert",
+                    "ru": "Значение",
+                    "pt": "Valor",
+                    "nl": "Waarde",
+                    "fr": "Valeur",
+                    "it": "Valore",
+                    "es": "Valor",
+                    "pl": "Wartość",
+                    "uk": "Значення",
+                    "zh-cn": "值"
+                }
+            },
+            "showDuration": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Duration",
+                    "de": "Dauer",
+                    "ru": "Продолжительность",
+                    "pt": "Duração",
+                    "nl": "Looptijd",
+                    "fr": "Durée",
+                    "it": "Durata",
+                    "es": "Duración",
+                    "pl": "Trwanie",
+                    "uk": "Тривалість",
+                    "zh-cn": "持续时间"
+                }
+            },
+            "titlesHeader": {
+                "type": "header",
+                "text": {
+                    "en": "Header texts",
+                    "de": "Kopfzeilentexte",
+                    "ru": "Тексты заголовков",
+                    "pt": "Textos de cabeçalho",
+                    "nl": "Kopteksten",
+                    "fr": "Textes d'en-tête",
+                    "it": "Testi di intestazione",
+                    "es": "Textos de encabezado",
+                    "pl": "Teksty nagłówka",
+                    "uk": "Тексти заголовків",
+                    "zh-cn": "标题文字"
+                }
+            },
+            "textTime": {
+                "type": "text",
+                "label": {
+                    "en": "Time",
+                    "de": "Zeit",
+                    "ru": "Время",
+                    "pt": "Tempo",
+                    "nl": "Tijd",
+                    "fr": "Temps",
+                    "it": "Tempo",
+                    "es": "Hora",
+                    "pl": "Czas",
+                    "uk": "Час",
+                    "zh-cn": "时间"
+                },
+                "help": {
+                    "en": "Empty: the default title",
+                    "de": "Leer: der Standardtitel",
+                    "ru": "Пусто: стандартный заголовок",
+                    "pt": "Vazio: o título predefinido",
+                    "nl": "Leeg: de standaardtitel",
+                    "fr": "Vide : le titre par défaut",
+                    "it": "Vuoto: il titolo predefinito",
+                    "es": "Vacío: el título predeterminado",
+                    "pl": "Puste: domyślny tytuł",
+                    "uk": "Порожньо: стандартний заголовок",
+                    "zh-cn": "为空时使用默认标题"
+                }
+            },
+            "textEvent": {
+                "type": "text",
+                "label": {
+                    "en": "Event",
+                    "de": "Ereignis",
+                    "ru": "Мероприятие",
+                    "pt": "Evento",
+                    "nl": "Evenement",
+                    "fr": "un événement",
+                    "it": "Evento",
+                    "es": "Evento",
+                    "pl": "Zdarzenie",
+                    "uk": "Подія",
+                    "zh-cn": "事件"
+                },
+                "help": {
+                    "en": "Empty: the default title",
+                    "de": "Leer: der Standardtitel",
+                    "ru": "Пусто: стандартный заголовок",
+                    "pt": "Vazio: o título predefinido",
+                    "nl": "Leeg: de standaardtitel",
+                    "fr": "Vide : le titre par défaut",
+                    "it": "Vuoto: il titolo predefinito",
+                    "es": "Vacío: el título predeterminado",
+                    "pl": "Puste: domyślny tytuł",
+                    "uk": "Порожньо: стандартний заголовок",
+                    "zh-cn": "为空时使用默认标题"
+                }
+            },
+            "textValue": {
+                "type": "text",
+                "label": {
+                    "en": "Value",
+                    "de": "Wert",
+                    "ru": "Значение",
+                    "pt": "Valor",
+                    "nl": "Waarde",
+                    "fr": "Valeur",
+                    "it": "Valore",
+                    "es": "Valor",
+                    "pl": "Wartość",
+                    "uk": "Значення",
+                    "zh-cn": "值"
+                },
+                "help": {
+                    "en": "Empty: the default title",
+                    "de": "Leer: der Standardtitel",
+                    "ru": "Пусто: стандартный заголовок",
+                    "pt": "Vazio: o título predefinido",
+                    "nl": "Leeg: de standaardtitel",
+                    "fr": "Vide : le titre par défaut",
+                    "it": "Vuoto: il titolo predefinito",
+                    "es": "Vacío: el título predeterminado",
+                    "pl": "Puste: domyślny tytuł",
+                    "uk": "Порожньо: стандартний заголовок",
+                    "zh-cn": "为空时使用默认标题"
+                }
+            },
+            "textDuration": {
+                "type": "text",
+                "label": {
+                    "en": "Duration",
+                    "de": "Dauer",
+                    "ru": "Продолжительность",
+                    "pt": "Duração",
+                    "nl": "Looptijd",
+                    "fr": "Durée",
+                    "it": "Durata",
+                    "es": "Duración",
+                    "pl": "Trwanie",
+                    "uk": "Тривалість",
+                    "zh-cn": "持续时间"
+                },
+                "help": {
+                    "en": "Empty: the default title",
+                    "de": "Leer: der Standardtitel",
+                    "ru": "Пусто: стандартный заголовок",
+                    "pt": "Vazio: o título predefinido",
+                    "nl": "Leeg: de standaardtitel",
+                    "fr": "Vide : le titre par défaut",
+                    "it": "Vuoto: il titolo predefinito",
+                    "es": "Vacío: el título predeterminado",
+                    "pl": "Puste: domyślny tytuł",
+                    "uk": "Порожньо: стандартний заголовок",
+                    "zh-cn": "为空时使用默认标题"
+                }
+            }
+        }
+    }
+}

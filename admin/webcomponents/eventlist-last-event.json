@@ -1,0 +1,157 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-eventlist-last-event",
+    "icon": "../eventlist.png",
+    "module": "eventlist-last-event.js",
+    "name": {
+        "en": "Last event",
+        "de": "Letztes Ereignis",
+        "ru": "Последнее событие",
+        "pt": "Último evento",
+        "nl": "Laatste gebeurtenis",
+        "fr": "Dernier événement",
+        "it": "Ultimo evento",
+        "es": "Último evento",
+        "pl": "Ostatnie zdarzenie",
+        "uk": "Остання подія",
+        "zh-cn": "最后事件"
+    },
+    "description": {
+        "en": "The newest event, a click shows the whole list",
+        "de": "Das neueste Ereignis, ein Klick zeigt die ganze Liste",
+        "ru": "Последнее событие, по клику открывается весь список",
+        "pt": "O evento mais recente, um clique mostra a lista completa",
+        "nl": "De nieuwste gebeurtenis, een klik toont de hele lijst",
+        "fr": "Le dernier événement, un clic affiche la liste entière",
+        "it": "L'evento più recente, un clic mostra l'intero elenco",
+        "es": "El evento más reciente, un clic muestra la lista completa",
+        "pl": "Najnowsze zdarzenie, kliknięcie pokazuje całą listę",
+        "uk": "Найновіша подія, клік показує весь список",
+        "zh-cn": "最新事件，点击显示整个列表"
+    },
+    "size": {
+        "width": 300,
+        "height": 150
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "eventlist",
+                "default": "eventlist.0",
+                "label": {
+                    "en": "Instance",
+                    "de": "Instanz",
+                    "ru": "Инстанция",
+                    "pt": "Instância",
+                    "nl": "Instantie",
+                    "fr": "Instance",
+                    "it": "Istanza",
+                    "es": "Instancia",
+                    "pl": "Instancja",
+                    "uk": "Екземпляр",
+                    "zh-cn": "实例"
+                }
+            },
+            "name": {
+                "type": "text",
+                "label": {
+                    "en": "Name",
+                    "de": "Name",
+                    "ru": "Имя",
+                    "pt": "Nome",
+                    "nl": "Naam",
+                    "fr": "Nom",
+                    "it": "Nome",
+                    "es": "Nombre",
+                    "pl": "Nazwa",
+                    "uk": "Назва",
+                    "zh-cn": "名称"
+                }
+            },
+            "filter": {
+                "type": "text",
+                "label": {
+                    "en": "Filter IDs",
+                    "de": "Filter-IDs",
+                    "ru": "Идентификаторы фильтра",
+                    "pt": "IDs de filtro",
+                    "nl": "Filter-ID's",
+                    "fr": "ID de filtre",
+                    "it": "ID filtro",
+                    "es": "ID de filtro",
+                    "pl": "Filtruj identyfikatory",
+                    "uk": "Фільтр ID",
+                    "zh-cn": "过滤器ID"
+                },
+                "help": {
+                    "en": "You can provide multiple IDs divided by comma.",
+                    "de": "Sie können mehrere durch Komma getrennte IDs angeben.",
+                    "ru": "Вы можете указать несколько идентификаторов, разделенных запятыми.",
+                    "pt": "Você pode fornecer vários IDs divididos por vírgula.",
+                    "nl": "U kunt meerdere ID's opgeven, gescheiden door komma's.",
+                    "fr": "Vous pouvez fournir plusieurs ID séparés par une virgule.",
+                    "it": "Puoi fornire più ID divisi da virgole.",
+                    "es": "Puede proporcionar varios ID divididos por comas.",
+                    "pl": "Możesz podać wiele identyfikatorów rozdzielonych przecinkami.",
+                    "uk": "Можна вказати кілька ID через кому.",
+                    "zh-cn": "您可以提供多个ID，以逗号分隔。"
+                }
+            },
+            "maxRows": {
+                "type": "number",
+                "min": 0,
+                "default": 30,
+                "label": {
+                    "en": "Max. rows",
+                    "de": "Max. Zeilen",
+                    "ru": "Макс. строк",
+                    "pt": "Máx. linhas",
+                    "nl": "Max. rijen",
+                    "fr": "Nb max. de lignes",
+                    "it": "Righe max.",
+                    "es": "Máx. filas",
+                    "pl": "Maks. wierszy",
+                    "uk": "Макс. рядків",
+                    "zh-cn": "最大行数"
+                }
+            },
+            "showValue": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Value",
+                    "de": "Wert",
+                    "ru": "Значение",
+                    "pt": "Valor",
+                    "nl": "Waarde",
+                    "fr": "Valeur",
+                    "it": "Valore",
+                    "es": "Valor",
+                    "pl": "Wartość",
+                    "uk": "Значення",
+                    "zh-cn": "值"
+                }
+            },
+            "showDuration": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Duration",
+                    "de": "Dauer",
+                    "ru": "Продолжительность",
+                    "pt": "Duração",
+                    "nl": "Looptijd",
+                    "fr": "Durée",
+                    "it": "Durata",
+                    "es": "Duración",
+                    "pl": "Trwanie",
+                    "uk": "Тривалість",
+                    "zh-cn": "持续时间"
+                }
+            }
+        }
+    }
+}

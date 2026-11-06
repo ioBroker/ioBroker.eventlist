@@ -1,0 +1,794 @@
+{
+    "$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
+    "manifestVersion": 1,
+    "tag": "iob-eventlist-alarms",
+    "icon": "../eventlist.png",
+    "module": "eventlist-alarms.js",
+    "name": {
+        "en": "Alarms",
+        "de": "Alarme",
+        "ru": "Аварии",
+        "pt": "Alarmes",
+        "nl": "Alarmen",
+        "fr": "Alarmes",
+        "it": "Allarmi",
+        "es": "Alarmas",
+        "pl": "Alarmy",
+        "uk": "Аварії",
+        "zh-cn": "报警"
+    },
+    "description": {
+        "en": "The standing alarms, the events and the alarm journal - in a small box the worst alarm, a click shows the lists",
+        "de": "Die anstehenden Alarme, die Ereignisse und das Alarmjournal - in einem kleinen Feld der schlimmste Alarm, ein Klick zeigt die Listen",
+        "ru": "Активные аварии, события и журнал аварий - в маленьком поле самая тяжёлая авария, по клику открываются списки",
+        "pt": "Os alarmes ativos, os eventos e o diário de alarmes - numa caixa pequena o alarme mais grave, um clique mostra as listas",
+        "nl": "De openstaande alarmen, de gebeurtenissen en het alarmjournaal - in een klein vak het ernstigste alarm, een klik toont de lijsten",
+        "fr": "Les alarmes présentes, les événements et le journal des alarmes - dans une petite case l'alarme la plus grave, un clic affiche les listes",
+        "it": "Gli allarmi attivi, gli eventi e il giornale degli allarmi - in un riquadro piccolo l'allarme più grave, un clic mostra gli elenchi",
+        "es": "Las alarmas activas, los eventos y el diario de alarmas - en un recuadro pequeño la alarma más grave, un clic muestra las listas",
+        "pl": "Aktywne alarmy, zdarzenia i dziennik alarmów - w małym polu najpoważniejszy alarm, kliknięcie pokazuje listy",
+        "uk": "Активні аварії, події та журнал аварій - у малому полі найважча аварія, клік показує списки",
+        "zh-cn": "存在的报警、事件和报警日志 - 小区域中显示最严重的报警，点击显示列表"
+    },
+    "size": {
+        "width": 400,
+        "height": 300
+    },
+    "settings": {
+        "type": "panel",
+        "items": {
+            "instance": {
+                "type": "instance",
+                "adapter": "eventlist",
+                "default": "eventlist.0",
+                "label": {
+                    "en": "Instance",
+                    "de": "Instanz",
+                    "ru": "Инстанция",
+                    "pt": "Instância",
+                    "nl": "Instantie",
+                    "fr": "Instance",
+                    "it": "Istanza",
+                    "es": "Instancia",
+                    "pl": "Instancja",
+                    "uk": "Екземпляр",
+                    "zh-cn": "实例"
+                }
+            },
+            "layout": {
+                "type": "select",
+                "default": "auto",
+                "label": {
+                    "en": "Layout",
+                    "de": "Darstellung",
+                    "ru": "Вид",
+                    "pt": "Disposição",
+                    "nl": "Weergave",
+                    "fr": "Disposition",
+                    "it": "Disposizione",
+                    "es": "Disposición",
+                    "pl": "Układ",
+                    "uk": "Вигляд",
+                    "zh-cn": "布局"
+                },
+                "help": {
+                    "en": "Automatic: the tile in a small box, the lists from 360 × 240 px on",
+                    "de": "Automatisch: die Kachel in einem kleinen Feld, die Listen ab 360 × 240 px",
+                    "ru": "Автоматически: плитка в маленьком поле, списки начиная с 360 × 240 px",
+                    "pt": "Automático: o mosaico numa caixa pequena, as listas a partir de 360 × 240 px",
+                    "nl": "Automatisch: de tegel in een klein vak, de lijsten vanaf 360 × 240 px",
+                    "fr": "Automatique : la tuile dans une petite case, les listes à partir de 360 × 240 px",
+                    "it": "Automatico: il riquadro in uno spazio piccolo, gli elenchi da 360 × 240 px",
+                    "es": "Automático: el mosaico en un recuadro pequeño, las listas a partir de 360 × 240 px",
+                    "pl": "Automatycznie: kafelek w małym polu, listy od 360 × 240 px",
+                    "uk": "Автоматично: плитка в малому полі, списки від 360 × 240 px",
+                    "zh-cn": "自动：小区域显示磁贴，360 × 240 px 起显示列表"
+                },
+                "options": [
+                    {
+                        "value": "auto",
+                        "label": {
+                            "en": "Automatic, by the size",
+                            "de": "Automatisch, nach der Größe",
+                            "ru": "Автоматически, по размеру",
+                            "pt": "Automático, pelo tamanho",
+                            "nl": "Automatisch, naar grootte",
+                            "fr": "Automatique, selon la taille",
+                            "it": "Automatico, in base alla dimensione",
+                            "es": "Automático, según el tamaño",
+                            "pl": "Automatycznie, według rozmiaru",
+                            "uk": "Автоматично, за розміром",
+                            "zh-cn": "自动（按尺寸）"
+                        }
+                    },
+                    {
+                        "value": "tile",
+                        "label": {
+                            "en": "Tile with the worst alarm",
+                            "de": "Kachel mit dem schlimmsten Alarm",
+                            "ru": "Плитка с самой тяжёлой аварией",
+                            "pt": "Mosaico com o alarme mais grave",
+                            "nl": "Tegel met het ernstigste alarm",
+                            "fr": "Tuile avec l'alarme la plus grave",
+                            "it": "Riquadro con l'allarme più grave",
+                            "es": "Mosaico con la alarma más grave",
+                            "pl": "Kafelek z najpoważniejszym alarmem",
+                            "uk": "Плитка з найважчою аварією",
+                            "zh-cn": "显示最严重报警的磁贴"
+                        }
+                    },
+                    {
+                        "value": "panel",
+                        "label": {
+                            "en": "The lists",
+                            "de": "Die Listen",
+                            "ru": "Списки",
+                            "pt": "As listas",
+                            "nl": "De lijsten",
+                            "fr": "Les listes",
+                            "it": "Gli elenchi",
+                            "es": "Las listas",
+                            "pl": "Listy",
+                            "uk": "Списки",
+                            "zh-cn": "列表"
+                        }
+                    }
+                ]
+            },
+            "name": {
+                "type": "text",
+                "label": {
+                    "en": "Name",
+                    "de": "Name",
+                    "ru": "Имя",
+                    "pt": "Nome",
+                    "nl": "Naam",
+                    "fr": "Nom",
+                    "it": "Nome",
+                    "es": "Nombre",
+                    "pl": "Nazwa",
+                    "uk": "Назва",
+                    "zh-cn": "名称"
+                }
+            },
+            "show": {
+                "type": "select",
+                "default": "both",
+                "label": {
+                    "en": "Show",
+                    "de": "Anzeigen",
+                    "ru": "Показывать",
+                    "pt": "Mostrar",
+                    "nl": "Tonen",
+                    "fr": "Afficher",
+                    "it": "Mostra",
+                    "es": "Mostrar",
+                    "pl": "Pokaż",
+                    "uk": "Показувати",
+                    "zh-cn": "显示"
+                },
+                "options": [
+                    {
+                        "value": "both",
+                        "label": {
+                            "en": "Alarms and events",
+                            "de": "Alarme und Ereignisse",
+                            "ru": "Аварии и события",
+                            "pt": "Alarmes e eventos",
+                            "nl": "Alarmen en gebeurtenissen",
+                            "fr": "Alarmes et événements",
+                            "it": "Allarmi ed eventi",
+                            "es": "Alarmas y eventos",
+                            "pl": "Alarmy i zdarzenia",
+                            "uk": "Аварії та події",
+                            "zh-cn": "报警与事件"
+                        }
+                    },
+                    {
+                        "value": "messages",
+                        "label": {
+                            "en": "Only the alarms",
+                            "de": "Nur die Alarme",
+                            "ru": "Только аварии",
+                            "pt": "Apenas os alarmes",
+                            "nl": "Alleen de alarmen",
+                            "fr": "Seulement les alarmes",
+                            "it": "Solo gli allarmi",
+                            "es": "Solo las alarmas",
+                            "pl": "Tylko alarmy",
+                            "uk": "Лише аварії",
+                            "zh-cn": "仅报警"
+                        }
+                    },
+                    {
+                        "value": "events",
+                        "label": {
+                            "en": "Only the events",
+                            "de": "Nur die Ereignisse",
+                            "ru": "Только события",
+                            "pt": "Apenas os eventos",
+                            "nl": "Alleen de gebeurtenissen",
+                            "fr": "Seulement les événements",
+                            "it": "Solo gli eventi",
+                            "es": "Solo los eventos",
+                            "pl": "Tylko zdarzenia",
+                            "uk": "Лише події",
+                            "zh-cn": "仅事件"
+                        }
+                    },
+                    {
+                        "value": "journal",
+                        "label": {
+                            "en": "The alarm journal",
+                            "de": "Das Alarmjournal",
+                            "ru": "Журнал аварий",
+                            "pt": "O diário de alarmes",
+                            "nl": "Het alarmjournaal",
+                            "fr": "Le journal des alarmes",
+                            "it": "Il giornale degli allarmi",
+                            "es": "El diario de alarmas",
+                            "pl": "Dziennik alarmów",
+                            "uk": "Журнал аварій",
+                            "zh-cn": "报警日志"
+                        }
+                    }
+                ]
+            },
+            "messagesRatio": {
+                "type": "slider",
+                "min": 10,
+                "max": 90,
+                "step": 5,
+                "default": 50,
+                "label": {
+                    "en": "Height of the alarms in %",
+                    "de": "Höhe der Alarme in %",
+                    "ru": "Высота аварий в %",
+                    "pt": "Altura dos alarmes em %",
+                    "nl": "Hoogte van de alarmen in %",
+                    "fr": "Hauteur des alarmes en %",
+                    "it": "Altezza degli allarmi in %",
+                    "es": "Altura de las alarmas en %",
+                    "pl": "Wysokość alarmów w %",
+                    "uk": "Висота аварій у %",
+                    "zh-cn": "报警区域高度（%）"
+                },
+                "hidden": "data.show !== \"both\""
+            },
+            "showTitles": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show the titles",
+                    "de": "Überschriften anzeigen",
+                    "ru": "Показывать заголовки",
+                    "pt": "Mostrar os títulos",
+                    "nl": "Titels tonen",
+                    "fr": "Afficher les titres",
+                    "it": "Mostra i titoli",
+                    "es": "Mostrar los títulos",
+                    "pl": "Pokaż nagłówki",
+                    "uk": "Показувати заголовки",
+                    "zh-cn": "显示标题"
+                }
+            },
+            "showSummary": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Show the counters",
+                    "de": "Zähler anzeigen",
+                    "ru": "Показывать счётчики",
+                    "pt": "Mostrar os contadores",
+                    "nl": "Tellers tonen",
+                    "fr": "Afficher les compteurs",
+                    "it": "Mostra i contatori",
+                    "es": "Mostrar los contadores",
+                    "pl": "Pokaż liczniki",
+                    "uk": "Показувати лічильники",
+                    "zh-cn": "显示计数"
+                },
+                "help": {
+                    "en": "Unacknowledged, active and the number of events above the lists",
+                    "de": "Unquittiert, aktiv und die Zahl der Ereignisse über den Listen",
+                    "ru": "Неквитированные, активные и число событий над списками",
+                    "pt": "Por confirmar, ativos e o número de eventos acima das listas",
+                    "nl": "Onbevestigd, actief en het aantal gebeurtenissen boven de lijsten",
+                    "fr": "Non acquittées, actives et le nombre d'événements au-dessus des listes",
+                    "it": "Non confermati, attivi e il numero di eventi sopra gli elenchi",
+                    "es": "Sin confirmar, activas y el número de eventos encima de las listas",
+                    "pl": "Niepotwierdzone, aktywne i liczba zdarzeń nad listami",
+                    "uk": "Неквитовані, активні та кількість подій над списками",
+                    "zh-cn": "列表上方显示未确认、活动中和事件数量"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "allowAck": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Acknowledge with a click",
+                    "de": "Mit einem Klick quittieren",
+                    "ru": "Квитировать по клику",
+                    "pt": "Confirmar com um clique",
+                    "nl": "Met een klik bevestigen",
+                    "fr": "Acquitter d'un clic",
+                    "it": "Conferma con un clic",
+                    "es": "Confirmar con un clic",
+                    "pl": "Potwierdzaj kliknięciem",
+                    "uk": "Квитувати кліком",
+                    "zh-cn": "点击即可确认"
+                },
+                "help": {
+                    "en": "A click on a message acknowledges it, if it can be acknowledged",
+                    "de": "Ein Klick auf eine Meldung quittiert sie, wenn sie quittierbar ist",
+                    "ru": "Клик по сообщению квитирует его, если это возможно",
+                    "pt": "Um clique numa mensagem confirma-a, se puder ser confirmada",
+                    "nl": "Een klik op een melding bevestigt haar, als dat kan",
+                    "fr": "Un clic sur un message l'acquitte, s'il peut l'être",
+                    "it": "Un clic su un messaggio lo conferma, se è confermabile",
+                    "es": "Un clic en un mensaje lo confirma, si se puede confirmar",
+                    "pl": "Kliknięcie komunikatu potwierdza go, jeśli można go potwierdzić",
+                    "uk": "Клік на повідомленні квитує його, якщо це можливо",
+                    "zh-cn": "点击可确认的消息即可确认它"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "messagesHeader": {
+                "type": "header",
+                "text": {
+                    "en": "Alarms",
+                    "de": "Alarme",
+                    "ru": "Аварии",
+                    "pt": "Alarmes",
+                    "nl": "Alarmen",
+                    "fr": "Alarmes",
+                    "it": "Allarmi",
+                    "es": "Alarmas",
+                    "pl": "Alarmy",
+                    "uk": "Аварії",
+                    "zh-cn": "报警"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "maxMessages": {
+                "type": "number",
+                "min": 0,
+                "default": 0,
+                "label": {
+                    "en": "Max. rows",
+                    "de": "Max. Zeilen",
+                    "ru": "Макс. строк",
+                    "pt": "Máx. linhas",
+                    "nl": "Max. rijen",
+                    "fr": "Nb max. de lignes",
+                    "it": "Righe max.",
+                    "es": "Máx. filas",
+                    "pl": "Maks. wierszy",
+                    "uk": "Макс. рядків",
+                    "zh-cn": "最大行数"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "filterLevel": {
+                "type": "select",
+                "default": "",
+                "label": {
+                    "en": "Only this level",
+                    "de": "Nur diese Stufe",
+                    "ru": "Только этот уровень",
+                    "pt": "Apenas este nível",
+                    "nl": "Alleen dit niveau",
+                    "fr": "Seulement ce niveau",
+                    "it": "Solo questo livello",
+                    "es": "Solo este nivel",
+                    "pl": "Tylko ten poziom",
+                    "uk": "Лише цей рівень",
+                    "zh-cn": "仅该级别"
+                },
+                "options": [
+                    {
+                        "value": "",
+                        "label": {
+                            "en": "all levels",
+                            "de": "alle Stufen",
+                            "ru": "все уровни",
+                            "pt": "todos os níveis",
+                            "nl": "alle niveaus",
+                            "fr": "tous les niveaux",
+                            "it": "tutti i livelli",
+                            "es": "todos los niveles",
+                            "pl": "wszystkie poziomy",
+                            "uk": "усі рівні",
+                            "zh-cn": "所有级别"
+                        }
+                    },
+                    {
+                        "value": "fatal",
+                        "label": {
+                            "en": "Fatal",
+                            "de": "Fatal",
+                            "ru": "Фатально",
+                            "pt": "Fatal",
+                            "nl": "Fataal",
+                            "fr": "Fatal",
+                            "it": "Fatale",
+                            "es": "Fatal",
+                            "pl": "Krytyczny",
+                            "uk": "Фатально",
+                            "zh-cn": "致命"
+                        }
+                    },
+                    {
+                        "value": "alarm",
+                        "label": {
+                            "en": "Alarm",
+                            "de": "Alarm",
+                            "ru": "Авария",
+                            "pt": "Alarme",
+                            "nl": "Alarm",
+                            "fr": "Alarme",
+                            "it": "Allarme",
+                            "es": "Alarma",
+                            "pl": "Alarm",
+                            "uk": "Аварія",
+                            "zh-cn": "报警"
+                        }
+                    },
+                    {
+                        "value": "warning",
+                        "label": {
+                            "en": "Warning",
+                            "de": "Warnung",
+                            "ru": "Предупреждение",
+                            "pt": "Aviso",
+                            "nl": "Waarschuwing",
+                            "fr": "Avertissement",
+                            "it": "Avviso",
+                            "es": "Advertencia",
+                            "pl": "Ostrzeżenie",
+                            "uk": "Попередження",
+                            "zh-cn": "警告"
+                        }
+                    },
+                    {
+                        "value": "info",
+                        "label": {
+                            "en": "Info",
+                            "de": "Info",
+                            "ru": "Инфо",
+                            "pt": "Info",
+                            "nl": "Info",
+                            "fr": "Info",
+                            "it": "Info",
+                            "es": "Info",
+                            "pl": "Info",
+                            "uk": "Інфо",
+                            "zh-cn": "信息"
+                        }
+                    }
+                ]
+            },
+            "showSince": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Since",
+                    "de": "Seit",
+                    "ru": "С",
+                    "pt": "Desde",
+                    "nl": "Sinds",
+                    "fr": "Depuis",
+                    "it": "Dal",
+                    "es": "Desde",
+                    "pl": "Od",
+                    "uk": "З",
+                    "zh-cn": "起始"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "showMessageValue": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Value",
+                    "de": "Wert",
+                    "ru": "Значение",
+                    "pt": "Valor",
+                    "nl": "Waarde",
+                    "fr": "Valeur",
+                    "it": "Valore",
+                    "es": "Valor",
+                    "pl": "Wartość",
+                    "uk": "Значення",
+                    "zh-cn": "值"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "showCount": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Count",
+                    "de": "Anzahl",
+                    "ru": "Количество",
+                    "pt": "Contagem",
+                    "nl": "Aantal",
+                    "fr": "Nombre",
+                    "it": "Numero",
+                    "es": "Cantidad",
+                    "pl": "Liczba",
+                    "uk": "Кількість",
+                    "zh-cn": "数量"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "showGroup": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Group",
+                    "de": "Gruppe",
+                    "ru": "Группа",
+                    "pt": "Grupo",
+                    "nl": "Groep",
+                    "fr": "Groupe",
+                    "it": "Gruppo",
+                    "es": "Grupo",
+                    "pl": "Grupa",
+                    "uk": "Група",
+                    "zh-cn": "分组"
+                },
+                "hidden": "data.show === \"events\" || data.show === \"journal\""
+            },
+            "eventsHeader": {
+                "type": "header",
+                "text": {
+                    "en": "Events",
+                    "de": "Ereignisse",
+                    "ru": "События",
+                    "pt": "Eventos",
+                    "nl": "Gebeurtenissen",
+                    "fr": "Événements",
+                    "it": "Eventi",
+                    "es": "Eventos",
+                    "pl": "Zdarzenia",
+                    "uk": "Події",
+                    "zh-cn": "事件"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "maxEvents": {
+                "type": "number",
+                "min": 0,
+                "default": 0,
+                "label": {
+                    "en": "Max. rows",
+                    "de": "Max. Zeilen",
+                    "ru": "Макс. строк",
+                    "pt": "Máx. linhas",
+                    "nl": "Max. rijen",
+                    "fr": "Nb max. de lignes",
+                    "it": "Righe max.",
+                    "es": "Máx. filas",
+                    "pl": "Maks. wierszy",
+                    "uk": "Макс. рядків",
+                    "zh-cn": "最大行数"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "filterById": {
+                "type": "text",
+                "label": {
+                    "en": "Filter IDs",
+                    "de": "Filter-IDs",
+                    "ru": "Идентификаторы фильтра",
+                    "pt": "IDs de filtro",
+                    "nl": "Filter-ID's",
+                    "fr": "ID de filtre",
+                    "it": "ID filtro",
+                    "es": "ID de filtro",
+                    "pl": "Filtruj identyfikatory",
+                    "uk": "Фільтр ID",
+                    "zh-cn": "过滤器ID"
+                },
+                "help": {
+                    "en": "You can provide multiple IDs divided by comma.",
+                    "de": "Sie können mehrere durch Komma getrennte IDs angeben.",
+                    "ru": "Вы можете указать несколько идентификаторов, разделенных запятыми.",
+                    "pt": "Você pode fornecer vários IDs divididos por vírgula.",
+                    "nl": "U kunt meerdere ID's opgeven, gescheiden door komma's.",
+                    "fr": "Vous pouvez fournir plusieurs ID séparés par une virgule.",
+                    "it": "Puoi fornire più ID divisi da virgole.",
+                    "es": "Puede proporcionar varios ID divididos por comas.",
+                    "pl": "Możesz podać wiele identyfikatorów rozdzielonych przecinkami.",
+                    "uk": "Можна вказати кілька ID через кому.",
+                    "zh-cn": "您可以提供多个ID，以逗号分隔。"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "showTime": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Time",
+                    "de": "Zeit",
+                    "ru": "Время",
+                    "pt": "Tempo",
+                    "nl": "Tijd",
+                    "fr": "Temps",
+                    "it": "Tempo",
+                    "es": "Hora",
+                    "pl": "Czas",
+                    "uk": "Час",
+                    "zh-cn": "时间"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "showValue": {
+                "type": "checkbox",
+                "default": true,
+                "label": {
+                    "en": "Value",
+                    "de": "Wert",
+                    "ru": "Значение",
+                    "pt": "Valor",
+                    "nl": "Waarde",
+                    "fr": "Valeur",
+                    "it": "Valore",
+                    "es": "Valor",
+                    "pl": "Wartość",
+                    "uk": "Значення",
+                    "zh-cn": "值"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "showDuration": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Duration",
+                    "de": "Dauer",
+                    "ru": "Продолжительность",
+                    "pt": "Duração",
+                    "nl": "Looptijd",
+                    "fr": "Durée",
+                    "it": "Durata",
+                    "es": "Duración",
+                    "pl": "Trwanie",
+                    "uk": "Тривалість",
+                    "zh-cn": "持续时间"
+                },
+                "hidden": "data.show === \"messages\" || data.show === \"journal\""
+            },
+            "journalHeader": {
+                "type": "header",
+                "text": {
+                    "en": "Journal",
+                    "de": "Journal",
+                    "ru": "Журнал",
+                    "pt": "Diário",
+                    "nl": "Journaal",
+                    "fr": "Journal",
+                    "it": "Giornale",
+                    "es": "Diario",
+                    "pl": "Dziennik",
+                    "uk": "Журнал",
+                    "zh-cn": "日志"
+                }
+            },
+            "showJournal": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Show the journal",
+                    "de": "Journal anzeigen",
+                    "ru": "Показывать журнал",
+                    "pt": "Mostrar o diário",
+                    "nl": "Journaal tonen",
+                    "fr": "Afficher le journal",
+                    "it": "Mostra il giornale",
+                    "es": "Mostrar el diario",
+                    "pl": "Pokaż dziennik",
+                    "uk": "Показувати журнал",
+                    "zh-cn": "显示日志"
+                },
+                "help": {
+                    "en": "One line per alarm cycle: when it came, when it was acknowledged and when it went",
+                    "de": "Eine Zeile je Alarmzyklus: wann er kam, wann er quittiert wurde und wann er ging",
+                    "ru": "Одна строка на цикл аварии: когда пришла, когда квитирована и когда ушла",
+                    "pt": "Uma linha por ciclo de alarme: quando chegou, foi confirmado e desapareceu",
+                    "nl": "Eén regel per alarmcyclus: wanneer het kwam, bevestigd werd en ging",
+                    "fr": "Une ligne par cycle d'alarme : quand elle est apparue, acquittée et disparue",
+                    "it": "Una riga per ciclo di allarme: quando è arrivato, confermato e scomparso",
+                    "es": "Una línea por ciclo de alarma: cuándo llegó, se confirmó y desapareció",
+                    "pl": "Jeden wiersz na cykl alarmu: kiedy się pojawił, został potwierdzony i ustąpił",
+                    "uk": "Один рядок на цикл аварії: коли прийшла, коли квитована і коли зникла",
+                    "zh-cn": "每个报警周期一行：何时到来、何时确认、何时消失"
+                },
+                "hidden": "data.show === \"journal\""
+            },
+            "maxJournal": {
+                "type": "number",
+                "min": 0,
+                "default": 20,
+                "label": {
+                    "en": "Max. rows",
+                    "de": "Max. Zeilen",
+                    "ru": "Макс. строк",
+                    "pt": "Máx. linhas",
+                    "nl": "Max. rijen",
+                    "fr": "Nb max. de lignes",
+                    "it": "Righe max.",
+                    "es": "Máx. filas",
+                    "pl": "Maks. wierszy",
+                    "uk": "Макс. рядків",
+                    "zh-cn": "最大行数"
+                },
+                "hidden": "!data.showJournal && data.show !== \"journal\""
+            },
+            "journalArchive": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "With the archived months",
+                    "de": "Mit den archivierten Monaten",
+                    "ru": "С архивными месяцами",
+                    "pt": "Com os meses arquivados",
+                    "nl": "Met de gearchiveerde maanden",
+                    "fr": "Avec les mois archivés",
+                    "it": "Con i mesi archiviati",
+                    "es": "Con los meses archivados",
+                    "pl": "Z zarchiwizowanymi miesiącami",
+                    "uk": "З архівними місяцями",
+                    "zh-cn": "包含归档月份"
+                },
+                "help": {
+                    "en": "Reads the monthly files of the adapter as well, so the journal reaches further back than the state does",
+                    "de": "Liest auch die Monatsdateien des Adapters, damit das Journal weiter zurückreicht als der Zustand",
+                    "ru": "Также читает месячные файлы адаптера, чтобы журнал охватывал больше, чем состояние",
+                    "pt": "Lê também os ficheiros mensais do adaptador, para que o diário vá mais atrás do que o estado",
+                    "nl": "Leest ook de maandbestanden van de adapter, zodat het journaal verder terugreikt dan de state",
+                    "fr": "Lit aussi les fichiers mensuels de l'adaptateur, pour que le journal remonte plus loin que l'état",
+                    "it": "Legge anche i file mensili dell'adattatore, così il giornale risale più indietro dello stato",
+                    "es": "Lee también los archivos mensuales del adaptador, para que el diario llegue más atrás que el estado",
+                    "pl": "Czyta również pliki miesięczne adaptera, dzięki czemu dziennik sięga dalej wstecz niż stan",
+                    "uk": "Читає також місячні файли адаптера, щоб журнал сягав далі, ніж стан",
+                    "zh-cn": "同时读取适配器的月度文件，使日志比状态记录得更久"
+                },
+                "hidden": "!data.showJournal && data.show !== \"journal\""
+            },
+            "allowExport": {
+                "type": "checkbox",
+                "default": false,
+                "label": {
+                    "en": "Allow the CSV export",
+                    "de": "CSV-Export erlauben",
+                    "ru": "Разрешить экспорт в CSV",
+                    "pt": "Permitir a exportação CSV",
+                    "nl": "CSV-export toestaan",
+                    "fr": "Autoriser l'export CSV",
+                    "it": "Consenti l'esportazione CSV",
+                    "es": "Permitir la exportación CSV",
+                    "pl": "Zezwól na eksport CSV",
+                    "uk": "Дозволити експорт у CSV",
+                    "zh-cn": "允许导出 CSV"
+                },
+                "help": {
+                    "en": "Shows a button above the journal that saves what is shown as a CSV file",
+                    "de": "Zeigt über dem Journal einen Knopf, der das Angezeigte als CSV-Datei speichert",
+                    "ru": "Показывает над журналом кнопку, которая сохраняет показанное в CSV-файл",
+                    "pt": "Mostra sobre o diário um botão que guarda o que é mostrado num ficheiro CSV",
+                    "nl": "Toont boven het journaal een knop die het getoonde als CSV-bestand opslaat",
+                    "fr": "Affiche au-dessus du journal un bouton qui enregistre ce qui est affiché dans un fichier CSV",
+                    "it": "Mostra sopra il giornale un pulsante che salva ciò che è mostrato in un file CSV",
+                    "es": "Muestra sobre el diario un botón que guarda lo mostrado en un archivo CSV",
+                    "pl": "Pokazuje nad dziennikiem przycisk, który zapisuje wyświetlane dane do pliku CSV",
+                    "uk": "Показує над журналом кнопку, яка зберігає показане у файл CSV",
+                    "zh-cn": "在日志上方显示一个按钮，将显示的内容保存为 CSV 文件"
+                },
+                "hidden": "!data.showJournal && data.show !== \"journal\""
+            }
+        }
+    }
+}
