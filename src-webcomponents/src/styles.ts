@@ -104,12 +104,14 @@ tbody tr:nth-child(even) {
     width: 6.5em;
 }
 .c-state {
-    width: 3em;
+    width: 4.5em;
 }
 .c-cycle {
     width: 7em;
 }
-.c-since,
+.c-since {
+    width: 8em;
+}
 .c-mvalue,
 .c-group {
     width: 6em;
