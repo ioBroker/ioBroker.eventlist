@@ -279,10 +279,94 @@
             ]
         },
         "webComponents": [
-            "webcomponents/eventlist-events.json",
-            "webcomponents/eventlist-last-event.json",
-            "webcomponents/eventlist-alarms.json",
-            "webcomponents/eventlist-pdf.json"
+            {
+                "manifest": "webcomponents/eventlist-events.json",
+                "tag": "iob-eventlist-events",
+                "name": {
+                    "en": "Events",
+                    "de": "Ereignisse",
+                    "ru": "События",
+                    "pt": "Eventos",
+                    "nl": "Gebeurtenissen",
+                    "fr": "Événements",
+                    "it": "Eventi",
+                    "es": "Eventos",
+                    "pl": "Zdarzenia",
+                    "uk": "Події",
+                    "zh-cn": "事件"
+                },
+                "icon": "../eventlist.png",
+                "size": {
+                    "width": 400,
+                    "height": 300
+                }
+            },
+            {
+                "manifest": "webcomponents/eventlist-last-event.json",
+                "tag": "iob-eventlist-last-event",
+                "name": {
+                    "en": "Last event",
+                    "de": "Letztes Ereignis",
+                    "ru": "Последнее событие",
+                    "pt": "Último evento",
+                    "nl": "Laatste gebeurtenis",
+                    "fr": "Dernier événement",
+                    "it": "Ultimo evento",
+                    "es": "Último evento",
+                    "pl": "Ostatnie zdarzenie",
+                    "uk": "Остання подія",
+                    "zh-cn": "最后事件"
+                },
+                "icon": "../eventlist.png",
+                "size": {
+                    "width": 300,
+                    "height": 150
+                }
+            },
+            {
+                "manifest": "webcomponents/eventlist-alarms.json",
+                "tag": "iob-eventlist-alarms",
+                "name": {
+                    "en": "Alarms",
+                    "de": "Alarme",
+                    "ru": "Аварии",
+                    "pt": "Alarmes",
+                    "nl": "Alarmen",
+                    "fr": "Alarmes",
+                    "it": "Allarmi",
+                    "es": "Alarmas",
+                    "pl": "Alarmy",
+                    "uk": "Аварії",
+                    "zh-cn": "报警"
+                },
+                "icon": "../eventlist.png",
+                "size": {
+                    "width": 400,
+                    "height": 300
+                }
+            },
+            {
+                "manifest": "webcomponents/eventlist-pdf.json",
+                "tag": "iob-eventlist-pdf",
+                "name": {
+                    "en": "PDF",
+                    "de": "PDF",
+                    "ru": "PDF",
+                    "pt": "PDF",
+                    "nl": "PDF",
+                    "fr": "PDF",
+                    "it": "PDF",
+                    "es": "PDF",
+                    "pl": "PDF",
+                    "uk": "PDF",
+                    "zh-cn": "PDF"
+                },
+                "icon": "../eventlist.png",
+                "size": {
+                    "width": 200,
+                    "height": 100
+                }
+            }
         ],
         "supportedMessages": {}
     },

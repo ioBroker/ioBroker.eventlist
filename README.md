@@ -546,6 +546,7 @@ The generated report will be stored for instance 0 in `eventlist/report.pdf`, bu
 * (@GermanBluefox) Fixed: a click into the first rows of the event list opened the dialog of a toolbar button instead of selecting the row. The text of the button had a line box of 336 pixels and hung invisibly over the table
 * (@GermanBluefox) Fixed the alarm mode, that was switched off by every restart
 * (@GermanBluefox) Added web components for Aura and other hosts (`common.webComponents`): `<iob-eventlist-events>`, `<iob-eventlist-last-event>`, `<iob-eventlist-alarms>` and `<iob-eventlist-pdf>`
+* (@GermanBluefox) Added the short form of the web component manifests (tag, name, icon, size) to `common.webComponents`, so that hosts like Aura can list the components before the adapter is installed; the build writes it with `iob-web-components sync-io-package`
 
 ### 3.0.0 (2026-09-04)
 * (@GermanBluefox) Updated packages
